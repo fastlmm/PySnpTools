@@ -406,7 +406,7 @@ class SnpReader(PstReader):
         raise NotImplementedError
     
     #!!check that views always return contiguous memory by default
-    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False):
+    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False, out_buffer=None):
         """Reads the SNP values and returns a :class:`.SnpData` (with :attr:`.SnpData.val` property containing a new ndarray of the SNP values).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
@@ -452,7 +452,7 @@ class SnpReader(PstReader):
         >>> import numpy as np
         >>> # print np.may_share_memory(subset_snpdata.val, subsub_snpdata.val) # Do the two ndarray's share memory? They could. Currently they won't.       
         """
-        val = self._read(None, None, order, dtype, force_python_only, view_ok)
+        val = self._read(None, None, order, dtype, force_python_only, view_ok, out_buffer)
         from snpdata import SnpData
         ret = SnpData(self.iid,self.sid,val,pos=self.pos,name=str(self))
         return ret
@@ -662,20 +662,59 @@ class SnpReader(PstReader):
 
 
     @staticmethod
-    def _read_map_or_bim( basefilename, remove_suffix, add_suffix):
+    def _read_map_or_bim( basefilename, remove_suffix, add_suffix, max_filesize=None, sid_count=None, recompute=False):
         mapfile = SnpReader._name_of_other_file(basefilename, remove_suffix, add_suffix)
 
         logging.info("Loading {0} file {1}".format(add_suffix, mapfile))
-        if os.path.getsize(mapfile) == 0: #If the map/bim file is empty, return empty arrays
+        filesize = os.path.getsize(mapfile)
+        if filesize == 0: #If the map/bim file is empty, return empty arrays
             sid = np.array([],dtype='str')
             pos = np.array([[]],dtype=int).reshape(0,3)
             return sid,pos
+        elif (max_filesize is not None) and (filesize > max_filesize):
+            sidfile = "%s.sid" % basefilename
+            posfile = "%s.pos" % basefilename
+
+            logging.info("Memory mapping {0} file {1}".format(add_suffix, mapfile))
+            if sid_count is None:
+                logging.info("Counting lines in {0} file {1}".format(add_suffix, mapfile))
+                sid_count = file_len(mapfile)
+            if recompute or (not os.path.exists(sidfile)) or (not os.path.exists(mapfile)):        
+                sid = np.memmap(sidfile, dtype="|S20", mode= "w+", shape=(sid_count))
+                pos = np.memmap(posfile, dtype="|S10", mode= "w+", shape=(sid_count,3))
+                with open(mapfile) as f:
+                    for i, l in enumerate(f):
+                        line = l.split("\t")
+                        sid[i] = line[1]
+                        pos[i,0] = line[0]
+                        pos[i,1:3] = line[2:4]
+            sid = np.memmap(sidfile, dtype="|S20", mode= "r", shape=(sid_count))    
+            pos = np.memmap(posfile, dtype="|S10", mode= "r", shape=(sid_count,3))
+            return sid, pos
         else:
-            fields = pd.read_csv(mapfile,delimiter = '\t',usecols = (0,1,2,3),header=None,index_col=False,comment=None)
-            sid = np.array(fields[1].tolist(),dtype='str')
+            fields = pd.read_csv(mapfile, delimiter = '\t',usecols = (0,1,2,3),header=None,index_col=False,comment=None)
+            sid = np.array(fields[1].tolist(), dtype='str')
             pos = fields.as_matrix([0,2,3])
             return sid,pos
 
+
+def file_len(fname):
+    with open(fname) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
+
+def cpra_len(fname):
+    max_len = 0
+    min_len = 10000000000
+    with open(fname) as f:
+        for i, l in enumerate(f):
+            ss = l.split("\t")
+            if min_len > len(ss[1]):
+                min_len = len(ss[1])
+            if max_len < len(ss[1]):
+                max_len = len(ss[1])
+    return min_len, max_len
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
