@@ -24,10 +24,10 @@ from pysnptools.util import IntRangeSet
 geneset = IntRangeSet()
 for start,stop in region_gen(scale=.1):
     geneset |= (start,stop)
-print geneset
-print geneset.ranges_len
+print(geneset)
+print(geneset.ranges_len)
 
-print "done"
+print("done")
 
 
 
@@ -39,15 +39,15 @@ from pysnptools.snpreader import Bed
 snpreader = Bed("all.bed")
 
 # What is snpreader?
-print snpreader
+print(snpreader)
 # Bed("all.bed")
 
 
 # Find out about iids and sids
-print snpreader.iid_count
-print snpreader.sid_count
-print snpreader.iid[:3]
-print snpreader.sid[:3]
+print(snpreader.iid_count)
+print(snpreader.sid_count)
+print(snpreader.iid[:3])
+print(snpreader.sid[:3])
 #500
 #5000
 #[['cid0P0' 'cid0P0']
@@ -61,13 +61,13 @@ snpdata = snpreader.read()
 # SnpData(Bed("all.bed"))
 
 #What do the iids and sid of snprdata look like?
-print snpdata.iid_count, snpdata.sid_count
-print snpdata.iid[:3]
-print snpdata.sid[:3]
+print(snpdata.iid_count, snpdata.sid_count)
+print(snpdata.iid[:3])
+print(snpdata.sid[:3])
 # The same.
 
 # print the SNP data
-print snpdata.val
+print(snpdata.val)
 #[[ 2.  2.  1. ...,  2.  1.  2.]
 # [ 2.  2.  1. ...,  2.  0.  2.]
 # [ 2.  2.  1. ...,  1.  1.  1.]
@@ -77,16 +77,16 @@ print snpdata.val
 # [ 2.  2.  2. ...,  2.  0.  2.]]
 
 # snpdata.val is a NumPy array. Can apply any np functions
-print np.mean(snpdata.val)
+print(np.mean(snpdata.val))
 #1.478588
 
 #If all you want is to read data in a Numpy array, here it is one line:
-print np.mean(Bed("all.bed").read().val)
+print(np.mean(Bed("all.bed").read().val))
 
 #You can also create a SnpData object from scratch (without reading from a SnpReader)
 from pysnptools.snpreader import SnpData
 snpdata1 = SnpData(iid=[['f1','c1'],['f1','c2'],['f2','c1']],sid=['snp1','snp2'],val=[[0,1],[2,.5],[.5,np.nan]])
-print np.nanmean(snpdata1.val)
+print(np.nanmean(snpdata1.val))
 # 0.8
 
 
@@ -98,14 +98,14 @@ print np.nanmean(snpdata1.val)
 #Reading just one snp
 snpreader = Bed("all.bed")
 snp0reader = snpreader[:,0]
-print snp0reader, snp0reader.iid_count, snp0reader.sid_count, snp0reader.sid
+print(snp0reader, snp0reader.iid_count, snp0reader.sid_count, snp0reader.sid)
 # Bed('all.bed')[:,0] 500 1 ['snp625_m0_.03m1_.07']
-print snpreader
+print(snpreader)
 # Bed("all.bed")
-snp0data = snp0reader.read()
-print snp0data, snp0data.iid_count, snp0data.sid_count, snp0data.sid
+snp0data = snp0reader.read())
+print(snp0data, snp0data.iid_count, snp0data.sid_count, snp0data.sid)
 #SnpData(Bed('all.bed')[:,0]) 500 1 ['snp625_m0_.03m1_.07']
-print snp0data.val
+print(snp0data.val)
 #[[ 2.]
 # [ 2.]
 # [ 2.]
@@ -117,19 +117,19 @@ print snp0data.val
 #....]]
 
 # print the data for iid #9
-print Bed("all.bed")[9,:].read().val
+print(Bed("all.bed")[9,:].read().val)
 # [[ 2.  2.  1. ...,  1.  2.  1.]]
 
 # Read the data for the first 5 iids AND the first 5 sids:
 snp55data = Bed("all.bed")[:5,:5].read()
-print snp55data, snp55data.iid_count, snp55data.iid, snp55data.sid_count, snp55data.sid
+print(snp55data, snp55data.iid_count, snp55data.iid, snp55data.sid_count, snp55data.sid)
 #SnpData(Bed('all.bed')[:5,:5]) 5 [['cid0P0' 'cid0P0']
 # ['cid1P0' 'cid1P0']
 # ['cid2P0' 'cid2P0']
 # ['cid3P0' 'cid3P0']
 # ['cid4P0' 'cid4P0']] 5 ['snp625_m0_.03m1_.07' 'snp1750_m0_.02m1_.04' 'snp0_m0_.37m1_.24'
 # 'snp375_m0_.52m1_.68' 'snp1125_m0_.26m1_.27']
-print snp55data.val
+print(snp55data.val)
 #[[ 2.  2.  1.  0.  2.]
 # [ 2.  2.  1.  1.  2.]
 # [ 2.  2.  1.  0.  1.]
@@ -142,13 +142,13 @@ snpreaderB = snpreaderA[:,:250] #read first sids
 snpreaderC = snpreaderB[:10,:] # reader first 10 iids
 # recall NumPy slice notation:   start:stop:step, so ::2 is every other
 snpreaderD = snpreaderC[::2,::2]
-print snpreaderD, snpreaderD.iid_count, snpreaderD.iid, snpreaderD.sid_count
+print(snpreaderD, snpreaderD.iid_count, snpreaderD.iid, snpreaderD.sid_coun)
 #Bed('all.bed')[:,:250][:10,:][::2,::2] 5 [['cid0P0' 'cid0P0']
 # ['cid2P0' 'cid2P0']
 # ['cid4P0' 'cid4P0']
 # ['cid6P0' 'cid6P0']
 # ['cid8P0' 'cid8P0']] 125
-print snpreaderD.read().val
+print(snpreaderD.read().val)
 #[[ 2.  1.  2.  0.  1....
 #   2.  2.  2.  1.  1.
 #   2.  1.  1.  0.  1.
@@ -167,7 +167,7 @@ print snpreaderD.read().val
 
 # List of indexes (can use to reorder)
 snpdata43210 = Bed("all.bed")[[4,3,2,1,0],:].read()
-print snpdata43210.iid
+print(snpdata43210.iid)
 #[['cid4P0' 'cid4P0']
 # ['cid3P0' 'cid3P0']
 # ['cid2P0' 'cid2P0']
@@ -175,28 +175,28 @@ print snpdata43210.iid
 # ['cid0P0' 'cid0P0']]
 # List of booleans to select
 snpdata43210B = snpdata43210[[False,True,True,False,False],:]
-print  snpdata43210B, snpdata43210B.iid
+print(snpdata43210B, snpdata43210B.iid)
 #SnpData(Bed('all.bed')[[4,3,2,1,0],:])[[1,2],:] [['cid3P0' 'cid3P0']
 # ['cid2P0' 'cid2P0']]
 
 #Question: Does snpdata43210B have a val property?
 #Answer: No. It's a subset of a SnpData, so it reads from a SnpData, but it is not a SnpData.
 #Use .read() to get its values
-print snpdata43210B.read(view_ok=True)
+print(snpdata43210B.read(view_ok=True))
 
 #Negatives -- missing some support
 # 'start','stop': negative means counting from the end
 # 'step': negative means count backwards
-print range(10)
+print(range(10))
 #[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-print range(10)[-4:]
+print(range(10)[-4:])
 # [6, 7, 8, 9]
-print range(10)[::-1]
+print(range(10)[::-1])
 #[9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
-print range(10)[-2:-7:-2]
+print(range(10)[-2:-7:-2])
 # [8, 6, 4]
 
-print Bed("all.bed")[::-10,:].iid #Slices work
+print(Bed("all.bed")[::-10,:].iid) #Slices work
 #[['cid499P1' 'cid499P1']
 # ['cid489P1' 'cid489P1']
 # ['cid479P1' 'cid479P1']
@@ -220,7 +220,7 @@ print Bed("all.bed")[::-10,:].iid #Slices work
 #Topic more properties and attributes of SnpReaders
 
 #read() supports both memory layouts and 8 byte or 4 byte floats
-print Bed("all.bed").read().val.flags
+print(Bed("all.bed").read().val.flags)
   #C_CONTIGUOUS : False
   #F_CONTIGUOUS : True
   #OWNDATA : True
@@ -228,9 +228,9 @@ print Bed("all.bed").read().val.flags
   #ALIGNED : True
   #UPDATEIFCOPY : False
 snpdata32c = Bed("all.bed").read(order='C',dtype=np.float32)
-print snpdata32c.val.dtype
+print(snpdata32c.val.dtype)
 #float32
-print snpdata32c.val.flags
+print(snpdata32c.val.flags)
   #C_CONTIGUOUS : True
   #F_CONTIGUOUS : False
   #OWNDATA : True
@@ -239,7 +239,7 @@ print snpdata32c.val.flags
   #UPDATEIFCOPY : False
 
 # Every reader includes an array of SNP properties called ".pos"
-print Bed("all.bed").pos
+print(Bed("all.bed").pos)
 #[[   1    0    0]
 # [   1    1    1]
 # [   1    2    2]
@@ -254,13 +254,13 @@ print Bed("all.bed").pos
 # So, using Python fancy indexing, how to we read all SNPs at Chrom 5?
 snpreader = Bed("all.bed")
 chr5_bools = (snpreader.pos[:,0] == 5)
-print chr5_bools
+print(chr5_bools)
 # array([False, False, False, ...,  True,  True,  True], dtype=bool)
 chr5reader = snpreader[:,chr5_bools]
-print chr5reader
+print(chr5reader)
 #Bed('all.bed')[:,[4000,4001,4002,4003,4004,4005,4006,4007,4008,4009,...]]
 chr5data = chr5reader.read()
-print chr5data.pos
+print(chr5data.pos)
 #[[   5 4000 4000]
 # [   5 4001 4001]
 # [   5 4002 4002]
@@ -278,10 +278,10 @@ iid0 =[['cid499P1','cid499P1'],
       ['cid489P1','cid489P1'],
       ['cid479P1','cid479P1']]
 indexes0 = snpreader.iid_to_index(iid0)
-print indexes0
+print(indexes0)
 #array([499, 489, 479])
 snpreader0 = snpreader[indexes0,:]
-print snpreader0.iid
+print(snpreader0.iid)
 #[['cid499P1' 'cid499P1']
 # ['cid489P1' 'cid489P1']
 # ['cid479P1' 'cid479P1']]
@@ -291,7 +291,7 @@ snpreader0 = snpreader[snpreader.iid_to_index(iid0),:]
 
 #both a once
 snpdata0chr5 = snpreader[snpreader.iid_to_index(iid0),snpreader.pos[:,0] == 5].read()
-print np.mean(snpdata0chr5.val)
+print(np.mean(snpdata0chr5.val))
 # 1.493
 
 #Summary:
@@ -314,10 +314,10 @@ print np.mean(snpdata0chr5.val)
 
 from pysnptools.snpreader import Pheno
 phenoreader = Pheno("pheno_10_causals.txt")
-print phenoreader, phenoreader.iid_count, phenoreader.sid_count, phenoreader.sid, phenoreader.pos
+print(henoreader, phenoreader.iid_count, phenoreader.sid_count, phenoreader.sid, phenoreader.pos)
 #Pheno('pheno_10_causals.txt') 500 1 ['pheno0'] [[ nan  nan  nan]]
 phenodata = phenoreader.read()
-print phenodata.val
+print(phenodata.val)
 #[[  4.85339514e-01]
 # [ -2.07698457e-01]
 # [  1.49090841e+00]
@@ -354,7 +354,7 @@ SnpHdf5.write("deleteme1010.snp.hdf5", snpdata1010)
 #What if we have two data sources with slightly different iids in different order?
 snpreader = Bed("all.bed")
 phenoreader = Pheno("pheno_10_causals.txt")[::-2,:]
-print snpreader.iid_count, phenoreader.iid_count, snpreader.iid, phenoreader.iid
+print(snpreader.iid_count, phenoreader.iid_count, snpreader.iid, phenoreader.iid)
 #Create an intersecting and reordering reader with
 import pysnptools.util as pstutil
 snpreader_i,phenoreader_i  = pstutil.intersect_apply([snpreader,phenoreader])
@@ -390,7 +390,7 @@ plt.plot(phenodata_u.val, predicted_u, '.', markersize=10)
 snpreader = Bed("all.bed")
 snpdata = snpreader.read()
 snpdata = snpdata.standardize() #In place AND returns self
-print snpdata.val
+print(snpdata.val)
 #[[ 0.30156099  0.2481353  -0.50673344 ...,  0.92208184 -0.1266665   0.55601103]
 # [ 0.30156099  0.2481353  -0.50673344 ...,  0.92208184 -1.5034763   0.55601103]
 #...
@@ -401,7 +401,7 @@ snpdata = Bed("all.bed").read().standardize()
 # Beta standardization
 from pysnptools.standardizer import Beta
 snpdataB = Bed("all.bed").read().standardize(Beta(1,25))
-print snpdataB.val
+print(snpdataB.val)
 #[[  7.40112054e-01   7.15532756e-01  -5.02003205e-04 ...,   4.40649336e-03   -1.13331663e-06   1.87525732e-01]
 # [  7.40112054e-01   7.15532756e-01  -5.02003205e-04 ...,   4.40649336e-03   -1.34519756e-05   1.87525732e-01]
 # ...
@@ -409,7 +409,7 @@ print snpdataB.val
 # To create an kernel (the relateness of each iid pair as the dot product of their standardized SNP values)
 from pysnptools.standardizer import Unit
 kerneldata = Bed("all.bed").read_kernel(standardizer=Unit())
-print kerneldata.val
+print(kerneldata.val)
 #array([[ 5081.6121922 ,   253.32922313,   165.9842232 , ...,  -130.76998392,  -298.66392286,  -287.66887036],
 #       [  253.32922313,  5061.87849635,   384.04149913, ...,  -334.33599388,  -127.02308706,  -291.41483161]
 #
@@ -431,4 +431,4 @@ kerneldata = Bed("all.bed").read_kernel(standardizer=Unit(),block_size=500)
 #     Requires a standardizer. Use Identity() for none
 
 
-print "done!"
+print("done!")

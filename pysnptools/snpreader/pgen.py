@@ -190,7 +190,7 @@ if __name__ == "__main__":
         t1 = time.time()
         diff = t1 - t0
 
-        print "time unbuffered: ", diff
+        print("time unbuffered: ", diff)
 
         t0_ = time.time()
         start = 0
@@ -202,6 +202,6 @@ if __name__ == "__main__":
             ll = reader[:,start:stop].read(out_buffer=val)
         t1_ = time.time()
         diff_ = t1_- t0_
-        print "time   buffered: ", diff_
+        print("time   buffered: ", diff_)
 
-        print l.val
+        print(l.val)

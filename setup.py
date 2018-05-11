@@ -7,7 +7,7 @@ from distutils.command.clean import clean as Clean
 import numpy
 
 # Version number
-version = '0.3.13'
+version = '0.3.14'
 
 def readme():
     with open('README.md') as f:
@@ -38,7 +38,7 @@ class CleanCommand(Clean):
                     or filename.endswith('.pyc')
                                 ):
                     tmp_fn = os.path.join(dirpath, filename)
-                    print "removing", tmp_fn
+                    print("removing", tmp_fn)
                     os.unlink(tmp_fn)
 
 # set up macro
@@ -94,7 +94,7 @@ class CleanCommand(Clean):
                     or filename.endswith('.pyc')
                                 ):
                     tmp_fn = os.path.join(dirpath, filename)
-                    print "removing", tmp_fn
+                    print("removing", tmp_fn)
                     os.unlink(tmp_fn)
 
 #python setup.py sdist bdist_wininst upload
