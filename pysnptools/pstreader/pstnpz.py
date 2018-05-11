@@ -3,8 +3,8 @@ import subprocess, sys, os.path
 from itertools import *
 import pandas as pd
 import logging
-from pstreader import PstReader
-from pstdata import PstData
+from pysnptools.pstreader.pstreader import PstReader
+from pysnptools.pstreader.pstdata import PstData
 import pysnptools.util as pstutil
 import warnings
 
@@ -135,44 +135,44 @@ if __name__ == "__main__":
 
     snpreader = Dat(r'../tests/datasets/all_chr.maf0.001.N300.dat')
     snp_matrix = snpreader.read()
-    print len(snp_matrix['sid'])
+    print(len(snp_matrix['sid']))
     snp_matrix = snpreader[:,:].read()
-    print len(snp_matrix['sid'])
+    print(len(snp_matrix['sid']))
     sid_index_list = snpreader.sid_to_index(['23_9','23_2'])
     snp_matrix = snpreader[:,sid_index_list].read()
-    print ",".join(snp_matrix['sid'])
+    print(",".join(snp_matrix['sid']))
     snp_matrix = snpreader[:,0:10].read()
-    print ",".join(snp_matrix['sid'])
+    print(",".join(snp_matrix['sid']))
 
-    print snpreader.iid_count
-    print snpreader.sid_count
-    print len(snpreader.pos)
+    print(snpreader.iid_count)
+    print(snpreader.sid_count)
+    print(len(snpreader.pos))
 
     snpreader2 = snpreader[::-1,4]
-    print snpreader.iid_count
-    print snpreader2.sid_count
-    print len(snpreader2.pos)
+    print(snpreader.iid_count)
+    print(snpreader2.sid_count)
+    print(len(snpreader2.pos))
 
     snp_matrix = snpreader2.read()
-    print len(snp_matrix['iid'])
-    print len(snp_matrix['sid'])
+    print(len(snp_matrix['iid']))
+    print(len(snp_matrix['sid']))
 
     snp_matrix = snpreader2[5,:].read()
-    print len(snp_matrix['iid'])
-    print len(snp_matrix['sid'])
+    print(len(snp_matrix['iid']))
+    print(len(snp_matrix['sid']))
 
     iid_index_list = snpreader2.iid_to_index(snpreader2.iid[::2])
     snp_matrix = snpreader2[iid_index_list,::3].read()
-    print len(snp_matrix['iid'])
-    print len(snp_matrix['sid'])
+    print(len(snp_matrix['iid']))
+    print(len(snp_matrix['sid']))
 
     snp_matrix = snpreader[[4,5],:].read()
-    print len(snp_matrix['iid'])
-    print len(snp_matrix['sid'])
+    print(len(snp_matrix['iid']))
+    print(len(snp_matrix['sid']))
 
-    print snpreader2
-    print snpreader[::-1,4]
-    print snpreader2[iid_index_list,::3]
-    print snpreader[:,sid_index_list]
-    print snpreader2[5,:]
-    print snpreader[[4,5],:]
+    print(snpreader2)
+    print(snpreader[::-1,4])
+    print(snpreader2[iid_index_list,::3])
+    print(snpreader[:,sid_index_list])
+    print(snpreader2[5,:])
+    print(snpreader[[4,5],:])

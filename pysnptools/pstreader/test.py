@@ -29,7 +29,7 @@ class TestLoader(unittest.TestCase):
         pstdata2 = pstnpz.read(order='A')
         pstdata2.val.flags['F_CONTIGUOUS']
 
-        print "done"
+        print("done")
 
     def test_writes(self):
         #===================================

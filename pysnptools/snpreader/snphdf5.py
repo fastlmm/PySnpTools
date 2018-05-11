@@ -1,6 +1,6 @@
 import logging
 import scipy as np
-from snpreader import SnpReader
+from pysnptools.snpreader.snpreader import SnpReader
 from pysnptools.pstreader import PstHdf5
 import warnings
 

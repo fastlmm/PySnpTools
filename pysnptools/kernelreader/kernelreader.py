@@ -341,4 +341,4 @@ if __name__ == "__main__":
     import doctest
     doctest.testmod()
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test
-    print "done"
+    print("done")

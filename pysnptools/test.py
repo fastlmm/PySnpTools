@@ -66,7 +66,7 @@ class TestLoader(unittest.TestCase):
         tt4 = time.time()
         logging.info("read SnpHdf5 C with reversed indexes bed %.2f seconds" % (tt4 - tt3))
 
-        print "the end"
+        print("the end")
 
     @classmethod
     def setUpClass(self):

@@ -6,7 +6,7 @@ import pandas as pd
 import logging
 import time
 import pysnptools.util as pstutil
-from pysnptools.pstreader import PstReader
+from pysnptools.pstreader.pstreader import PstReader
 import warnings
 import pysnptools.standardizer as stdizer
         

@@ -3,7 +3,7 @@ import subprocess, sys, os.path
 from itertools import *
 import pandas as pd
 import logging
-from pstreader import PstReader
+from pysnptools.pstreader.pstreader import PstReader
 
 
 def _default_empty_creator(count):

@@ -364,7 +364,7 @@ def create_directory_if_necessary(name, isfile=True):
     if directory_name != "":
         try:
             os.makedirs(directory_name)
-        except OSError, e:
+        except OSError as e:
             if not os.path.isdir(directory_name):
                 raise Exception("not valid path: '{0}'. (Working directory is '{1}'".format(directory_name,os.getcwd()))
 

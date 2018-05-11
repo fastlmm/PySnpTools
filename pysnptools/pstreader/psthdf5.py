@@ -5,8 +5,8 @@ except:
 
 import logging
 import scipy as np
-from pstreader import PstReader
-from pstdata import PstData
+from pysnptools.pstreader.pstreader import PstReader
+from pysnptools.pstreader.pstdata import PstData
 import warnings
 
 class PstHdf5(PstReader):
@@ -82,7 +82,7 @@ class PstHdf5(PstReader):
             return
         try:
             self._h5 = h5py.File(self.filename, "r")
-        except IOError, e:
+        except IOError as e:
             raise IOError("Missing or unopenable file '{0}' -- Native error message: {1}".format(self.filename,e))
 
         row_key,col_key,val_key,row_property_key,col_property_key = self._find_vocab()

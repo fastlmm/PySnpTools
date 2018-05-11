@@ -1,7 +1,7 @@
 import numpy as np
 import logging
-from snpreader import SnpReader
-from snpdata import SnpData
+from pysnptools.snpreader.snpreader import SnpReader
+from pysnptools.snpreader.snpdata import SnpData
 import warnings
 from pysnptools.pstreader import PstData
 from pysnptools.pstreader import _OneShot

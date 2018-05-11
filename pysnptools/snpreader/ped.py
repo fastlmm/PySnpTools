@@ -3,8 +3,8 @@ import subprocess, sys, os.path
 from itertools import *
 import pandas as pd
 import logging
-from snpreader import SnpReader
-from snpdata import SnpData
+from pysnptools.snpreader.snpreader import SnpReader
+from pysnptools.snpreader.snpdata import SnpData
 import numpy as np
 import warnings
 from pysnptools.pstreader import _OneShot
