@@ -60,8 +60,8 @@ class _OneShot(PstReader):
 
     # Most _read's support only indexlists or None, but this one supports Slices, too.
     _read_accepts_slices = True
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, out_buffer):
         self.run_once()
-        val = self._data._read(row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok)
+        val = self._data._read(row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, out_buffer)
         return val
 

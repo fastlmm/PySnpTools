@@ -88,7 +88,7 @@ def loadPhen(filename, missing ='-9',famid='FID', sampid='ID'):
         iid = data[1:,0:2]
         valsStr = data[1:,2:]
     else:
-        header = [None] * (data.shape[1]-2) # create a header containing a list of None's
+        header = range(data.shape[1]-2) # create a header containing a list of None's
         iid = data[:,0:2]
         valsStr = data[:,2:]
 

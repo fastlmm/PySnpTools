@@ -54,21 +54,21 @@ class _PstSubset(PstReader):
 
     # Most _read's support only indexlists or None, but this one supports Slices, too.
     _read_accepts_slices = True
-    def _read(self, row_indexer, col_indexer, order, dtype, force_python_only, view_ok):
+    def _read(self, row_indexer, col_indexer, order, dtype, force_python_only, view_ok, out_buffer):
         self.run_once()
 
         if hasattr(self._internal,'_read_accepts_slices'):
             assert self._internal._read_accepts_slices, "If an object has the _read_accepts_slices attribute, it must have value 'True'"
             composed_row_index_or_none = _PstSubset.compose_indexer_with_indexer(self._internal.row_count, self._row_indexer, self.row_count, row_indexer)
             composed_col_index_or_none = _PstSubset.compose_indexer_with_indexer(self._internal.col_count, self._col_indexer, self.col_count, col_indexer)
-            val = self._internal._read(composed_row_index_or_none, composed_col_index_or_none, order, dtype, force_python_only, view_ok)
+            val = self._internal._read(composed_row_index_or_none, composed_col_index_or_none, order, dtype, force_python_only, view_ok, out_buffer)
             return val
         else:
             row_index_or_none = PstReader._make_sparray_from_sparray_or_slice(self.row_count, row_indexer)
             composed_row_index_or_none = _PstSubset.compose_indexer_with_index_or_none(self._internal.row_count, self._row_indexer, self.row_count, row_index_or_none)
             col_index_or_none = PstReader._make_sparray_from_sparray_or_slice(self.col_count, col_indexer)
             composed_col_index_or_none = _PstSubset.compose_indexer_with_index_or_none(self._internal.col_count, self._col_indexer, self.col_count, col_index_or_none)
-            val = self._internal._read(composed_row_index_or_none, composed_col_index_or_none, order, dtype, force_python_only, view_ok)
+            val = self._internal._read(composed_row_index_or_none, composed_col_index_or_none, order, dtype, force_python_only, view_ok, out_buffer)
             return val
 
     def run_once(self):

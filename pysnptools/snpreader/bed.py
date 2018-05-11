@@ -209,7 +209,7 @@ class Bed(SnpReader):
                         bed_filepointer.write(chr(byte))
         logging.info("Done writing " + filename)
 
-    def _read(self, iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok, out_buffer):
         self._run_once()
 
         if order=='A':

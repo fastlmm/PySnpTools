@@ -2,6 +2,7 @@
 """
 
 from pysnptools.snpreader.bed import Bed
+from pysnptools.snpreader.pgen import PGen
 from pysnptools.snpreader.snpreader import SnpReader
 from pysnptools.snpreader.snpdata import SnpData
 from pysnptools.snpreader.ped import Ped

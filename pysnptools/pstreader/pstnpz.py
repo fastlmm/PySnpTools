@@ -92,7 +92,7 @@ class PstNpz(PstReader):
 
     # Most _read's support only indexlists or None, but this one supports Slices, too.
     _read_accepts_slices = True
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, out_buffer):
         # 'view_ok' doesn't mean anything here because we are always ready fresh from disk.
         #!! could use mmap so only rows of interest are loaded.
         self.run_once()
