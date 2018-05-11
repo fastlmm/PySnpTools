@@ -200,7 +200,7 @@ size_t SUFFIX(CBedFile)::ReadLine(BYTE *pb, size_t idx)
 */
 void SUFFIX(CBedFile)::ReadGenotypes(size_t iSnp, bool count_A1, const vector< size_t >& idxIndividualList, REAL* pvOut, uint64_t_ startpos, uint64_t_  outputNumSNPs)
 {
-	//fprintf(stdout,"reading iSnp=%d w/ cIndividuals=%d and startpos=%d\n",iSnp,cIndividuals,startpos);
+	// fprintf(stdout,"reading iSnp=%d w/ cIndividuals=%d and startpos=%d\n",iSnp,cIndividuals,startpos);
 	ReadLine( &rgBytes[0], iSnp );
 	// 'decompress' the genotype information
 	size_t iIndividual = 0;

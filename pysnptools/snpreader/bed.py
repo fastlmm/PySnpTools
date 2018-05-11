@@ -1,5 +1,5 @@
 import numpy as np
-import subprocess, sys, os.path
+import subprocess, sys, os.path, io
 from itertools import *
 import pandas as pd
 import logging
@@ -79,7 +79,7 @@ class Bed(SnpReader):
 
     def _open_bed(self):
         bedfile = SnpReader._name_of_other_file(self.filename,"bed","bed")
-        self._filepointer = open(bedfile, "rb")
+        self._filepointer = io.open(bedfile, "rb")
         mode = self._filepointer.read(2)
         if mode != b'l\x1b': raise Exception('No valid binary BED file')
         mode = self._filepointer.read(1) #\x01 = SNP major \x00 = individual major
@@ -160,14 +160,14 @@ class Bed(SnpReader):
 
             if snpdata.val.dtype == np.float64:
                 if order=="F":
-                    wrap_plink_parser.writePlinkBedFile2doubleFAAA(bedfile, snpdata.iid_count, snpdata.sid_count, count_A1, snpdata.val)
+                    wrap_plink_parser.writePlinkBedFile2doubleFAAA(bedfile.encode(), snpdata.iid_count, snpdata.sid_count, count_A1, snpdata.val)
                 else:
-                    wrap_plink_parser.writePlinkBedFile2doubleCAAA(bedfile, snpdata.iid_count, snpdata.sid_count, count_A1, snpdata.val)
+                    wrap_plink_parser.writePlinkBedFile2doubleCAAA(bedfile.encode(), snpdata.iid_count, snpdata.sid_count, count_A1, snpdata.val)
             elif snpdata.val.dtype == np.float32:
                 if order=="F":
-                    wrap_plink_parser.writePlinkBedFile2floatFAAA(bedfile, snpdata.iid_count, snpdata.sid_count, count_A1, snpdata.val)
+                    wrap_plink_parser.writePlinkBedFile2floatFAAA(bedfile.encode(), snpdata.iid_count, snpdata.sid_count, count_A1, snpdata.val)
                 else:
-                    wrap_plink_parser.writePlinkBedFile2floatCAAA(bedfile, snpdata.iid_count, snpdata.sid_count, count_A1, snpdata.val)
+                    wrap_plink_parser.writePlinkBedFile2floatCAAA(bedfile.encode(), snpdata.iid_count, snpdata.sid_count, count_A1, snpdata.val)
             else:
                 raise Exception("dtype '{0}' not known, only float64 and float32".format(snpdata.val.dtype))
             
@@ -179,7 +179,7 @@ class Bed(SnpReader):
                 zero_code = 0b11
                 two_code = 0b00
 
-            with open(bedfile,"wb") as bed_filepointer:
+            with io.open(bedfile,"wb") as bed_filepointer:
                 #see http://pngu.mgh.harvard.edu/~purcell/plink/binary.shtml
                 bed_filepointer.write(chr(0b01101100)) #magic numbers
                 bed_filepointer.write(chr(0b00011011)) #magic numbers
@@ -242,16 +242,16 @@ class Bed(SnpReader):
             if iid_count_in > 0 and sid_count_in > 0:
                 if dtype == np.float64:
                     if order=="F":
-                        wrap_plink_parser.readPlinkBedFile2doubleFAAA(bed_fn, iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
+                        wrap_plink_parser.readPlinkBedFile2doubleFAAA(bed_fn.encode(), iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
                     elif order=="C":
-                        wrap_plink_parser.readPlinkBedFile2doubleCAAA(bed_fn, iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
+                        wrap_plink_parser.readPlinkBedFile2doubleCAAA(bed_fn.encode(), iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
                     else:
                         raise Exception("order '{0}' not known, only 'F' and 'C'".format(order));
                 elif dtype == np.float32:
                     if order=="F":
-                        wrap_plink_parser.readPlinkBedFile2floatFAAA(bed_fn, iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
+                        wrap_plink_parser.readPlinkBedFile2floatFAAA(bed_fn.encode(), iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
                     elif order=="C":
-                        wrap_plink_parser.readPlinkBedFile2floatCAAA(bed_fn, iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
+                        wrap_plink_parser.readPlinkBedFile2floatCAAA(bed_fn.encode(), iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
                     else:
                         raise Exception("order '{0}' not known, only 'F' and 'C'".format(order));
                 else:
