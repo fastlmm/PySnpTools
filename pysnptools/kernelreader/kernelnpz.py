@@ -1,5 +1,5 @@
-from pysnptools.pstreader import PstNpz
-from pysnptools.kernelreader import KernelReader
+from pysnptools.pstreader.pstnpz import PstNpz
+from pysnptools.kernelreader.kernelreader import KernelReader
 import logging
 
 

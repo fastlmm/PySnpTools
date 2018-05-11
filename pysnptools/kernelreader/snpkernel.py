@@ -5,8 +5,8 @@ import pandas as pd
 import logging
 from pysnptools.standardizer import Unit, Standardizer, UnitTrained, BetaTrained
 from pysnptools.standardizer import Identity as SS_Identity
-from kernelreader import KernelReader
-from kerneldata import KernelData
+from pysnptools.kernelreader.kernelreader import KernelReader
+from pysnptools.kernelreader.kerneldata import KernelData
 from pysnptools.kernelstandardizer import DiagKtoN
 
 class SnpKernel(KernelReader):

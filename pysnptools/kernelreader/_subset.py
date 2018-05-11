@@ -1,4 +1,4 @@
-from kernelreader import KernelReader
+from pysnptools.kernelreader.kernelreader import KernelReader
 from pysnptools.pstreader._subset import _PstSubset
 
 class _KernelSubset(KernelReader,_PstSubset):

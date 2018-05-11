@@ -9,8 +9,8 @@ import time
 from pysnptools.kernelreader import *
 from pysnptools.snpreader import Bed
 from pysnptools.util import create_directory_if_necessary
-from pysnptools.pstreader import PstReader
-from pysnptools.snpreader import SnpData
+from pysnptools.pstreader.pstreader import PstReader
+from pysnptools.snpreader.snpdata import SnpData
 import pysnptools.standardizer as stdizer
 
 class _fortesting_JustCheckExists(object): #Implements ICopier
