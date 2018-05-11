@@ -49,7 +49,7 @@ class Dat(_OneShot,SnpReader):
         if len(row)==0 or len(col)==0:
             return SnpData(iid=row,sid=col,pos=col_property,val=np.empty([len(row),len(col)]))
         datfields = pd.read_csv(self.filename,delimiter = '\t',header=None,index_col=False)
-        if not np.array_equal(np.array(datfields[0],dtype="string"), col) : raise Exception("Expect snp list in map file to exactly match snp list in dat file")
+        if not np.array_equal(np.array(datfields[0],dtype=np.str), col) : raise Exception("Expect snp list in map file to exactly match snp list in dat file")
         del datfields[0]
         del datfields[1]
         del datfields[2]

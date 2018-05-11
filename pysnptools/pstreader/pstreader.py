@@ -516,7 +516,7 @@ class PstReader(object):
 
     @staticmethod
     def _makekey(item):
-        if isinstance(item,(str,int,long,float)): #return quickly from known items
+        if isinstance(item,(str,int,float)): #return quickly from known items
             return item
         try:
             hash(item)
