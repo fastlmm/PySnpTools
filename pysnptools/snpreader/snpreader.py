@@ -453,7 +453,7 @@ class SnpReader(PstReader):
         >>> # print np.may_share_memory(subset_snpdata.val, subsub_snpdata.val) # Do the two ndarray's share memory? They could. Currently they won't.       
         """
         val = self._read(None, None, order, dtype, force_python_only, view_ok, out_buffer)
-        from snpdata import SnpData
+        from pysnptools.snpreader.snpdata import SnpData
         ret = SnpData(self.iid,self.sid,val,pos=self.pos,name=str(self))
         return ret
 
@@ -572,7 +572,7 @@ class SnpReader(PstReader):
         '''
         Like 'read' except (1) won't read if already a snpdata and (2) returns the standardizer
         '''
-        from pysnptools.snpreader import SnpData
+        from pysnptools.snpreader.snpreader import SnpData
         if isinstance(snpreader,SnpData) and snpreader.val.dtype==dtype and isinstance(standardizer,stdizer.Identity):
             return snpreader, stdizer.Identity()
         else:
@@ -622,8 +622,8 @@ class SnpReader(PstReader):
         raise NotImplementedError
 
     def _assert_iid_sid_pos(self):
-        assert np.issubdtype(self._row.dtype, str) and len(self._row.shape)==2 and self._row.shape[1]==2, "iid should be dtype str, have two dimensions, and the second dimension should be size 2"
-        assert np.issubdtype(self._col.dtype, str) and len(self._col.shape)==1, "sid should be of dtype of str and one dimensional"
+        assert np.issubdtype(self._row.dtype, np.str_) and len(self._row.shape)==2 and self._row.shape[1]==2, "iid should be dtype str, have two dimensions, and the second dimension should be size 2"
+        assert np.issubdtype(self._col.dtype, np.str_) and len(self._col.shape)==1, "sid should be of dtype of str and one dimensional"
 
     @staticmethod
     def _name_of_other_file(filename,remove_suffix,add_suffix):

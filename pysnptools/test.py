@@ -540,8 +540,8 @@ class NaNCNCTestCases(unittest.TestCase):
 
         snps_to_read_count = min(S_original, 100)
 
-        for iid_index_list in [range(N_original), range(N_original/2), range(N_original - 1,0,-2)]:
-            for snp_index_list in [range(snps_to_read_count), range(snps_to_read_count/2), range(snps_to_read_count - 1,0,-2)]:
+        for iid_index_list in [range(int(N_original)), range(N_original//2), range(N_original - 1,0,-2)]:
+            for snp_index_list in [range(snps_to_read_count), range(snps_to_read_count//2), range(snps_to_read_count - 1,0,-2)]:
                 for standardizer in [Unit(),Beta(1,25)]:
                     reference_snps, reference_dtype = NaNCNCTestCases(iid_index_list, snp_index_list, standardizer, snp_reader_factory_bed(), sp.float64, "C", "False", None, None).read_and_standardize()
                     for snpreader_factory in [snp_reader_factory_bed, 

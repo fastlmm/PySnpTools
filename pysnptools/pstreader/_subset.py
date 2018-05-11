@@ -3,8 +3,8 @@ import subprocess, sys, os.path
 from itertools import *
 import pandas as pd
 import logging
-from pstreader import PstReader
-from pstdata import PstData
+from pysnptools.pstreader.pstreader import PstReader
+from pysnptools.pstreader.pstdata import PstData
 
 #!!Should handle negatives as index and arrays of index, but doesn't
 class _PstSubset(PstReader):
