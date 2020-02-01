@@ -188,23 +188,38 @@ if __name__ == "__main__":
     print(common)  
     
     #How many pairs?
-    count = len(list0b)*len(only1) + len(only0)*len(common) + (len(common)*len(common)-len(common))//2
-    if include_singles:
-        count += len(common)
+    count0 = len(only0)*len(list1b)
+    count1 = int(len(common)*(len(only1)+len(common)/2+(.5 if include_singles else -.5)))
+    count = count0+count1
+        
     print(count)
 
-    for v0 in list0b:
-        for v1 in only1:
-            print((v0,v1))
-    for v0 in only0:
-        for v1 in common:
-            print((v0,v1))
-    for index,v0 in enumerate(common):
-        for v1 in common[index+1:]:
-            print((v0,v1))
-    if include_singles:
-        for v0 in common:
-                print((v0,v0))
+    from itertools import chain,islice
+
+    def pair_sequence(start=0,end=None):
+        end = end or count
+        return islice(pair_sequence_inner(start=start),end-start)
+
+    def pair_sequence_inner(start=0):
+        for v0 in only0:
+            if start > len(list1b):
+                start -= len(list1b)
+            else:
+                for v1 in islice(chain(only1,common),start,None):
+                    yield v0,v1
+                start = 0
+        for index,v0 in enumerate(common):
+            startx = index if include_singles else index+1
+            if start > len(list1b)-startx:
+                start -= (len(list1b)-startx)
+            else:
+                for v1 in islice(chain(only1,common[startx:]),start,None):
+                    yield v0,v1
+                start = 0
+
+    for goal_see in [1,2,4,8,15,16]:
+        for start in range(count+1):
+            print(start,goal_see,list(pair_sequence(start,start+goal_see)))
 
 
     print("done")
