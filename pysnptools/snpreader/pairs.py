@@ -163,11 +163,11 @@ if __name__ == "__main__":
     include_singles = True
     duplicates_ok = True
 
-    if True:
+    if False:
         list0 = ['a','z','a','b','y']
         list1 = ['z','y','x','v']
     else:
-        size = 50*1000
+        size = 500*1000
         seed = 0
         np.random.seed(seed)
         list0 = np.random.randint(size*10,size=size)
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     common = sorted(six.viewkeys(dict0) & list1b, key=lambda k:dict0[k])
     only0 = sorted(six.viewkeys(dict0)-common,key=lambda k:dict0[k])
     only1 = sorted(six.viewkeys(dict1)-common,key=lambda k:dict1[k])
-    print(common)  
+    #print(common)  
     
     #How many pairs?
     count0 = len(only0)*len(list1b)
@@ -201,7 +201,9 @@ if __name__ == "__main__":
         return islice(pair_sequence_inner(start=start),end-start)
 
     def pair_sequence_inner(start=0):
-        for v0 in only0:
+        only0_start = start // len(list1b)
+        start -= min(only0_start,len(only0))*len(list1b)
+        for v0 in only0[only0_start:]:
             if start > len(list1b):
                 start -= len(list1b)
             else:
@@ -218,7 +220,7 @@ if __name__ == "__main__":
                 start = 0
 
     for goal_see in [1,2,4,8,15,16]:
-        for start in range(count+1):
+        for start in [0,count//5,count//2,count-1,count]:
             print(start,goal_see,list(pair_sequence(start,start+goal_see)))
 
 
