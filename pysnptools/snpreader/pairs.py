@@ -158,88 +158,117 @@ def split_on_sids(snpreader,part_count):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-
-    from pysnptools.snpreader import Pheno, Bed
     import pysnptools.util as pstutil
 
-    data_file = 'd:\OneDrive\programs\epiCornell\syndata.bed'
+    #list0 = ['a','z','a','b','y']
+    #list1 = ['z','y','x','v']
+    seed = 0
+    np.random.seed(seed)
+    size = 1000*1000
+    list0 = np.random.randint(size,size=size)
+    list1 = np.random.randint(size,size=size)
+    duplicates_ok = True
+
+    from  more_itertools import unique_everseen
+    list0b = list(unique_everseen(list0))
+    list1b = list(unique_everseen(list1))
+    if not duplicates_ok:
+        assert len(list0)==len(list0b) and len(list1)==len(list1b), "Expect lists to have no duplicates"
+    dict0 = {k: v for v, k in enumerate(list0b)}
+    dict1 = {k: v for v, k in enumerate(list1b)}
+
+    import six
+    common = sorted(six.viewkeys(dict0) & list1b, key=lambda k:dict0[k])
+    only0 = sorted(six.viewkeys(dict0)-common,key=lambda k:dict0[k])
+    only1 = sorted(six.viewkeys(dict1)-common,key=lambda k:dict1[k])
+    print(common)                
+
+
+
+
+
+
     if False:
-        from pysnptools.snpreader import SnpData
-        import numpy as np
-        bed1 = Bed("../../tests/datasets/synth/all")
-        print(bed1.iid_count, bed1.sid_count, bed1.iid_count * bed1.sid_count)
-        #goal 1500 individuals x 27000 SNP
-        snpdata1 = bed1.read()
-        iid = bed1.iid
-        sid = ['sid{0}'.format(i) for i in xrange(27000)]
-        val = np.tile(snpdata1.val,(3,6))[:,:27000].copy()
-        #snpdata = Pheno('pysnptools/examples/toydata.phe').read()         # Read data from Pheno format
-        snpdata2 = SnpData(iid, sid, val)
-        print(snpdata2.iid_count, snpdata2.sid_count, snpdata2.iid_count * snpdata2.sid_count)
-        Bed.write(snpdata2,data_file,count_A1=False)
 
-    synbed = Bed(data_file)
-    print(synbed.iid_count, synbed.sid_count, synbed.iid_count * synbed.sid_count)
+        from pysnptools.snpreader import Pheno, Bed
+        data_file = 'd:\OneDrive\programs\epiCornell\syndata.bed'
+        if False:
+            from pysnptools.snpreader import SnpData
+            import numpy as np
+            bed1 = Bed("../../tests/datasets/synth/all")
+            print(bed1.iid_count, bed1.sid_count, bed1.iid_count * bed1.sid_count)
+            #goal 1500 individuals x 27000 SNP
+            snpdata1 = bed1.read()
+            iid = bed1.iid
+            sid = ['sid{0}'.format(i) for i in xrange(27000)]
+            val = np.tile(snpdata1.val,(3,6))[:,:27000].copy()
+            #snpdata = Pheno('pysnptools/examples/toydata.phe').read()         # Read data from Pheno format
+            snpdata2 = SnpData(iid, sid, val)
+            print(snpdata2.iid_count, snpdata2.sid_count, snpdata2.iid_count * snpdata2.sid_count)
+            Bed.write(snpdata2,data_file,count_A1=False)
 
-    part_count = 1000
-    part_list = list(split_on_sids(synbed,part_count))
+        synbed = Bed(data_file)
+        print(synbed.iid_count, synbed.sid_count, synbed.iid_count * synbed.sid_count)
 
-    pairs00 = _Pairs(part_list[0])
-    from fastlmm.association import single_snp
-    pheno_fn = r"d:\OneDrive\programs\epiCornell\pheno.txt"
-    cov_fn = r"d:\OneDrive\programs\epiCornell\cov.txt"
-    results_df = single_snp(pairs00, K0=synbed, pheno=pheno_fn, covar=cov_fn, leave_out_one_chrom=False, count_A1=True)
+        part_count = 1000
+        part_list = list(split_on_sids(synbed,part_count))
 
-    if False:
-        for i,synbed_part_i in enumerate(synbed_part_list):
-            for j,synbed_part_j in enumerate(synbed_part_list):
-                if j<i:
-                    continue #not break
-                print("Looking at pair {0},{1}".format(i,j))
-                pairs = _Pairs(synbed_part_i) if i==j else _Pairs(synbed_part_i,synbed_part_j)
-                #print(pairs.iid)
-                print('{:,}'.format(pairs.sid_count))
-                #print(pairs.sid)
-                #print(pairs.pos)
-                #print(pairs.row_property)
-                snpdata = pairs.read()#
-                #print(snpdata.val)
+        pairs00 = _Pairs(part_list[0])
+        from fastlmm.association import single_snp
+        pheno_fn = r"d:\OneDrive\programs\epiCornell\pheno.txt"
+        cov_fn = r"d:\OneDrive\programs\epiCornell\cov.txt"
+        results_df = single_snp(pairs00, K0=synbed, pheno=pheno_fn, covar=cov_fn, leave_out_one_chrom=False, count_A1=True)
 
-    import datetime
-    from pysnptools.kernelreader import SnpKernel
-    from pysnptools.standardizer import Unit
-    from pysnptools.util.mapreduce1.runner import LocalMultiProc
-    from pysnptools.util.mapreduce1 import map_reduce
-    #runner=None
-    runner = LocalMultiProc(1,just_one_process=False)
+        if False:
+            for i,synbed_part_i in enumerate(synbed_part_list):
+                for j,synbed_part_j in enumerate(synbed_part_list):
+                    if j<i:
+                        continue #not break
+                    print("Looking at pair {0},{1}".format(i,j))
+                    pairs = _Pairs(synbed_part_i) if i==j else _Pairs(synbed_part_i,synbed_part_j)
+                    #print(pairs.iid)
+                    print('{:,}'.format(pairs.sid_count))
+                    #print(pairs.sid)
+                    #print(pairs.pos)
+                    #print(pairs.row_property)
+                    snpdata = pairs.read()#
+                    #print(snpdata.val)
 
-    part_pair_count = (part_count*part_count+part_count)//2
-    part_pair_index = -1
-    print("part_pair_count={0:,}".format(part_pair_count))
+        import datetime
+        from pysnptools.kernelreader import SnpKernel
+        from pysnptools.standardizer import Unit
+        from pysnptools.util.mapreduce1.runner import LocalMultiProc
+        from pysnptools.util.mapreduce1 import map_reduce
+        #runner=None
+        runner = LocalMultiProc(1,just_one_process=False)
 
-    K0 = SnpKernel(synbed,standardizer=Unit()).read() #Precompute the similarity
+        part_pair_count = (part_count*part_count+part_count)//2
+        part_pair_index = -1
+        print("part_pair_count={0:,}".format(part_pair_count))
 
-    start_time = datetime.datetime.now()
-    for i,part_i in enumerate(part_list):
-        def mapper1(j):
-            #from fastlmm.association import single_snp
-            #from pysnptools.snpreader import Pairs
-            #print('Z')
-            #part_j = part_list[j]
-            #print('A')
-            print("Looking at pair {0},{1} which is {2} of {3}".format(i,j,part_pair_index+j+1,part_pair_count))
-            #pairs = Pairs(part_i) if i==j else Pairs(part_i,part_j)
-            #result_df_ij = single_snp(pairs, K0=K0, pheno=pheno_fn, covar=cov_fn, leave_out_one_chrom=False, count_A1=True)
-            #print(result_df_ij[:1])
-            #return result_df_ij
+        K0 = SnpKernel(synbed,standardizer=Unit()).read() #Precompute the similarity
 
-        result_df_i = map_reduce(range(i,part_count),
-                                 mapper=mapper1,
-                                 reducer=lambda result_j_list:pd.concat(result_j_list),
-                                 runner=runner,
-                                 name='js')
-        part_pair_index+=(part_count-i)
-        time_so_far = datetime.datetime.now()-start_time
-        total_time_estimate = time_so_far*part_pair_count/(part_pair_index+1)
-        print(total_time_estimate)
+        start_time = datetime.datetime.now()
+        for i,part_i in enumerate(part_list):
+            def mapper1(j):
+                #from fastlmm.association import single_snp
+                #from pysnptools.snpreader import Pairs
+                #print('Z')
+                #part_j = part_list[j]
+                #print('A')
+                print("Looking at pair {0},{1} which is {2} of {3}".format(i,j,part_pair_index+j+1,part_pair_count))
+                #pairs = Pairs(part_i) if i==j else Pairs(part_i,part_j)
+                #result_df_ij = single_snp(pairs, K0=K0, pheno=pheno_fn, covar=cov_fn, leave_out_one_chrom=False, count_A1=True)
+                #print(result_df_ij[:1])
+                #return result_df_ij
+
+            result_df_i = map_reduce(range(i,part_count),
+                                     mapper=mapper1,
+                                     reducer=lambda result_j_list:pd.concat(result_j_list),
+                                     runner=runner,
+                                     name='js')
+            part_pair_index+=(part_count-i)
+            time_so_far = datetime.datetime.now()-start_time
+            total_time_estimate = time_so_far*part_pair_count/(part_pair_index+1)
+            print(total_time_estimate)
 
