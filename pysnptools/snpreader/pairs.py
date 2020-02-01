@@ -160,14 +160,18 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     import pysnptools.util as pstutil
 
-    #list0 = ['a','z','a','b','y']
-    #list1 = ['z','y','x','v']
-    seed = 0
-    np.random.seed(seed)
-    size = 1000*1000
-    list0 = np.random.randint(size,size=size)
-    list1 = np.random.randint(size,size=size)
+    include_singles = True
     duplicates_ok = True
+
+    if True:
+        list0 = ['a','z','a','b','y']
+        list1 = ['z','y','x','v']
+    else:
+        size = 50*1000
+        seed = 0
+        np.random.seed(seed)
+        list0 = np.random.randint(size*10,size=size)
+        list1 = np.random.randint(size*10,size=size)
 
     from  more_itertools import unique_everseen
     list0b = list(unique_everseen(list0))
@@ -181,10 +185,29 @@ if __name__ == "__main__":
     common = sorted(six.viewkeys(dict0) & list1b, key=lambda k:dict0[k])
     only0 = sorted(six.viewkeys(dict0)-common,key=lambda k:dict0[k])
     only1 = sorted(six.viewkeys(dict1)-common,key=lambda k:dict1[k])
-    print(common)                
+    print(common)  
+    
+    #How many pairs?
+    count = len(list0b)*len(only1) + len(only0)*len(common) + (len(common)*len(common)-len(common))//2
+    if include_singles:
+        count += len(common)
+    print(count)
+
+    for v0 in list0b:
+        for v1 in only1:
+            print((v0,v1))
+    for v0 in only0:
+        for v1 in common:
+            print((v0,v1))
+    for index,v0 in enumerate(common):
+        for v1 in common[index+1:]:
+            print((v0,v1))
+    if include_singles:
+        for v0 in common:
+                print((v0,v0))
 
 
-
+    print("done")
 
 
 
