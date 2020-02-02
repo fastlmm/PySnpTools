@@ -152,9 +152,9 @@ def split_on_sids(snpreader,part_count):
     sid_count = snpreader.sid_count
     start = 0
     for part_index in xrange(1,part_count+1):
-        end = part_index*sid_count//part_count
-        yield snpreader[:,start:end]
-        start=end
+        stop = part_index*sid_count//part_count
+        yield snpreader[:,start:stop]
+        start=stop
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     include_singles = True
     duplicates_ok = True
 
-    if True:
+    if False:
         list0 = ['a','z','a','b','y']
         list1 = ['z','y','x','v']
     else:
@@ -171,8 +171,8 @@ if __name__ == "__main__":
         seed = 0
         np.random.seed(seed)
         list0 = np.random.randint(size*10,size=size)
-        #list1 = np.random.randint(size*10,size=size)
-        list1 = list0
+        list1 = np.random.randint(size*10,size=size)
+        #list1 = list0
 
     from  more_itertools import unique_everseen
     list0b = list(unique_everseen(list0))
@@ -202,14 +202,29 @@ if __name__ == "__main__":
         b = len_only1+len_common+(.5 if include_singles else 1.5)
         #count1 = index_common*index_common*-.5+index_common*(len_only1+len_common+(.5 if include_singles else 1.5))
         count1 = a*index_common*index_common + b*index_common
-        return count1
+        return int(count1)
+
+    #def isqrt(x): #https://code.activestate.com/recipes/577821-integer-square-root-function/
+    #    if x < 0:
+    #        raise ValueError('square root not defined for negative numbers')
+    #    n = int(x)
+    #    if n == 0:
+    #        return 0
+    #    a, b = divmod(n.bit_length(), 2)
+    #    x = 2**(a+b)
+    #    while True:
+    #        y = (x + n//x)//2
+    #        if y >= x:
+    #            return x
+    #        x = y
 
     def index_common_fun(count1,len_common,len_only1,include_singles):
         a = -.5
         b = len_only1+len_common+(.5 if include_singles else 1.5)
         c = -count1
-        #!!!cmk any risk of error when applied to very large intergers?
-        index_common = b-(b*b-4*a*c)**.5
+        #!!!cmk any risk of error when applied to very large integers?
+        index_common = int(b-(b*b-4*a*c)**.5)
+        #index_common = b-isqrt(b*b-4*a*c)
         return index_common
 
     for len_commonq in range(0,5):
@@ -231,24 +246,29 @@ if __name__ == "__main__":
 
     from itertools import chain,islice
 
-    def pair_sequence(start=0,end=None):
-        end = end or count
-        return islice(pair_sequence_inner(start=start),end-start)
+    def pair_sequence(start=0,stop=None):
+        stop = stop or count
+        return islice(pair_sequence_inner(start=start),stop-start)
 
     def pair_sequence_inner(start=0):
         only0_start = start // len(list1b)
         start -= min(only0_start,len(only0))*len(list1b)
         for v0 in only0[only0_start:]:
             if start > len(list1b):
+                assert False, "!!!cmk this should not happen"
                 start -= len(list1b)
             else:
                 for v1 in islice(chain(only1,common),start,None):
                     yield v0,v1
                 start = 0
         
-        for index,v0 in enumerate(common):
+        common_start = index_common_fun(start,len(common),len(only1),include_singles)
+        start -= count1_fun(common_start,len(common),len(only1),include_singles)
+        for index in range(common_start,len(common)):#,v0 in enumerate(common):
+            v0 = common[index]
             startx = index if include_singles else index+1
             if start > len(list1b)-startx:
+                assert False, "!!!cmk this should not happen"
                 start -= (len(list1b)-startx)
             else:
                 for v1 in islice(chain(only1,common[startx:]),start,None):
