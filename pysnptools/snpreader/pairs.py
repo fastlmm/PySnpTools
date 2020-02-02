@@ -198,33 +198,32 @@ if __name__ == "__main__":
         #part3 = 0 if include_singles else index_common
         #part4 = -(index_common*index_common-index_common)//2
         ##return part1+part2+part3+part4
-        a = -.5
-        b = len_only1+len_common+(.5 if include_singles else 1.5)
-        #count1 = index_common*index_common*-.5+index_common*(len_only1+len_common+(.5 if include_singles else 1.5))
-        count1 = a*index_common*index_common + b*index_common
-        return int(count1)
+        a2 = -1
+        b2 = len_only1*2+len_common*2+(1 if include_singles else 3)
+        count1 = (a2*index_common*index_common + b2*index_common)//2
+        return count1
 
-    #def isqrt(x): #https://code.activestate.com/recipes/577821-integer-square-root-function/
-    #    if x < 0:
-    #        raise ValueError('square root not defined for negative numbers')
-    #    n = int(x)
-    #    if n == 0:
-    #        return 0
-    #    a, b = divmod(n.bit_length(), 2)
-    #    x = 2**(a+b)
-    #    while True:
-    #        y = (x + n//x)//2
-    #        if y >= x:
-    #            return x
-    #        x = y
+    def isqrt(x): #https://code.activestate.com/recipes/577821-integer-square-root-function/
+        if x < 0:
+            raise ValueError('square root not defined for negative numbers')
+        n = int(x)
+        if n == 0:
+            return 0
+        a, b = divmod(n.bit_length(), 2)
+        x = 2**(a+b)
+        while True:
+            y = (x + n//x)//2
+            if y >= x:
+                return x
+            x = y
 
     def index_common_fun(count1,len_common,len_only1,include_singles):
-        a = -.5
-        b = len_only1+len_common+(.5 if include_singles else 1.5)
+        a2 = -1
+        b2 = len_only1*2+len_common*2+(1 if include_singles else 3)
         c = -count1
         #!!!cmk any risk of error when applied to very large integers?
-        index_common = int(b-(b*b-4*a*c)**.5)
-        #index_common = b-isqrt(b*b-4*a*c)
+        #index_common = int(b-(b*b-4*a*c)**.5)#!!!cmk remove int when it is not needed
+        index_common = (b2-isqrt(b2*b2-8*a2*c))//2
         return index_common
 
     for len_commonq in range(0,5):
@@ -264,7 +263,8 @@ if __name__ == "__main__":
         
         common_start = index_common_fun(start,len(common),len(only1),include_singles)
         start -= count1_fun(common_start,len(common),len(only1),include_singles)
-        for index in range(common_start,len(common)):#,v0 in enumerate(common):
+        #!!!cmk add check that this is in the expected range
+        for index in range(common_start,len(common)):
             v0 = common[index]
             startx = index if include_singles else index+1
             if start > len(list1b)-startx:
