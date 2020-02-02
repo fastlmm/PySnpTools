@@ -163,7 +163,7 @@ if __name__ == "__main__":
     include_singles = True
     duplicates_ok = True
 
-    if False:
+    if True:
         list0 = ['a','z','a','b','y']
         list1 = ['z','y','x','v']
     else:
@@ -171,7 +171,8 @@ if __name__ == "__main__":
         seed = 0
         np.random.seed(seed)
         list0 = np.random.randint(size*10,size=size)
-        list1 = np.random.randint(size*10,size=size)
+        #list1 = np.random.randint(size*10,size=size)
+        list1 = list0
 
     from  more_itertools import unique_everseen
     list0b = list(unique_everseen(list0))
@@ -189,7 +190,41 @@ if __name__ == "__main__":
     
     #How many pairs?
     count0 = len(only0)*len(list1b)
-    count1 = int(len(common)*(len(only1)+len(common)/2+(.5 if include_singles else -.5)))
+
+    def count1_fun(index_common,len_common,len_only1,include_singles):
+        ##was int(len(common)*(len(only1)+len(common)/2+(.5 if include_singles else -.5)))
+        #part1 = index_common * len_only1
+        #part2 = index_common * len_common
+        #part3 = 0 if include_singles else index_common
+        #part4 = -(index_common*index_common-index_common)//2
+        ##return part1+part2+part3+part4
+        a = -.5
+        b = len_only1+len_common+(.5 if include_singles else 1.5)
+        #count1 = index_common*index_common*-.5+index_common*(len_only1+len_common+(.5 if include_singles else 1.5))
+        count1 = a*index_common*index_common + b*index_common
+        return count1
+
+    def index_common_fun(count1,len_common,len_only1,include_singles):
+        a = -.5
+        b = len_only1+len_common+(.5 if include_singles else 1.5)
+        c = -count1
+        #!!!cmk any risk of error when applied to very large intergers?
+        index_common = b-(b*b-4*a*c)**.5
+        return index_common
+
+    for len_commonq in range(0,5):
+        for len_only1q in range(0,5):
+            for include_singlesq in [True,False]:
+                for index_commonq in range(len_commonq+1):
+                    count1q = count1_fun(index_commonq,len_commonq,len_only1q,include_singlesq)
+                    index_common2 = index_common_fun(count1q,len_commonq,len_only1q,include_singlesq)
+                    print(index_commonq,index_common2)
+                    assert index_commonq==index_common2
+
+    count1 = count1_fun(len(common),len(common),len(only1),include_singles)
+    # t = c * (b+c/2-+.5)
+    # t = .5cc + (b +- .5)c+0
+    # c = (-(b +- .5)+-sqrt((b +- .5)-2))
     count = count0+count1
         
     print(count)
@@ -210,6 +245,7 @@ if __name__ == "__main__":
                 for v1 in islice(chain(only1,common),start,None):
                     yield v0,v1
                 start = 0
+        
         for index,v0 in enumerate(common):
             startx = index if include_singles else index+1
             if start > len(list1b)-startx:
