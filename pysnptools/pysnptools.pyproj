@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{60f1cb4a-9da3-47c2-9b89-60ac1ce93347}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>snpreader\pairs.py</StartupFile>
+    <StartupFile>util\pairs.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.\snpreader</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -134,6 +134,9 @@
     <Compile Include="util\mapreduce1\mapreduce.py" />
     <Compile Include="util\mapreduce1\examples.py" />
     <Compile Include="util\mapreduce1\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="util\pairs.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="util\pheno.py">
