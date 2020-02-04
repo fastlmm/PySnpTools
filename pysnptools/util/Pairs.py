@@ -4,6 +4,7 @@ from  more_itertools import unique_everseen
 import doctest
 import unittest
 import logging
+import numbers
 import six #!!!cmk test Python2
 import pysnptools.util as pstutil
 
@@ -14,122 +15,129 @@ class Pairs(object):
         #!!!cmk add _ to start of some of these and some of the methods
         self.include_singles = include_singles
         self.duplicates_ok = duplicates_ok
-
         self.list0 = list(unique_everseen(list0))
         self.list1 = list(unique_everseen(list1))
         if not duplicates_ok:
             assert len(list0)==len(self.list0) and len(list1)==len(self.list1), "Expect lists to have no duplicates"
-        self.dict0 = {k: v for v, k in enumerate(self.list0)} #!!!cmk do these two need to be remembered?
-        self.dict1 = {k: v for v, k in enumerate(self.list1)}
 
-        self.common = sorted(six.viewkeys(self.dict0) & self.list1, key=lambda k:self.dict0[k])
-        self.only0 = sorted(six.viewkeys(self.dict0)-self.common,key=lambda k:self.dict0[k])
-        self.only1 = sorted(six.viewkeys(self.dict1)-self.common,key=lambda k:self.dict1[k])
+        dict0 = {k: v for v, k in enumerate(self.list0)}
+        dict1 = {k: v for v, k in enumerate(self.list1)}
+        self._common = sorted(six.viewkeys(dict0) & self.list1, key=lambda k:dict0[k])
+        self._only0 = sorted(six.viewkeys(dict0)-self._common,key=lambda k:dict0[k])
+        self._only1 = sorted(six.viewkeys(dict1)-self._common,key=lambda k:dict1[k])
     
         #How many pairs?
-        self.count0 = len(self.only0)*len(self.list1)
-        self.count1 = self.count1_fun(len(self.common),len(self.common),len(self.only1),include_singles)
-        self.count = self.count0+self.count1
+        self._count0 = len(self._only0)*len(self.list1)
+        self._count1 = self._count1_fun(len(self._common),len(self._common),len(self._only1),include_singles)
+        self.count = self._count0+self._count1
 
-    def pair_sequence(self, start=0,stop=None,speed='fast'):
+    def __getitem__(self, indexer):
+        if isinstance(indexer,slice):
+            assert indexer.step is None, "step is not supported"
+            start,stop = indexer.start,indexer.stop
+            if start is None:
+                start = 0
+            if stop is None:
+                stop = self.count
+            if start < 0:
+                start = max(0,self.count+start)#!!!cmk test
+            if stop < 0:
+                stop = self.count+stop#!!!cmk test
+        elif isinstance(indexer, numbers.Integral):
+            start = indexer
+            if start < 0:
+                start = self.count+start#!!!cmk test
+            assert 0<=start and start<self.count, 'Expect index between 0 (inclusive) and count of pairs (exclusive)'
+            stop = start+1
+        else:
+            raise Exception("Don't understand indexer '{0}'".format(indexer))
+        return self._pair_sequence(start,stop)
+
+
+    def _pair_sequence(self, start=0,stop=None,speed='fast'):
         if speed=='fast':
             stop = min(stop,self.count) if stop is not None else self.count
-            return islice(self._pair_sequence_inner(start=start),stop-start)
+            return islice(self._pair_sequence_inner(start=start),max(stop-start,0))
         if speed=='medium':
             stop = stop if stop is not None else self.count
-            return islice(self._pair_sequence_inner_medium(start=start),stop-start)
+            return islice(self._pair_sequence_inner_medium(start=start),max(stop-start,0))
         else:
             assert speed=='slow',"Don't know speed '{0}'".format(speed)
             return islice(self._pair_sequence_inner_slow(),start,stop)
 
     def _pair_sequence_inner(self,start=0):
-        if start >= self.count0:
-            start -= self.count0
+        if start >= self._count0:
+            start -= self._count0
         else:
-            only0_start = start // len(self.list1)
-            start -= only0_start*len(self.list1)
+            row_start0 = start // len(self.list1)
+            start -= row_start0*len(self.list1)
             assert 0 <= start and start <= len(self.list1), "real assert"
-            for v0 in self.only0[only0_start:]:
-                for v1 in islice(chain(self.only1,self.common),start,None):
+            for v0 in self._only0[row_start0:]:
+                for v1 in islice(chain(self._only1,self._common),start,None):
                     yield v0,v1
                 start = 0
         
-        common_start = self.row_index_fun(start,len(self.common),len(self.only1),self.include_singles)
-        start -= self.count1_fun(common_start,len(self.common),len(self.only1),self.include_singles)
+        row_start1 = self._row_start1_fun(start,len(self._common),len(self._only1),self.include_singles)
+        start -= self._count1_fun(row_start1,len(self._common),len(self._only1),self.include_singles)
         assert 0 <= start and start <= len(self.list1), "real assert"
-        for index in range(common_start,len(self.common)):
-            v0 = self.common[index]
-            startx = index if self.include_singles else index+1
-            assert start < len(self.list1)-startx, "real assert"
-            for v1 in islice(chain(self.only1,self.common[startx:]),start,None):
+        for common_index in range(row_start1,len(self._common)):
+            v0 = self._common[common_index]
+            common_start = common_index if self.include_singles else common_index+1
+            assert start < len(self.list1)-common_start, "real assert"
+            for v1 in islice(chain(self._only1,self._common[common_start:]),start,None):
                 yield v0,v1
             start = 0
 
     def _pair_sequence_inner_medium(self,start=0):
         assert 0 <= start, "real assert"
-        for v0 in self.only0:
+        for v0 in self._only0:
             if start > len(self.list1):
                 start -= len(self.list1)
             else:
-                for v1 in islice(chain(self.only1,self.common),start,None):
+                for v1 in islice(chain(self._only1,self._common),start,None):
                     yield v0,v1
                 start = 0
 
         assert 0 <= start, "real assert"
-        for index in range(len(self.common)):
-            v0 = self.common[index]
+        for index in range(len(self._common)):
+            v0 = self._common[index]
             startx = index if self.include_singles else index+1
             if start > len(self.list1)-startx:
                 start -= (len(self.list1)-startx)
             else:
-                for v1 in islice(chain(self.only1,self.common[startx:]),start,None):
+                for v1 in islice(chain(self._only1,self._common[startx:]),start,None):
                     yield v0,v1
                 start = 0
 
     def _pair_sequence_inner_slow(self):
 
-        for v0 in self.only0:
-            for v1 in chain(self.only1,self.common):
+        for v0 in self._only0:
+            for v1 in chain(self._only1,self._common):
                 yield v0,v1
 
-        for index in range(len(self.common)):
-            v0 = self.common[index]
+        for index in range(len(self._common)):
+            v0 = self._common[index]
             startx = index if self.include_singles else index+1
-            for v1 in chain(self.only1,self.common[startx:]):
+            for v1 in chain(self._only1,self._common[startx:]):
                 yield v0,v1
 
 
     @staticmethod
-    def count1_fun(row_index,len_common,len_only1,include_singles):
+    def _count1_fun(row_start,len_common,len_only1,include_singles):
         a2 = -1
         b2 = len_only1*2+len_common*2+(1 if include_singles else -1)
-        count1 = (a2*row_index*row_index + b2*row_index)//2
+        count1 = (a2*row_start*row_start + b2*row_start)//2
         return count1
 
-    #@staticmethod #!!!cmk delete
-    #def isqrt(x): #https://code.activestate.com/recipes/577821-integer-square-root-function/
-    #    if x < 0:
-    #        raise ValueError('square root not defined for negative numbers')
-    #    n = int(x)
-    #    if n == 0:
-    #        return 0
-    #    a, b = divmod(n.bit_length(), 2)
-    #    x = 2**(a+b)
-    #    while True:
-    #        y = (x + n//x)//2
-    #        if y >= x:
-    #            return x
-    #        x = y
-
     @staticmethod
-    def row_index_fun(count1,len_common,len_only1,include_singles):
+    def _row_start1_fun(count1,len_common,len_only1,include_singles):
         a2 = -1
         b2 = len_only1*2+len_common*2+(1 if include_singles else -1)
         c = -count1
-        row_index = int((b2-(b2*b2-8*a2*c)**.5)/2.0) #!!!cmk will this ever be off by one because of numerical problems?
-        if row_index < 0:
-            row_index = int((b2+(b2*b2-8*a2*c)**.5)/2.0)
-        return row_index
+        row_start = int((b2-(b2*b2-8*a2*c)**.5)/2.0) #!!!cmk will this ever be off by one because of numerical problems?
+        if row_start < 0:
+            row_start = int((b2+(b2*b2-8*a2*c)**.5)/2.0)
+        return row_start
 
 class TestPairs(unittest.TestCase):
 
@@ -140,54 +148,33 @@ class TestPairs(unittest.TestCase):
                     list0 = ['common{0}'.format(i) for i in range(len_common)]
                     list1 = list0 + ['only1_{0}'.format(i) for i in range(len_only1)]
                     pairs = Pairs(list0,list1,include_singles)
-                    pair_list = list(pairs.pair_sequence(0,speed='slow'))
-                    for row_index in range(len_common+1):
-                        count = Pairs.count1_fun(row_index,len_common,len_only1,include_singles)
-                        count_ref = len([pair for pair in pair_list if pair[0] in list0[:row_index]])
-                        assert count==count_ref, "count1_fun isn't giving the right answer"
+                    pair_list = list(pairs._pair_sequence(0,speed='slow'))
+                    for row_start in range(len_common+1):
+                        count = Pairs._count1_fun(row_start,len_common,len_only1,include_singles)
+                        count_ref = len([pair for pair in pair_list if pair[0] in list0[:row_start]])
+                        assert count==count_ref, "_count1_fun isn't giving the right answer"
 
-    def test_row_index_fun(self):
+    def test_row_start_fun(self):
         for len_common in range(5):
             for len_only1 in range(5):
                 for include_singles in [True,False]:
                     list0 = ['common{0}'.format(i) for i in range(len_common)]
                     list1 = list0 + ['only1_{0}'.format(i) for i in range(len_only1)]
                     pairs = Pairs(list0,list1,include_singles)
-                    pair_list = list(pairs.pair_sequence(0,speed='slow'))
+                    pair_list = list(pairs._pair_sequence(0,speed='slow'))
                     for start in range(pairs.count+1):
-                        row_index = pairs.row_index_fun(start,len_common,len_only1,include_singles)
-                        assert start==len(pair_list) or pair_list[start][0]==list0[row_index], "row_index_fun isn't giving the right answer"
-
-
-    def test_index_and_count1_functions_spot_test(self):
-        index = Pairs.row_index_fun(3,2,2,True)
-        count1 = Pairs.count1_fun(index,2,2,True)
-        assert count1 <= 3
-
+                        row_start = pairs._row_start1_fun(start,len_common,len_only1,include_singles)
+                        assert start==len(pair_list) or pair_list[start][0]==list0[row_start], "_row_start1_fun isn't giving the right answer"
 
     def test_index_and_count1_functions(self):
-        for len_commonq in range(0,5):
+        for len_commonq in range(0,5):  
             for len_only1q in range(0,5):
                 for include_singlesq in [True,False]:
-                    for row_indexq in range(len_commonq+1):
-                        count1q =Pairs.count1_fun(row_indexq,len_commonq,len_only1q,include_singlesq)
-                        row_index2 = Pairs.row_index_fun(count1q,len_commonq,len_only1q,include_singlesq)
-                        count2 = Pairs.count1_fun(row_index2,len_commonq,len_only1q,include_singlesq)
+                    for row_startq in range(len_commonq+1):
+                        count1q =Pairs._count1_fun(row_startq,len_commonq,len_only1q,include_singlesq)
+                        row_start2 = Pairs._row_start1_fun(count1q,len_commonq,len_only1q,include_singlesq)
+                        count2 = Pairs._count1_fun(row_start2,len_commonq,len_only1q,include_singlesq)
                         assert count1q==count2
-
-    def test_index_and_count1_functions_1_0_False_1(self):
-        len_commonq,len_only1q,include_singlesq,row_indexq = 1,0,False,1
-        count1q = Pairs.count1_fun(row_indexq,len_commonq,len_only1q,include_singlesq)
-        row_index2 = Pairs.row_index_fun(count1q,len_commonq,len_only1q,include_singlesq)
-        count2 = Pairs.count1_fun(row_index2,len_commonq,len_only1q,include_singlesq)
-        assert count1q==count2
-
-
-    def test_index_and_count1_functions_0_0_False_0(self):
-        len_commonq,len_only1q,include_singlesq,row_indexq = 0,0,False,0
-        count1q =Pairs.count1_fun(row_indexq,len_commonq,len_only1q,include_singlesq)
-        row_index2 = Pairs.row_index_fun(count1q,len_commonq,len_only1q,include_singlesq)
-        assert row_indexq==row_index2
 
     def test_medium_fast(self):
         for len_common in range(2):
@@ -201,26 +188,74 @@ class TestPairs(unittest.TestCase):
                         for goal_see in range(pairs.count+1):
                             for start in range(pairs.count+1):
                                 logging.info((len_common,len_only0,len_only1,include_singles,start,start+goal_see))
-                                slow = np.array(list(pairs.pair_sequence(start,start+goal_see,speed='slow')))
-                                medium = np.array(list(pairs.pair_sequence(start,start+goal_see,speed='medium')))
+                                slow = np.array(list(pairs._pair_sequence(start,start+goal_see,speed='slow')))
+                                medium = np.array(list(pairs._pair_sequence(start,start+goal_see,speed='medium')))
                                 assert np.array_equal(slow,medium), 'Expect slow and medium to give the same answers'
-                                fast = np.array(list(pairs.pair_sequence(start,start+goal_see,speed='fast')))
+                                fast = np.array(list(pairs[start:start+goal_see]))
                                 assert np.array_equal(medium,fast), 'Expect medium and fast to give the same answers'
+    def cmktest_big(self):
+        size = 500*1000
+        seed = 0
+        np.random.seed(seed)
+        list0 = np.random.randint(size*10,size=size)
+        list1 = np.random.randint(size*10,size=size)
+        for include_singles in [True,False]:
+            pairs = Pairs(list0, list1, include_singles, duplicates_ok=True)
+            for start in [0,pairs.count//5,pairs.count-1,pairs.count]:
+                logging.info(("test_big",include_singles,start))
+                medium = np.array(list(pairs._pair_sequence(start,start+10,speed='medium')))
+                fast = np.array(list(pairs[start:start+10]))
+                assert np.array_equal(medium,fast), 'Expect medium and fast to give the same answers'
+                #!!!cmk instead of "_pair_sequence" how about an indexer? (and "pair" is redundant)
 
-    def test_11_12_True(self):
-        self.little(11,12,include_singles=True)
 
-    def test_12_13_False(self):
-        self.little(12,13,include_singles=False)
-
-    def little(self,start, goal_see,include_singles):
-        list0 = ['a','z','a','b','y']
-        list1 = ['z','y','x','v']
-        
-        pairs = Pairs(list0, list1, include_singles, duplicates_ok=True)
-        fast = np.array(list(pairs.pair_sequence(start,start+goal_see,speed='fast')))
-        medium = np.array(list(pairs.pair_sequence(start,start+goal_see,speed='medium')))
-        assert np.array_equal(medium,fast), 'Expect medium and fast to give the same answers'
+    #!!!cmk make doc string example with first and last names
+    #!!!cmk replace .count with len()
+    #!!!cmk move speed into indexer
+    def test_slice(self):
+        for len_common in range(3):
+            common = ['common{0}'.format(i) for i in range(len_common)]
+            for len_only0 in range(3):
+                list0 = common + ['only0_{0}'.format(i) for i in range(len_only0)]
+                for len_only1 in range(3):
+                    list1 = common + ['only1_{0}'.format(i) for i in range(len_only1)]
+                    for include_singles in [True,False]:
+                        pairs = Pairs(list0, list1, include_singles, duplicates_ok=True)
+                        pair_list = np.array(list(pairs._pair_sequence(0,None,speed='slow')),dtype='U')
+                        for slicer, start, stop in [
+                            (-1,pairs.count-1,pairs.count),#[-1]
+                            (slice(None,None),0,pairs.count),#[:]
+                            (slice(None,2),0,2),#[:2]
+                            (2,2,3),#[2]
+                            (slice(2,None),2,None),#[2:]
+                            (slice(1,3),1,3),#[1:3]
+                            (slice(3,3),3,3),#[3:3]
+                            (slice(-3,-2),pairs.count-3,pairs.count-2),#[-3:-2]
+                            (slice(-3,None),pairs.count-3,None),#[-3:],
+                            (slice(None,-3),None,pairs.count-3),#[:-3],
+                            (slice(1000,None),1000,None),#[1000:]
+                            (slice(-3,None),pairs.count-100000,None),#[-100000:]
+                            (slice(4,1),4,1),#[4:1],
+                            (slice(10,1000),10,1000)#[10,1000]
+                            ]:
+                            logging.info(("test_slice",slicer, start, stop,len_common,len_only0,len_only1,include_singles))
+                            try:
+                                slow = pair_list[slicer]
+                                slow_fail = False
+                            except:
+                                slow_fail = True
+                            try:
+                                fast = np.array(list(pairs[slicer]),dtype='U')
+                                fast_fail = False
+                            except:
+                                fast_fail = True
+                            if slow_fail:
+                                assert fast_fail, 'expect slow and fast to fail on the same inputs'
+                            else:
+                                if fast_fail or not np.array_equal(slow.reshape(-1,2),fast.reshape(-1,2)): #!!!cmk:
+                                    fast = np.array(list(pairs[slicer]))
+                                assert not fast_fail, 'expect slow and fast to fail on the same inputs'
+                                assert np.array_equal(slow.reshape(-1,2),fast.reshape(-1,2)), 'Expect slow and fast to give the same answers'
 
 def getTestSuite():
     """
@@ -235,14 +270,7 @@ def getTestSuite():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    TestPairs().test_index_and_count1_functions_1_0_False_1()
-    TestPairs().test_index_and_count1_functions()
-    TestPairs().test_row_index_fun()
-    TestPairs().test_count1_fun()
-    TestPairs().test_12_13_False()
-    #TestPairs().test_index_and_count1_functions_spot_test()
-    #TestPairs().test_11_12_True()
-    TestPairs().test_medium_fast()
+    TestPairs().test_slice()
 
     suites = getTestSuite()
     r = unittest.TextTestRunner(failfast=True)
@@ -250,27 +278,6 @@ if __name__ == "__main__":
 
     result = doctest.testmod()
     assert result.failed == 0, "failed doc test: " + __file__
-
-    include_singles = True
-    duplicates_ok = True
-
-    if True: #!!!cmk make a test like this
-        list0 = ['a','z','a','b','y']
-        list1 = ['z','y','x','v']
-    else: #!!!cmk make a test like this
-        size = 500*1000
-        seed = 0
-        np.random.seed(seed)
-        list0 = np.random.randint(size*10,size=size)
-        list1 = np.random.randint(size*10,size=size)
-        #list1 = list0 #!!!cmk make a test like this
-
-    pairs = Pairs(list0, list1, include_singles, duplicates_ok)
-
-    speed = 'slow'
-    for goal_see in [1,2,4,8,15,16]:
-        for start in [0,pairs.count//5,pairs.count//2,pairs.count-1,pairs.count]:
-            print(start,goal_see,list(pairs.pair_sequence(start,start+goal_see,speed=speed))) #!!!cmk instead of "pair_sequence" how about an indexer? (and "pair" is redundant)
 
 
     print("done")
