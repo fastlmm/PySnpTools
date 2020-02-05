@@ -12,7 +12,6 @@ class Pairs(object):
     """!!!cmkdescription of class"""
 
     def __init__(self, list0, list1, include_singles, duplicates_ok=True): #!!!cmk rename list to iterable?
-        #!!!cmk add _ to start of some of these and some of the methods
         self.include_singles = include_singles
         self.duplicates_ok = duplicates_ok
         self.list0 = list(unique_everseen(list0))
@@ -29,37 +28,52 @@ class Pairs(object):
         #How many pairs?
         self._count0 = len(self._only0)*len(self.list1)
         self._count1 = self._count1_fun(len(self._common),len(self._common),len(self._only1),include_singles)
-        self.count = self._count0+self._count1
+        self._count = self._count0+self._count1
 
-    def __getitem__(self, indexer):
+    def __len__(self):
+        return self._count
+
+    def __getitem__(self, indexer,speed='fast'):
         if isinstance(indexer,slice):
             assert indexer.step is None, "step is not supported"
             start,stop = indexer.start,indexer.stop
             if start is None:
                 start = 0
             if stop is None:
-                stop = self.count
+                stop = self._count
             if start < 0:
-                start = max(0,self.count+start)#!!!cmk test
+                start = max(0,self._count+start)
             if stop < 0:
-                stop = self.count+stop#!!!cmk test
+                stop = self._count+stop
+            for pair in self._pair_sequence(start,stop,speed=speed):
+                yield pair
         elif isinstance(indexer, numbers.Integral):
             start = indexer
             if start < 0:
-                start = self.count+start#!!!cmk test
-            assert 0<=start and start<self.count, 'Expect index between 0 (inclusive) and count of pairs (exclusive)'
+                start = self._count+start
+            assert 0<=start and start<self._count, 'Expect index between 0 (inclusive) and count of pairs (exclusive)'
             stop = start+1
+            for pair in self._pair_sequence(start,stop,speed=speed):
+                yield pair
+        elif isinstance(indexer,np.ndarray): #!!!cmk what about other arrays? iterator? negative elements?
+            #!!!cmk need test for this
+            iterator = None
+            previous = None
+            for i in indexer:
+                if iterator is None or i != previous+1:
+                    iterator = self._pair_sequence(i,None,speed=speed)
+                yield next(iterator)
+                previous = i
         else:
             raise Exception("Don't understand indexer '{0}'".format(indexer))
-        return self._pair_sequence(start,stop)
 
 
     def _pair_sequence(self, start=0,stop=None,speed='fast'):
         if speed=='fast':
-            stop = min(stop,self.count) if stop is not None else self.count
+            stop = min(stop,self._count) if stop is not None else self._count
             return islice(self._pair_sequence_inner(start=start),max(stop-start,0))
         if speed=='medium':
-            stop = stop if stop is not None else self.count
+            stop = stop if stop is not None else self._count
             return islice(self._pair_sequence_inner_medium(start=start),max(stop-start,0))
         else:
             assert speed=='slow',"Don't know speed '{0}'".format(speed)
@@ -162,7 +176,7 @@ class TestPairs(unittest.TestCase):
                     list1 = list0 + ['only1_{0}'.format(i) for i in range(len_only1)]
                     pairs = Pairs(list0,list1,include_singles)
                     pair_list = list(pairs._pair_sequence(0,speed='slow'))
-                    for start in range(pairs.count+1):
+                    for start in range(len(pairs)+1):
                         row_start = pairs._row_start1_fun(start,len_common,len_only1,include_singles)
                         assert start==len(pair_list) or pair_list[start][0]==list0[row_start], "_row_start1_fun isn't giving the right answer"
 
@@ -185,8 +199,8 @@ class TestPairs(unittest.TestCase):
                     list1 = common + ['only1_{0}'.format(i) for i in range(len_only1)]
                     for include_singles in [True,False]:
                         pairs = Pairs(list0, list1, include_singles, duplicates_ok=True)
-                        for goal_see in range(pairs.count+1):
-                            for start in range(pairs.count+1):
+                        for goal_see in range(len(pairs)+1):
+                            for start in range(len(pairs)+1):
                                 logging.info((len_common,len_only0,len_only1,include_singles,start,start+goal_see))
                                 slow = np.array(list(pairs._pair_sequence(start,start+goal_see,speed='slow')))
                                 medium = np.array(list(pairs._pair_sequence(start,start+goal_see,speed='medium')))
@@ -201,17 +215,14 @@ class TestPairs(unittest.TestCase):
         list1 = np.random.randint(size*10,size=size)
         for include_singles in [True,False]:
             pairs = Pairs(list0, list1, include_singles, duplicates_ok=True)
-            for start in [0,pairs.count//5,pairs.count-1,pairs.count]:
+            for start in [0,len(pairs)//5,len(pairs)-1,len(pairs)]:
                 logging.info(("test_big",include_singles,start))
                 medium = np.array(list(pairs._pair_sequence(start,start+10,speed='medium')))
                 fast = np.array(list(pairs[start:start+10]))
                 assert np.array_equal(medium,fast), 'Expect medium and fast to give the same answers'
-                #!!!cmk instead of "_pair_sequence" how about an indexer? (and "pair" is redundant)
 
 
     #!!!cmk make doc string example with first and last names
-    #!!!cmk replace .count with len()
-    #!!!cmk move speed into indexer
     def test_slice(self):
         for len_common in range(3):
             common = ['common{0}'.format(i) for i in range(len_common)]
@@ -221,20 +232,20 @@ class TestPairs(unittest.TestCase):
                     list1 = common + ['only1_{0}'.format(i) for i in range(len_only1)]
                     for include_singles in [True,False]:
                         pairs = Pairs(list0, list1, include_singles, duplicates_ok=True)
-                        pair_list = np.array(list(pairs._pair_sequence(0,None,speed='slow')),dtype='U')
+                        pair_list = np.array(list(pairs._pair_sequence(0,None,speed='slow')),dtype='U') #!!!cmk this will not work with Python2
                         for slicer, start, stop in [
-                            (-1,pairs.count-1,pairs.count),#[-1]
-                            (slice(None,None),0,pairs.count),#[:]
+                            (-1,len(pairs)-1,len(pairs)),#[-1]
+                            (slice(None,None),0,len(pairs)),#[:]
                             (slice(None,2),0,2),#[:2]
                             (2,2,3),#[2]
                             (slice(2,None),2,None),#[2:]
                             (slice(1,3),1,3),#[1:3]
                             (slice(3,3),3,3),#[3:3]
-                            (slice(-3,-2),pairs.count-3,pairs.count-2),#[-3:-2]
-                            (slice(-3,None),pairs.count-3,None),#[-3:],
-                            (slice(None,-3),None,pairs.count-3),#[:-3],
+                            (slice(-3,-2),len(pairs)-3,len(pairs)-2),#[-3:-2]
+                            (slice(-3,None),len(pairs)-3,None),#[-3:],
+                            (slice(None,-3),None,len(pairs)-3),#[:-3],
                             (slice(1000,None),1000,None),#[1000:]
-                            (slice(-3,None),pairs.count-100000,None),#[-100000:]
+                            (slice(-3,None),len(pairs)-100000,None),#[-100000:]
                             (slice(4,1),4,1),#[4:1],
                             (slice(10,1000),10,1000)#[10,1000]
                             ]:
@@ -270,7 +281,17 @@ def getTestSuite():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    TestPairs().test_slice()
+    #!!!cmk this is work on an example for docstring, but a bit weird because names are ordered and these arent
+    pairs = Pairs(['Madison','Jill','Kelsey'],['Smith','Madison','Kelsey'],include_singles=True)#!!!cmk is 'include_singles' the best name?
+    for first,last in pairs[:]:
+        print(first,last)
+
+    pairs = Pairs(range(0,2000),range(1000,3000),include_singles=True)
+    print(len(pairs))
+    for pair in pairs[1999999:2000004]:
+        print(pair)
+    print(list(pairs[-5:]))
+
 
     suites = getTestSuite()
     r = unittest.TextTestRunner(failfast=True)

@@ -5,8 +5,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{60f1cb4a-9da3-47c2-9b89-60ac1ce93347}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>util\pairs.py</StartupFile>
-    <SearchPath>..\</SearchPath>
+    <StartupFile>snpreader\pairs.py</StartupFile>
+    <SearchPath>..\;..\..\pysnptools;..\..\fastlmm</SearchPath>
     <WorkingDirectory>
     </WorkingDirectory>
     <OutputPath>.</OutputPath>
