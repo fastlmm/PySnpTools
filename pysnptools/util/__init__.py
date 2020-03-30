@@ -531,7 +531,7 @@ def log_in_place(name, level, time_lambda=time.time, show_log_diffs=False):
                 sys.stdout.write('\n')
             last_message_hash[0] = message_hash
         sys.stdout.write("{0}{1}\r".format(s," "*max(0,last_len[0]-len(s)))) #Pad with spaces to cover up previous message
-        ##every_printed[0] = True
+        every_printed[0] = True
         last_len[0] = len(s)
 
     yield writer

@@ -114,21 +114,21 @@ class _Pairs(SnpReader):
 
         if iid_index_or_none is not None:
             iid_count_out = len(iid_index_or_none)
-            iid_index_out = iid_index_or_none
+            iid_index = iid_index_or_none
         else:
             iid_count_out = iid_count_in
-            iid_index_out = range(iid_count_in)
+            iid_index = range(iid_count_in)
 
         if sid_index_or_none is not None:
             sid_count_out = len(sid_index_or_none)
-            sid_index_out = sid_index_or_none
+            sid_index = sid_index_or_none
         else:
             sid_count_out = sid_count_in
-            sid_index_out = range(sid_count_in)
+            sid_index = range(sid_count_in)
 
         
-        sid_index_inner_0 = self.index0_list[sid_index_out] #Find the sid_index of the left snps of interest
-        sid_index_inner_1 = self.index1_list[sid_index_out] #Find the sid_index of the right snps of interest
+        sid_index_inner_0 = self.index0_list[sid_index] #Find the sid_index of the left snps of interest
+        sid_index_inner_1 = self.index1_list[sid_index] #Find the sid_index of the right snps of interest
         if self.snpreader1 is None:
             sid_index_inner_01 = np.unique(np.r_[sid_index_inner_0,sid_index_inner_1]) #Index of every snp of interest
             inner_01 = self.snpreader0[iid_index_or_none,sid_index_inner_01].read(order=order, dtype=dtype, force_python_only=force_python_only, view_ok=True) #read every val of interest

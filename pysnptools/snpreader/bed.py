@@ -230,17 +230,17 @@ class Bed(SnpReader):
 
         if iid_index_or_none is not None:
             iid_count_out = len(iid_index_or_none)
-            iid_index_out = iid_index_or_none
+            iid_index = iid_index_or_none
         else:
             iid_count_out = iid_count_in
-            iid_index_out = list(range(iid_count_in))
+            iid_index = list(range(iid_count_in))
 
         if sid_index_or_none is not None:
             sid_count_out = len(sid_index_or_none)
-            sid_index_out = sid_index_or_none
+            sid_index = sid_index_or_none
         else:
             sid_count_out = sid_count_in
-            sid_index_out = list(range(sid_count_in))
+            sid_index = list(range(sid_count_in))
 
         if not force_python_only:
             from pysnptools.snpreader import wrap_plink_parser
@@ -250,16 +250,16 @@ class Bed(SnpReader):
             if iid_count_in > 0 and sid_count_in > 0:
                 if dtype == np.float64:
                     if order=="F":
-                        wrap_plink_parser.readPlinkBedFile2doubleFAAA(bed_fn.encode('ascii'), iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
+                        wrap_plink_parser.readPlinkBedFile2doubleFAAA(bed_fn.encode('ascii'), iid_count_in, sid_count_in, self.count_A1, iid_index, sid_index, val)
                     elif order=="C":
-                        wrap_plink_parser.readPlinkBedFile2doubleCAAA(bed_fn.encode('ascii'), iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
+                        wrap_plink_parser.readPlinkBedFile2doubleCAAA(bed_fn.encode('ascii'), iid_count_in, sid_count_in, self.count_A1, iid_index, sid_index, val)
                     else:
                         raise Exception("order '{0}' not known, only 'F' and 'C'".format(order));
                 elif dtype == np.float32:
                     if order=="F":
-                        wrap_plink_parser.readPlinkBedFile2floatFAAA(bed_fn.encode('ascii'), iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
+                        wrap_plink_parser.readPlinkBedFile2floatFAAA(bed_fn.encode('ascii'), iid_count_in, sid_count_in, self.count_A1, iid_index, sid_index, val)
                     elif order=="C":
-                        wrap_plink_parser.readPlinkBedFile2floatCAAA(bed_fn.encode('ascii'), iid_count_in, sid_count_in, self.count_A1, iid_index_out, sid_index_out, val)
+                        wrap_plink_parser.readPlinkBedFile2floatCAAA(bed_fn.encode('ascii'), iid_count_in, sid_count_in, self.count_A1, iid_index, sid_index, val)
                     else:
                         raise Exception("order '{0}' not known, only 'F' and 'C'".format(order));
                 else:
@@ -278,7 +278,7 @@ class Bed(SnpReader):
             self._open_bed()
             logging.warn("using pure python plink parser (might be much slower!!)")
             val = np.zeros(((int(np.ceil(0.25*iid_count_in))*4),sid_count_out),order=order, dtype=dtype) #allocate it a little big
-            for SNPsIndex, bimIndex in enumerate(sid_index_out):
+            for SNPsIndex, bimIndex in enumerate(sid_index):
 
                 startbit = int(np.ceil(0.25*iid_count_in)*bimIndex+3)
                 self._filepointer.seek(startbit)
@@ -304,7 +304,7 @@ class Bed(SnpReader):
                 val[0::4,SNPsIndex:SNPsIndex+1][bytes>=1]=np.nan
                 val[0::4,SNPsIndex:SNPsIndex+1][bytes>=2]=1
                 val[0::4,SNPsIndex:SNPsIndex+1][bytes>=3]=byteThree
-            val = val[iid_index_out,:] #reorder or trim any extra allocation
+            val = val[iid_index,:] #reorder or trim any extra allocation
             if not SnpReader._array_properties_are_ok(val, order, dtype):
                 val = val.copy(order=order)
             self._close_bed()
