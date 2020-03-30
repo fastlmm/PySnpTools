@@ -7,7 +7,7 @@ from distutils.command.clean import clean as Clean
 import numpy
 
 # Version number
-version = '0.4.17'
+version = '0.4.18'
 
 def readme():
     with open('README.md') as f:
@@ -139,7 +139,7 @@ setup(
         "test/datasets/phenSynthFrom22.23.N300.randcidorder.txt",
         "tests/datasets/snpgen.bed",
         "tests/datasets/snpgen.bim",
-        "tests/datasets/snpgen.fam",
+        "tests/datasets/snpgen.fam",#!!!cmk need any Bgen related files?
         ]
                  },
     install_requires = install_requires,
