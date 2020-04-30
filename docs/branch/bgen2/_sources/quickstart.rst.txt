@@ -186,7 +186,7 @@ alleles, as well as phased\ *ness*.
    >>> print(compute_dosage(e, 2))
    [0. 0. 0. 1.]
 
-Please, refer to :ref:`Dosage` section for further details.
+Please, refer to :ref:`dosage:Dosage` section for further details.
 
 .. |bgen specification| raw:: html
 

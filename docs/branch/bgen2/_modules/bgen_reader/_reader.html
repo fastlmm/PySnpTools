@@ -163,21 +163,21 @@
   <h1>Source code for bgen_reader._reader</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">._bgen_file</span> <span class="kn">import</span> <span class="n">bgen_file</span>
-<span class="kn">from</span> <span class="nn">._bgen_metafile</span> <span class="kn">import</span> <span class="n">bgen_metafile</span>
-<span class="kn">from</span> <span class="nn">._environment</span> <span class="kn">import</span> <span class="n">BGEN_READER_CACHE_HOME</span>
-<span class="kn">from</span> <span class="nn">._file</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">._bgen_file</span> <span class="k">import</span> <span class="n">bgen_file</span>
+<span class="kn">from</span> <span class="nn">._bgen_metafile</span> <span class="k">import</span> <span class="n">bgen_metafile</span>
+<span class="kn">from</span> <span class="nn">._environment</span> <span class="k">import</span> <span class="n">BGEN_READER_CACHE_HOME</span>
+<span class="kn">from</span> <span class="nn">._file</span> <span class="k">import</span> <span class="p">(</span>
     <span class="n">assert_file_exist</span><span class="p">,</span>
     <span class="n">assert_file_readable</span><span class="p">,</span>
     <span class="n">is_file_writable</span><span class="p">,</span>
     <span class="n">path_to_filename</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">._genotype</span> <span class="kn">import</span> <span class="n">create_genotypes</span>
-<span class="kn">from</span> <span class="nn">._metafile</span> <span class="kn">import</span> <span class="n">create_metafile</span>
-<span class="kn">from</span> <span class="nn">._samples</span> <span class="kn">import</span> <span class="n">generate_samples</span><span class="p">,</span> <span class="n">read_samples_file</span>
+<span class="kn">from</span> <span class="nn">._genotype</span> <span class="k">import</span> <span class="n">create_genotypes</span>
+<span class="kn">from</span> <span class="nn">._metafile</span> <span class="k">import</span> <span class="n">create_metafile</span>
+<span class="kn">from</span> <span class="nn">._samples</span> <span class="k">import</span> <span class="n">generate_samples</span><span class="p">,</span> <span class="n">read_samples_file</span>
 
 
 <div class="viewcode-block" id="read_bgen"><a class="viewcode-back" href="../../read.html#bgen_reader.read_bgen">[docs]</a><span class="k">def</span> <span class="nf">read_bgen</span><span class="p">(</span>
@@ -253,21 +253,21 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">metafile_filepath</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;We will create the metafile `</span><span class="si">{</span><span class="n">metafile_filepath</span><span class="si">}</span><span class="s2">`. This file will &quot;</span>
+                <span class="n">f</span><span class="s2">&quot;We will create the metafile `</span><span class="si">{metafile_filepath}</span><span class="s2">`. This file will &quot;</span>
                 <span class="s2">&quot;speed up further</span><span class="se">\n</span><span class="s2">reads and only need to be created once. So, please, &quot;</span>
                 <span class="s2">&quot;bear with me.&quot;</span>
             <span class="p">)</span>
         <span class="n">create_metafile</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">metafile_filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">metafile_filepath</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">._bgen_metafile</span> <span class="kn">import</span> <span class="n">cache</span> <span class="k">as</span> <span class="n">metacache</span>
-        <span class="kn">from</span> <span class="nn">._genotype</span> <span class="kn">import</span> <span class="n">cache</span> <span class="k">as</span> <span class="n">bgencache</span>
+        <span class="kn">from</span> <span class="nn">._bgen_metafile</span> <span class="k">import</span> <span class="n">cache</span> <span class="k">as</span> <span class="n">metacache</span>
+        <span class="kn">from</span> <span class="nn">._genotype</span> <span class="k">import</span> <span class="n">cache</span> <span class="k">as</span> <span class="n">bgencache</span>
 
         <span class="n">metacache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="n">bgencache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;File `</span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">` has been modified after the creation of `</span><span class="si">{</span><span class="n">metafile_filepath</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                <span class="n">f</span><span class="s2">&quot;File `</span><span class="si">{filepath}</span><span class="s2">` has been modified after the creation of `</span><span class="si">{metafile_filepath}</span><span class="s2">`.&quot;</span>
                 <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">We will therefore recreate the metadata file. So, please, bear with me.&quot;</span>
             <span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">metafile_filepath</span><span class="p">)</span>

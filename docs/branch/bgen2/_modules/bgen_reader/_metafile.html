@@ -161,11 +161,11 @@
            <div itemprop="articleBody">
             
   <h1>Source code for bgen_reader._metafile</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">._bgen_file</span> <span class="kn">import</span> <span class="n">bgen_file</span>
-<span class="kn">from</span> <span class="nn">._file</span> <span class="kn">import</span> <span class="n">assert_file_exist</span><span class="p">,</span> <span class="n">assert_file_readable</span>
+<span class="kn">from</span> <span class="nn">._bgen_file</span> <span class="k">import</span> <span class="n">bgen_file</span>
+<span class="kn">from</span> <span class="nn">._file</span> <span class="k">import</span> <span class="n">assert_file_exist</span><span class="p">,</span> <span class="n">assert_file_readable</span>
 
 
 <div class="viewcode-block" id="create_metafile"><a class="viewcode-back" href="../../metafile.html#bgen_reader.create_metafile">[docs]</a><span class="k">def</span> <span class="nf">create_metafile</span><span class="p">(</span>
@@ -210,7 +210,7 @@
     <span class="n">assert_file_readable</span><span class="p">(</span><span class="n">bgen_filepath</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">metafile_filepath</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">metafile_filepath</span><span class="si">}</span><span class="s2"> already exists.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;File </span><span class="si">{metafile_filepath}</span><span class="s2"> already exists.&quot;</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">bgen_file</span><span class="p">(</span><span class="n">bgen_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
         <span class="n">bgen</span><span class="o">.</span><span class="n">create_metafile</span><span class="p">(</span><span class="n">metafile_filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
