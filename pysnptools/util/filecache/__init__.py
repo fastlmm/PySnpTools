@@ -103,10 +103,11 @@ class _DibLib(object):
 from pysnptools.util.filecache.filecache import FileCache
 from pysnptools.util.filecache.localcache import LocalCache
 from pysnptools.util.filecache.peertopeer import PeerToPeer
+from pysnptools.util.filecache.hashdown import Hashdown
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

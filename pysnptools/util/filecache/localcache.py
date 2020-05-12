@@ -2,7 +2,6 @@ import os
 import shutil
 import logging
 from contextlib import contextmanager
-import pysnptools.util as pstutil
 from pysnptools.util.filecache import FileCache
 
 class LocalCache(FileCache):
@@ -59,6 +58,7 @@ class LocalCache(FileCache):
 
     @contextmanager
     def _simple_open_write(self,simple_file_name,size=0,updater=None):
+        import pysnptools.util as pstutil
         logging.info("open_write('{0}',size={1})".format(simple_file_name,size))
 
         #Register the file name in the directory
@@ -111,4 +111,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

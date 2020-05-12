@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{60f1cb4a-9da3-47c2-9b89-60ac1ce93347}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>util\mapreduce1\runner\awsbatch.py</StartupFile>
+    <StartupFile>util\filecache\test.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.\snpreader</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -112,7 +112,11 @@
     <Compile Include="standardizer\__init__.py" />
     <Compile Include="snpreader\distributedbed.py" />
     <Compile Include="test.py" />
+    <Compile Include="util\_example_file.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="util\filecache\filecache.py" />
+    <Compile Include="util\filecache\hashdown.py" />
     <Compile Include="util\filecache\localcache.py" />
     <Compile Include="util\filecache\peertopeer.py" />
     <Compile Include="util\filecache\test.py">
@@ -123,9 +127,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="util\mapreduce1\distributable.py" />
-    <Compile Include="util\mapreduce1\runner\awsbatch.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="util\mapreduce1\runner\runner.py">
       <SubType>Code</SubType>
     </Compile>
@@ -173,6 +174,9 @@
     <Folder Include="util\mapreduce1\runner\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\.travis.yml">
+      <Link>setup\.travis.yml</Link>
+    </Content>
     <Content Include="..\AUTHORS.txt">
       <Link>setup\AUTHORS.txt</Link>
     </Content>
@@ -193,6 +197,9 @@
     </Content>
     <Content Include="..\README.md">
       <Link>setup\README.md</Link>
+    </Content>
+    <Content Include="..\requirements.txt">
+      <Link>setup\requirements.txt</Link>
     </Content>
     <Content Include="examples\toydata.fid.phe" />
     <Content Include="examples\toydata.id.phe" />
@@ -225,6 +232,7 @@
     </Content>
     <Content Include="snpreader\wrap_plink_parser.cpp" />
     <Content Include="snpreader\wrap_plink_parser.pyx" />
+    <Content Include="util\pysnptools.hashdown.json" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda37-64" />

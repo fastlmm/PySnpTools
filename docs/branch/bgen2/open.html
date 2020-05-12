@@ -1,0 +1,890 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Details &mdash; bgen-reader 4.0.4 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/bootstrap-limix.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Environment Variables" href="env_variables.html" />
+    <link rel="prev" title="Quick Start" href="quickstart2.html" />
+
+<script src="//code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+<script>
+    window.jQuery || document.write("<script src=\"_static/jquery-3.3.1.min.js\"><\/script>");
+</script>
+<script type="text/javascript" src="_static/copybutton.js"></script>
+
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> bgen-reader
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="daskapi.html">Dask-Inspired API (original)</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="numpyapi.html">NumPy-Inspired API (new)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="quickstart2.html">Quick Start</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Details</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#class-methods">Class &amp; Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#properties">Properties</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="env_variables.html">Environment Variables</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">bgen-reader</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="numpyapi.html">NumPy-Inspired API (new)</a> &raquo;</li>
+        
+      <li>Details</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/open.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="details">
+<h1>Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="class-methods">
+<h2>Class &amp; Methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#bgen_reader.open_bgen" title="bgen_reader.open_bgen"><code class="xref py py-class docutils literal notranslate"><span class="pre">open_bgen</span></code></a> (<a class="reference internal" href="#open-examples"><span class="std std-ref">Examples</span></a>)</p></li>
+<li><p><a class="reference internal" href="#bgen_reader.open_bgen.read" title="bgen_reader.open_bgen.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> (<a class="reference internal" href="#read-examples"><span class="std std-ref">Examples</span></a>)</p></li>
+<li><p><a class="reference internal" href="#bgen_reader.open_bgen.allele_expectation" title="bgen_reader.open_bgen.allele_expectation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">allele_expectation()</span></code></a> (<em>includes frequency and dosage</em>,
+<a class="reference internal" href="#allele-expectation-examples"><span class="std std-ref">Examples</span></a>)</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#bgen_reader.open_bgen.nsamples" title="bgen_reader.open_bgen.nsamples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">nsamples</span></code></a>, <a class="reference internal" href="#bgen_reader.open_bgen.nvariants" title="bgen_reader.open_bgen.nvariants"><code class="xref py py-attr docutils literal notranslate"><span class="pre">nvariants</span></code></a>,
+<a class="reference internal" href="#bgen_reader.open_bgen.max_combinations" title="bgen_reader.open_bgen.max_combinations"><code class="xref py py-attr docutils literal notranslate"><span class="pre">max_combinations</span></code></a>, <a class="reference internal" href="#bgen_reader.open_bgen.shape" title="bgen_reader.open_bgen.shape"><code class="xref py py-attr docutils literal notranslate"><span class="pre">shape</span></code></a></p></li>
+<li><p><a class="reference internal" href="#bgen_reader.open_bgen.samples" title="bgen_reader.open_bgen.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a></p></li>
+<li><p><a class="reference internal" href="#bgen_reader.open_bgen.ids" title="bgen_reader.open_bgen.ids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ids</span></code></a>, <a class="reference internal" href="#bgen_reader.open_bgen.rsids" title="bgen_reader.open_bgen.rsids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">rsids</span></code></a>,
+<a class="reference internal" href="#bgen_reader.open_bgen.chromosomes" title="bgen_reader.open_bgen.chromosomes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">chromosomes</span></code></a>, <a class="reference internal" href="#bgen_reader.open_bgen.positions" title="bgen_reader.open_bgen.positions"><code class="xref py py-attr docutils literal notranslate"><span class="pre">positions</span></code></a>,
+<a class="reference internal" href="#bgen_reader.open_bgen.nalleles" title="bgen_reader.open_bgen.nalleles"><code class="xref py py-attr docutils literal notranslate"><span class="pre">nalleles</span></code></a>, <a class="reference internal" href="#bgen_reader.open_bgen.allele_ids" title="bgen_reader.open_bgen.allele_ids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">allele_ids</span></code></a>,
+<a class="reference internal" href="#bgen_reader.open_bgen.ncombinations" title="bgen_reader.open_bgen.ncombinations"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ncombinations</span></code></a>, <a class="reference internal" href="#bgen_reader.open_bgen.phased" title="bgen_reader.open_bgen.phased"><code class="xref py py-attr docutils literal notranslate"><span class="pre">phased</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<dl class="py class">
+<dt id="bgen_reader.open_bgen">
+<em class="property">class </em><code class="sig-prename descclassname">bgen_reader.</code><code class="sig-name descname">open_bgen</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filepath</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.8)">pathlib.Path</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">samples_filepath</span><span class="p">:</span> <span class="n">Union[str, pathlib.Path, None]</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bgen_reader/_bgen2.html#open_bgen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bgen_reader.open_bgen" title="Permalink to this definition">¶</a></dt>
+<dd><p>A NumPy-inspired class for fast opening and reading of BGEN files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> – BGEN file path.</p></li>
+<li><p><strong>samples_filepath</strong> – Path to a <a class="reference external" href="https://www.well.ox.ac.uk/~gav/qctool/documentation/sample_file_formats.html">sample format</a> file or <code class="docutils literal notranslate"><span class="pre">None</span></code> to read samples from the BGEN file itself.
+Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>verbose</strong> – <code class="docutils literal notranslate"><span class="pre">True</span></code> (default) to show progress; <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>an open_bgen object</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bgen_reader.open_bgen" title="bgen_reader.open_bgen"><code class="xref py py-class docutils literal notranslate"><span class="pre">open_bgen</span></code></a></p>
+</dd>
+</dl>
+<p class="rubric" id="open-examples">Examples</p>
+<p>With the <a class="reference external" href="https://docs.python.org/3/reference/compound_stmts.html#grammar-token-with-stmt">with</a> statement, list <a class="reference internal" href="#bgen_reader.open_bgen.samples" title="bgen_reader.open_bgen.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a> and variant <a class="reference internal" href="#bgen_reader.open_bgen.ids" title="bgen_reader.open_bgen.ids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ids</span></code></a>, then <a class="reference internal" href="#bgen_reader.open_bgen.read" title="bgen_reader.open_bgen.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> the whole file.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="go">[&#39;SNP1&#39; &#39;SNP2&#39; &#39;SNP3&#39; &#39;SNP4&#39;]</span>
+<span class="go">[&#39;sample_0&#39; &#39;sample_1&#39; &#39;sample_2&#39; &#39;sample_3&#39;]</span>
+<span class="go">[[[1. 0. 1. 0.]</span>
+<span class="go">  [0. 1. 1. 0.]</span>
+<span class="go">  [1. 0. 0. 1.]</span>
+<span class="go">  [0. 1. 0. 1.]]</span>
+
+<span class="go"> [[0. 1. 1. 0.]</span>
+<span class="go">  [1. 0. 0. 1.]</span>
+<span class="go">  [0. 1. 0. 1.]</span>
+<span class="go">  [1. 0. 1. 0.]]</span>
+
+<span class="go"> [[1. 0. 0. 1.]</span>
+<span class="go">  [0. 1. 0. 1.]</span>
+<span class="go">  [1. 0. 1. 0.]</span>
+<span class="go">  [0. 1. 1. 0.]]</span>
+
+<span class="go"> [[0. 1. 0. 1.]</span>
+<span class="go">  [1. 0. 1. 0.]</span>
+<span class="go">  [0. 1. 1. 0.]</span>
+<span class="go">  [1. 0. 0. 1.]]]</span>
+</pre></div>
+</div>
+<p>Open the file (without <cite>with</cite>) and read probabilities for one variant.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">[[[1. 0. 0. 1.]]</span>
+
+<span class="go"> [[0. 1. 0. 1.]]</span>
+
+<span class="go"> [[1. 0. 1. 0.]]</span>
+
+<span class="go"> [[0. 1. 1. 0.]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">bgen</span>                 <span class="c1"># close and delete object</span>
+</pre></div>
+</div>
+<p>Open the file and then first read for a <a class="reference external" href="https://docs.python.org/3/library/functions.html#slice" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">slice</span></code></a> of samples and variants, and then for a single sample and variant.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">((</span><span class="nb">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="nb">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">))))</span>
+<span class="go">[[[0. 1. 0. 1.]</span>
+<span class="go">  [1. 0. 1. 0.]]</span>
+
+<span class="go"> [[1. 0. 1. 0.]</span>
+<span class="go">  [0. 1. 1. 0.]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)))</span>
+<span class="go">[[[0. 1. 1. 0.]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">bgen</span>                 <span class="c1"># close and delete object</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.allele_expectation">
+<code class="sig-name descname">allele_expectation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_frequencies</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a><span class="p">, </span>Tuple<span class="p">[</span><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a><span class="p">, </span><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="_modules/bgen_reader/_bgen2.html#open_bgen.allele_expectation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bgen_reader.open_bgen.allele_expectation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allele expectation, frequency, and dosage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>index</strong> – An expression specifying the samples and variants of interest. (See <a class="reference internal" href="#read-examples"><span class="std std-ref">Examples</span></a> in <a class="reference internal" href="#bgen_reader.open_bgen.read" title="bgen_reader.open_bgen.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> for details.)
+Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>, meaning compute for all samples and variants.</p></li>
+<li><p><strong>return_frequencies</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Return an array telling the allele frequencies.
+Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>always in this order</p>
+<ul class="simple">
+<li><p>Samples-by-variants-by-alleles matrix of allele expectations,</p></li>
+<li><p>Samples-by-variants-by-alleles matrix of frequencies, if <code class="docutils literal notranslate"><span class="pre">return_frequencies</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>one or two <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method supports unphased genotypes only.</p>
+</div>
+<p class="rubric" id="allele-expectation-examples">Examples</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">allele_expectation</span><span class="p">,</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">read_bgen</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">texttable</span> <span class="kn">import</span> <span class="n">Texttable</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filepath</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;example.32bits.bgen&quot;</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read the example.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sample_index</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">samples</span><span class="o">==</span><span class="s2">&quot;sample_005&quot;</span> <span class="c1"># will be only 1 sample</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variant_index</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">rsids</span><span class="o">==</span><span class="s2">&quot;RSID_6&quot;</span>      <span class="c1"># will be only 1 variant</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">((</span><span class="n">sample_index</span><span class="p">,</span><span class="n">variant_index</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Allele expectation makes sense for unphased genotypes only,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># which is the case here.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_expectation</span><span class="p">((</span><span class="n">sample_index</span><span class="p">,</span><span class="n">variant_index</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">alleles_per_variant</span> <span class="o">=</span> <span class="p">[</span><span class="n">allele_ids</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">allele_ids</span> <span class="ow">in</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_ids</span><span class="p">[</span><span class="n">variant_index</span><span class="p">]]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Print what we have got in a nice format.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">Texttable</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">add_rows</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">[</span>
+<span class="gp">... </span>        <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;AA&quot;</span><span class="p">,</span> <span class="s2">&quot;AG&quot;</span><span class="p">,</span> <span class="s2">&quot;GG&quot;</span><span class="p">,</span> <span class="s2">&quot;E[.]&quot;</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,:])</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;na&quot;</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="p">[</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">alleles_per_variant</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+<span class="gp">... </span>        <span class="p">[</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">alleles_per_variant</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]],</span>
+<span class="gp">... </span>    <span class="p">]</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">draw</span><span class="p">())</span>
+<span class="go">+----+-------+-------+-------+-------+</span>
+<span class="go">|    |  AA   |  AG   |  GG   | E[.]  |</span>
+<span class="go">+====+=======+=======+=======+=======+</span>
+<span class="go">| p  | 0.012 | 0.987 | 0.001 | na    |</span>
+<span class="go">+----+-------+-------+-------+-------+</span>
+<span class="go">| #A | 2     | 1     | 0     | 1.011 |</span>
+<span class="go">+----+-------+-------+-------+-------+</span>
+<span class="go">| #G | 0     | 1     | 2     | 0.989 |</span>
+<span class="go">+----+-------+-------+-------+-------+</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">return_frequencies</span></code> is true, this method will also return the allele frequency.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">open_bgen</span><span class="p">,</span> <span class="n">example_filepath</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filepath</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;example.32bits.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variant_index</span> <span class="o">=</span> <span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">rsids</span><span class="o">==</span><span class="s2">&quot;RSID_6&quot;</span><span class="p">)</span>      <span class="c1"># will be only 1 variant</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span><span class="p">,</span><span class="n">f</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_expectation</span><span class="p">(</span><span class="n">variant_index</span><span class="p">,</span> <span class="n">return_frequencies</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">alleles_per_variant</span> <span class="o">=</span> <span class="p">[</span><span class="n">allele_ids</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">allele_ids</span> <span class="ow">in</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_ids</span><span class="p">[</span><span class="n">variant_index</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">alleles_per_variant</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]))</span>
+<span class="go">A: 229.23103218810434</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">alleles_per_variant</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
+<span class="go">G: 270.7689678118956</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">ids</span><span class="p">[</span><span class="n">variant_index</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">bgen</span><span class="o">.</span><span class="n">rsids</span><span class="p">[</span><span class="n">variant_index</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">SNPID_6 RSID_6</span>
+</pre></div>
+</div>
+<p>To find dosage, just select the column of interest from the expectation.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filepath</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;example.32bits.bgen&quot;</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read the example.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Extract the allele expectations of the fourth variant.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variant_index</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_expectation</span><span class="p">(</span><span class="n">variant_index</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Compute the dosage when considering the allele</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># in position 1 as the reference/alternative one.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">alt_allele_index</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dosage</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Print the dosage for only the first five samples</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># and the one (and only) variant</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">dosage</span><span class="p">[:</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">[1.96185308 0.00982666 0.01745552 1.00347899 1.01153563]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">open_bgen</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filepath</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;example.32bits.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variant_index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Print the metadata of the fourth variant.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">ids</span><span class="p">[</span><span class="n">variant_index</span><span class="p">],</span><span class="n">bgen</span><span class="o">.</span><span class="n">rsids</span><span class="p">[</span><span class="n">variant_index</span><span class="p">])</span>
+<span class="go">[&#39;SNPID_5&#39;] [&#39;RSID_5&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span><span class="p">,</span> <span class="n">missing</span><span class="p">,</span> <span class="n">ploidy</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">variant_index</span><span class="p">,</span><span class="n">return_missings</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">return_ploidies</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">missing</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ploidy</span><span class="p">))</span>
+<span class="go">[False] [2]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;sample&#39;</span><span class="p">:</span><span class="n">bgen</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span><span class="s1">&#39;0&#39;</span><span class="p">:</span><span class="n">probs</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;1&#39;</span><span class="p">:</span><span class="n">probs</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="s1">&#39;2&#39;</span><span class="p">:</span><span class="n">probs</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">df1</span><span class="p">)</span> 
+<span class="go">            sample        0        1        2</span>
+<span class="go">0    sample_001  0.00488  0.02838  0.96674</span>
+<span class="go">1    sample_002  0.99045  0.00928  0.00027</span>
+<span class="go">2    sample_003  0.98932  0.00391  0.00677</span>
+<span class="go">3    sample_004  0.00662  0.98328  0.01010</span>
+<span class="go">..          ...      ...      ...      ...</span>
+<span class="go">496  sample_497  0.00137  0.01312  0.98550</span>
+<span class="go">497  sample_498  0.00552  0.99423  0.00024</span>
+<span class="go">498  sample_499  0.01266  0.01154  0.97580</span>
+<span class="go">499  sample_500  0.00021  0.98431  0.01547</span>
+
+<span class="go">[500 rows x 4 columns]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">alleles_per_variant</span> <span class="o">=</span> <span class="p">[</span><span class="n">allele_ids</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">allele_ids</span> <span class="ow">in</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_ids</span><span class="p">[</span><span class="n">variant_index</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span><span class="p">,</span><span class="n">f</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_expectation</span><span class="p">(</span><span class="n">variant_index</span><span class="p">,</span><span class="n">return_frequencies</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;sample&#39;</span><span class="p">:</span><span class="n">bgen</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span><span class="n">alleles_per_variant</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">e</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">alleles_per_variant</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span><span class="n">e</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span>  
+<span class="go">            sample        A        G</span>
+<span class="go">0    sample_001  0.03815  1.96185</span>
+<span class="go">1    sample_002  1.99017  0.00983</span>
+<span class="go">2    sample_003  1.98254  0.01746</span>
+<span class="go">3    sample_004  0.99652  1.00348</span>
+<span class="go">..          ...      ...      ...</span>
+<span class="go">496  sample_497  0.01587  1.98413</span>
+<span class="go">497  sample_498  1.00528  0.99472</span>
+<span class="go">498  sample_499  0.03687  1.96313</span>
+<span class="go">499  sample_500  0.98474  1.01526</span>
+
+<span class="go">[500 rows x 3 columns]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;allele&#39;</span><span class="p">:</span><span class="n">alleles_per_variant</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">bgen</span><span class="o">.</span><span class="n">rsids</span><span class="p">[</span><span class="n">variant_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">df3</span><span class="p">)</span>
+<span class="go">  allele    RSID_5</span>
+<span class="go">0      A 305.97218</span>
+<span class="go">1      G 194.02782</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">alt_index</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">alt</span> <span class="o">=</span> <span class="n">alleles_per_variant</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">alt_index</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dosage</span> <span class="o">=</span> <span class="n">e</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="n">alt_index</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df4</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;sample&#39;</span><span class="p">:</span><span class="n">bgen</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;alt=</span><span class="si">{</span><span class="n">alt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span><span class="n">dosage</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Dosages when considering G as the alternative allele.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">df4</span><span class="p">)</span> 
+<span class="go">         sample    alt=G</span>
+<span class="go">0    sample_001  1.96185</span>
+<span class="go">1    sample_002  0.00983</span>
+<span class="go">2    sample_003  0.01746</span>
+<span class="go">3    sample_004  1.00348</span>
+<span class="go">..          ...      ...</span>
+<span class="go">496  sample_497  1.98413</span>
+<span class="go">497  sample_498  0.99472</span>
+<span class="go">498  sample_499  1.96313</span>
+<span class="go">499  sample_500  1.01526</span>
+
+<span class="go">[500 rows x 2 columns]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.allele_ids">
+<em class="property">property </em><code class="sig-name descname">allele_ids</code><a class="headerlink" href="#bgen_reader.open_bgen.allele_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>The comma-delimited list of alleles for each variant (a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">str</span></code>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">allele_ids</span><span class="p">)</span>
+<span class="go">[&#39;A,G&#39; &#39;A,G&#39; &#39;A,G&#39; &#39;A,G&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.chromosomes">
+<em class="property">property </em><code class="sig-name descname">chromosomes</code><a class="headerlink" href="#bgen_reader.open_bgen.chromosomes" title="Permalink to this definition">¶</a></dt>
+<dd><p>The chromosome of each variant (a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">str</span></code>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">)</span>
+<span class="go">[&#39;1&#39; &#39;1&#39; &#39;1&#39; &#39;1&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bgen_reader/_bgen2.html#open_bgen.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bgen_reader.open_bgen.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close a <a class="reference internal" href="#bgen_reader.open_bgen" title="bgen_reader.open_bgen"><code class="xref py py-class docutils literal notranslate"><span class="pre">open_bgen</span></code></a> object that was opened for reading.</p>
+<p class="rubric">Notes</p>
+<p>Better alternatives to <a class="reference internal" href="#bgen_reader.open_bgen.close" title="bgen_reader.open_bgen.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> include the
+<a class="reference external" href="https://docs.python.org/3/reference/compound_stmts.html#grammar-token-with-stmt">with</a>
+statement (closes the file automatically) and the <a class="reference external" href="https://docs.python.org/3/reference/simple_stmts.html#grammar-token-del-stmt">del</a>
+statement (which closes the file and <em>deletes</em> the object).
+Doing nothing, while not better, is usually fine.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">[[[1. 0. 0. 1.]]</span>
+
+<span class="go"> [[0. 1. 0. 1.]]</span>
+
+<span class="go"> [[1. 0. 1. 0.]]</span>
+
+<span class="go"> [[0. 1. 1. 0.]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>     <span class="c1">#&#39;del bgen&#39; is better.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.ids">
+<em class="property">property </em><code class="sig-name descname">ids</code><a class="headerlink" href="#bgen_reader.open_bgen.ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>The variant identifiers (a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">str</span></code>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+<span class="go">[&#39;SNP1&#39; &#39;SNP2&#39; &#39;SNP3&#39; &#39;SNP4&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.max_combinations">
+<em class="property">property </em><code class="sig-name descname">max_combinations</code><a class="headerlink" href="#bgen_reader.open_bgen.max_combinations" title="Permalink to this definition">¶</a></dt>
+<dd><p>The maximum number of values in any variant’s probability distribution (<code class="docutils literal notranslate"><span class="pre">int</span></code>).</p>
+<p>For unphased, diploidy, biallelic data, it will be 3. For phased, diploidy, biallelic data it will be 4. In general,
+it is the maximum value in <a class="reference internal" href="#bgen_reader.open_bgen.ncombinations" title="bgen_reader.open_bgen.ncombinations"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ncombinations</span></code></a>.</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">max_combinations</span><span class="p">)</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.nalleles">
+<em class="property">property </em><code class="sig-name descname">nalleles</code><a class="headerlink" href="#bgen_reader.open_bgen.nalleles" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of alleles for each variant (a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">int</span></code>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">nalleles</span><span class="p">)</span>
+<span class="go">[2 2 2 2]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.ncombinations">
+<em class="property">property </em><code class="sig-name descname">ncombinations</code><a class="headerlink" href="#bgen_reader.open_bgen.ncombinations" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of values needed for each variant’s probability distribution (a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">int</span></code>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">ncombinations</span><span class="p">)</span>
+<span class="go">[4 4 4 4]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.nsamples">
+<em class="property">property </em><code class="sig-name descname">nsamples</code><a class="headerlink" href="#bgen_reader.open_bgen.nsamples" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of samples in the data (<code class="docutils literal notranslate"><span class="pre">int</span></code>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">nsamples</span><span class="p">)</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.nvariants">
+<em class="property">property </em><code class="sig-name descname">nvariants</code><a class="headerlink" href="#bgen_reader.open_bgen.nvariants" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of variants in the data (<code class="docutils literal notranslate"><span class="pre">int</span></code>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">nvariants</span><span class="p">)</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.phased">
+<em class="property">property </em><code class="sig-name descname">phased</code><a class="headerlink" href="#bgen_reader.open_bgen.phased" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each variant, <code class="docutils literal notranslate"><span class="pre">True</span></code> if and only the variant is phased (a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of bool)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">phased</span><span class="p">)</span>
+<span class="go">[ True  True  True  True]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.positions">
+<em class="property">property </em><code class="sig-name descname">positions</code><a class="headerlink" href="#bgen_reader.open_bgen.positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>The genetic position of each variant (a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">int</span></code>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">positions</span><span class="p">)</span>
+<span class="go">[1 2 3 4]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">index: Optional[Any] = None</em>, <em class="sig-param">dtype: Union[type</em>, <em class="sig-param">str</em>, <em class="sig-param">None] = &lt;class 'numpy.float64'&gt;</em>, <em class="sig-param">order: Optional[str] = 'F'</em>, <em class="sig-param">max_combinations: Optional[int] = None</em>, <em class="sig-param">return_probabilities: Optional[bool] = True</em>, <em class="sig-param">return_missings: Optional[bool] = False</em>, <em class="sig-param">return_ploidies: Optional[bool] = False</em><span class="sig-paren">)</span> &#x2192; Union[None, numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray], Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]]<a class="reference internal" href="_modules/bgen_reader/_bgen2.html#open_bgen.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bgen_reader.open_bgen.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read genotype information from an <a class="reference internal" href="#bgen_reader.open_bgen" title="bgen_reader.open_bgen"><code class="xref py py-class docutils literal notranslate"><span class="pre">open_bgen</span></code></a> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>index</strong> – An expression specifying the samples and variants to read. (See <a class="reference internal" href="#read-examples"><span class="std std-ref">Examples</span></a>, below).
+Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>, meaning read all.</p></li>
+<li><p><strong>dtype</strong> (<em>data-type</em>) – The desired data-type for the returned probability array.
+Defaults to <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.float64</span></code>. Use <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.float32</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.float16</span></code>, when appropriate,
+to save 50% or 75% of memory. (See <a class="reference internal" href="#read-notes"><span class="std std-ref">Notes</span></a>, below).</p></li>
+<li><p><strong>order</strong> (<em>{'F'</em><em>,</em><em>'C'}</em>) – The desired memory layout for the returned probability array.
+Defaults to <code class="docutils literal notranslate"><span class="pre">F</span></code> (Fortran order, which is variant-major)</p></li>
+<li><p><strong>max_combinations</strong> (int or <code class="docutils literal notranslate"><span class="pre">None</span></code>.) – The number of values to allocate for each probability distribution.
+Defaults to a number just large enough for any data in the file.
+For unphased, diploid, biallelic data, it will default to 3. For phased, diploid, biallelic data, it will
+default to 4. Any overallocated space is filled with <code class="xref py py-const docutils literal notranslate"><span class="pre">numpy.nan</span></code>.</p></li>
+<li><p><strong>return_probabilities</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Read and return the probabilities for samples and variants specified.
+Defaults to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>return_missings</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Return a boolean array telling which probabilities are missing.
+Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>return_ploidies</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Read and return the ploidy for the samples and variants specified.
+Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>always in this order:</p>
+<ul class="simple">
+<li><p>a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of probabilities with <code class="docutils literal notranslate"><span class="pre">dtype</span></code> and shape <cite>(nsamples_out,nvariants_out,max_combinations)</cite>,
+if <code class="docutils literal notranslate"><span class="pre">return_probabilities</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> (the default). Missing data is filled with <code class="xref py py-const docutils literal notranslate"><span class="pre">numpy.nan</span></code>.</p></li>
+<li><p>a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">bool</span></code> of shape <cite>(nsamples_out,nvariants_out)</cite>, if <code class="docutils literal notranslate"><span class="pre">return_missings</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+<li><p>a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">int</span></code> of shape <cite>(nsamples_out,nvariants_out)</cite>, if <code class="docutils literal notranslate"><span class="pre">return_ploidies</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>zero to three <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></p>
+</dd>
+</dl>
+<p class="rubric" id="read-notes">Notes</p>
+<ul>
+<li><p>About <code class="docutils literal notranslate"><span class="pre">dtype</span></code></p>
+<blockquote>
+<div><p>If you know the compression level of your BGEN file, you can sometimes save 50% or 75% on memory with <code class="docutils literal notranslate"><span class="pre">dtype</span></code>.
+T(est with your data to confirm you are not losing any precision.) The approximate relationship is:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>BGEN compression 1 to 10 bits: <code class="docutils literal notranslate"><span class="pre">dtype</span></code> =’float16’</p></li>
+<li><p>BGEN compression 11 to 23 bits: <code class="docutils literal notranslate"><span class="pre">dtype</span></code> =’float32’</p></li>
+<li><p>BGEN compression 24 to 32 bits: <code class="docutils literal notranslate"><span class="pre">dtype</span></code> =’float64’ (default)</p></li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</li>
+</ul>
+<p class="rubric" id="read-examples">Examples</p>
+<ul>
+<li><p>Index Examples</p>
+<blockquote>
+<div><p>To read all data in a BGEN file, set <code class="docutils literal notranslate"><span class="pre">index</span></code> to <code class="docutils literal notranslate"><span class="pre">None</span></code>. This is the default.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen_h</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen_h</span><span class="o">.</span><span class="n">read</span><span class="p">())</span> <span class="c1">#real all</span>
+<span class="go">[[[1. 0. 1. 0.]</span>
+<span class="go">  [0. 1. 1. 0.]</span>
+<span class="go">  [1. 0. 0. 1.]</span>
+<span class="go">  [0. 1. 0. 1.]]</span>
+
+<span class="go"> [[0. 1. 1. 0.]</span>
+<span class="go">  [1. 0. 0. 1.]</span>
+<span class="go">  [0. 1. 0. 1.]</span>
+<span class="go">  [1. 0. 1. 0.]]</span>
+
+<span class="go"> [[1. 0. 0. 1.]</span>
+<span class="go">  [0. 1. 0. 1.]</span>
+<span class="go">  [1. 0. 1. 0.]</span>
+<span class="go">  [0. 1. 1. 0.]]</span>
+
+<span class="go"> [[0. 1. 0. 1.]</span>
+<span class="go">  [1. 0. 1. 0.]</span>
+<span class="go">  [0. 1. 1. 0.]</span>
+<span class="go">  [1. 0. 0. 1.]]]</span>
+</pre></div>
+</div>
+<p>To read selected variants, set <code class="docutils literal notranslate"><span class="pre">index</span></code> to an <code class="docutils literal notranslate"><span class="pre">int</span></code>, a list of <code class="docutils literal notranslate"><span class="pre">int</span></code>, a <a class="reference external" href="https://docs.python.org/3/library/functions.html#slice" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">slice</span></code></a>, or a list of <code class="docutils literal notranslate"><span class="pre">bool</span></code>.
+Negative integers count from the end of the data.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bgen_e</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;example.bgen&quot;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># read the variant indexed by 5.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>      <span class="c1"># print the dimensions of the returned numpy array.</span>
+<span class="go">(500, 1, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># read the variant indexed by 5, 6, and 1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(500, 3, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span> <span class="c1">#read the first 5 variants</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(500, 5, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span> <span class="c1">#read variants from 2 (inclusive) to 5 (exclusive)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(500, 3, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span> <span class="c1"># read variants starting at index 2.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(500, 197, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span> <span class="c1">#read every 10th variant</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(500, 20, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">bgen_e</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">))</span> <span class="c1"># print unique chrom values</span>
+<span class="go">[&#39;01&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">bgen_e</span><span class="o">.</span><span class="n">chromosomes</span><span class="o">==</span><span class="s1">&#39;01&#39;</span><span class="p">)</span> <span class="c1"># read all variants in chrom 1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(500, 199, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># read the last variant</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(500, 1, 3)</span>
+</pre></div>
+</div>
+<p>To read selected samples, set <code class="docutils literal notranslate"><span class="pre">index</span></code> to a tuple of the form <code class="docutils literal notranslate"><span class="pre">(sample_index,None)</span></code>, where <code class="docutils literal notranslate"><span class="pre">sample</span> <span class="pre">index</span></code> follows the form
+of <code class="docutils literal notranslate"><span class="pre">variant</span> <span class="pre">index</span></code>, above.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span> <span class="c1"># Read 1st sample (across all variants)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(1, 199, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">((</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span><span class="kc">None</span><span class="p">))</span> <span class="c1"># Read every 10th sample</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(50, 199, 3)</span>
+</pre></div>
+</div>
+<p>To read selected samples and selected variants, set <code class="docutils literal notranslate"><span class="pre">index</span></code> to a tuple of the form <code class="docutils literal notranslate"><span class="pre">(sample_index,variant_index)</span></code>,
+where <code class="docutils literal notranslate"><span class="pre">sample</span> <span class="pre">index</span></code> and <code class="docutils literal notranslate"><span class="pre">variant_index</span></code> follow the forms above.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read samples 10 (inclusive) to 20 (exclusive) and the first 15 variants.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">((</span><span class="nb">slice</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">),</span><span class="nb">slice</span><span class="p">(</span><span class="mi">15</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(10, 15, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#read last and 2nd-to-last sample and the last variant</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">(([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(2, 1, 3)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Multiple Return Example</p>
+<blockquote>
+<div><p>Read probabilities, missingness, and ploidy. Print all unique ploidies values.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span><span class="p">,</span><span class="n">missing</span><span class="p">,</span><span class="n">ploidy</span> <span class="o">=</span> <span class="n">bgen_e</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">return_missings</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">return_ploidies</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ploidy</span><span class="p">))</span>
+<span class="go">[2]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.rsids">
+<em class="property">property </em><code class="sig-name descname">rsids</code><a class="headerlink" href="#bgen_reader.open_bgen.rsids" title="Permalink to this definition">¶</a></dt>
+<dd><p>The variant RS numbers (a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">str</span></code>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">rsids</span><span class="p">)</span>
+<span class="go">[&#39;RS1&#39; &#39;RS2&#39; &#39;RS3&#39; &#39;RS4&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.samples">
+<em class="property">property </em><code class="sig-name descname">samples</code><a class="headerlink" href="#bgen_reader.open_bgen.samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sample identifiers (a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">str</span></code>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+<span class="go">[&#39;sample_0&#39; &#39;sample_1&#39; &#39;sample_2&#39; &#39;sample_3&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bgen_reader.open_bgen.shape">
+<em class="property">property </em><code class="sig-name descname">shape</code><a class="headerlink" href="#bgen_reader.open_bgen.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>The tuple (<a class="reference internal" href="#bgen_reader.open_bgen.nsamples" title="bgen_reader.open_bgen.nsamples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">nsamples</span></code></a>, <a class="reference internal" href="#bgen_reader.open_bgen.nvariants" title="bgen_reader.open_bgen.nvariants"><code class="xref py py-attr docutils literal notranslate"><span class="pre">nvariants</span></code></a>,
+<a class="reference internal" href="#bgen_reader.open_bgen.max_combinations" title="bgen_reader.open_bgen.max_combinations"><code class="xref py py-attr docutils literal notranslate"><span class="pre">max_combinations</span></code></a>)</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(4, 4, 4)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="env_variables.html" class="btn btn-neutral float-right" title="Environment Variables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="quickstart2.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Danilo Horta
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

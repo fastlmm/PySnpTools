@@ -1,0 +1,258 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>bgen_reader._metafile &mdash; bgen-reader 4.0.4 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/bootstrap-limix.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+
+<script src="//code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+<script>
+    window.jQuery || document.write("<script src=\"../../_static/jquery-3.3.1.min.js\"><\/script>");
+</script>
+<script type="text/javascript" src="../../_static/copybutton.js"></script>
+
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> bgen-reader
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../daskapi.html">Dask-Inspired API (original)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../numpyapi.html">NumPy-Inspired API (new)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../env_variables.html">Environment Variables</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">bgen-reader</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>bgen_reader._metafile</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for bgen_reader._metafile</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">._bgen_file</span> <span class="kn">import</span> <span class="n">bgen_file</span>
+<span class="kn">from</span> <span class="nn">._file</span> <span class="kn">import</span> <span class="n">assert_file_exist</span><span class="p">,</span> <span class="n">assert_file_readable</span>
+
+
+<div class="viewcode-block" id="create_metafile"><a class="viewcode-back" href="../../metafile.html#bgen_reader.create_metafile">[docs]</a><span class="k">def</span> <span class="nf">create_metafile</span><span class="p">(</span>
+    <span class="n">bgen_filepath</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
+    <span class="n">metafile_filepath</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create variants metadata file.</span>
+
+<span class="sd">    Variants metadata file helps speed up subsequent reads of the associated</span>
+<span class="sd">    bgen file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bgen_filepath : str</span>
+<span class="sd">        Bgen file path.</span>
+<span class="sd">    metafile_file : str</span>
+<span class="sd">        Metafile file path.</span>
+<span class="sd">    verbose : bool</span>
+<span class="sd">        ``True`` to show progress; ``False`` otherwise.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    .. doctest::</span>
+
+<span class="sd">        &gt;&gt;&gt; import os</span>
+<span class="sd">        &gt;&gt;&gt; from bgen_reader import create_metafile, example_filepath</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; filepath = example_filepath(&quot;example.32bits.bgen&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; metafile_filepath = filepath.with_suffix(&quot;.metafile&quot;)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; try:</span>
+<span class="sd">        ...     create_metafile(filepath, metafile_filepath, verbose=False)</span>
+<span class="sd">        ... finally:</span>
+<span class="sd">        ...     if metafile_filepath.exists():</span>
+<span class="sd">        ...         os.remove(metafile_filepath)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bgen_filepath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">bgen_filepath</span><span class="p">)</span>
+    <span class="n">metafile_filepath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">metafile_filepath</span><span class="p">)</span>
+
+    <span class="n">assert_file_exist</span><span class="p">(</span><span class="n">bgen_filepath</span><span class="p">)</span>
+    <span class="n">assert_file_readable</span><span class="p">(</span><span class="n">bgen_filepath</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">metafile_filepath</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">metafile_filepath</span><span class="si">}</span><span class="s2"> already exists.&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">bgen_file</span><span class="p">(</span><span class="n">bgen_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">bgen</span><span class="p">:</span>
+        <span class="n">bgen</span><span class="o">.</span><span class="n">create_metafile</span><span class="p">(</span><span class="n">metafile_filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Danilo Horta
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

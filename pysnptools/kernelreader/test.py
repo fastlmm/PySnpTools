@@ -268,7 +268,7 @@ class TestKrDocStrings(unittest.TestCase):
         import pysnptools.kernelreader.kernelreader
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.kernelreader.kernelreader)
+        result = doctest.testmod(pysnptools.kernelreader.kernelreader,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -276,7 +276,7 @@ class TestKrDocStrings(unittest.TestCase):
         import pysnptools.kernelreader.snpkernel
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.kernelreader.snpkernel)
+        result = doctest.testmod(pysnptools.kernelreader.snpkernel,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -284,7 +284,7 @@ class TestKrDocStrings(unittest.TestCase):
         import pysnptools.kernelreader.kerneldata
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.kernelreader.kerneldata)
+        result = doctest.testmod(pysnptools.kernelreader.kerneldata,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -300,7 +300,7 @@ class TestKrDocStrings(unittest.TestCase):
         import pysnptools.kernelreader.kernelhdf5
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.kernelreader.kernelhdf5)
+        result = doctest.testmod(pysnptools.kernelreader.kernelhdf5,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -308,7 +308,7 @@ class TestKrDocStrings(unittest.TestCase):
         import pysnptools.kernelreader.kernelnpz
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.kernelreader.kernelnpz)
+        result = doctest.testmod(pysnptools.kernelreader.kernelnpz,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -329,4 +329,5 @@ if __name__ == '__main__':
 
     suites = getTestSuite()
     r = unittest.TextTestRunner(failfast=False)
-    r.run(suites)
+    ret = r.run(suites)
+    assert ret.wasSuccessful()

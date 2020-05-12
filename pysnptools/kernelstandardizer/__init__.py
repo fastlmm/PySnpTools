@@ -17,7 +17,10 @@ class KernelStandardizer(object):
     >>> from six.moves import range #Python 2 & 3 compatibility
     >>> from pysnptools.kernelstandardizer import DiagKtoN
     >>> from pysnptools.kernelreader import KernelNpz
-    >>> kerneldata1 = KernelNpz('../examples/toydata.kernel.npz').read()
+    >>> from pysnptools.util import example_file # Download and return local file name
+    >>> 
+    >>> kernel_file = example_file('pysnptools/examples/toydata.kernel.npz')
+    >>> kerneldata1 = KernelNpz(kernel_file).read()
     >>> print(np.diag(kerneldata1.val).sum())
     5000000.0
     >>> kerneldata1 = kerneldata1.standardize(DiagKtoN())
@@ -26,7 +29,7 @@ class KernelStandardizer(object):
 
     Can also return a constant kernel standardizer that be applied to other :class:`.KernelData`.
 
-    >>> kernel_whole = KernelNpz('../examples/toydata.kernel.npz')
+    >>> kernel_whole = KernelNpz(kernel_file)
     >>> train_idx, test_idx = range(10,kernel_whole.iid_count), range(0,10)  #test on the first 10, train on the rest
     >>> kernel_train, trained_standardizer = DiagKtoN().standardize(kernel_whole[train_idx].read(),return_trained=True)
     >>> print('{0:.6f}'.format(np.diag(kernel_train.val).sum()))
@@ -67,7 +70,10 @@ class Identity(KernelStandardizer):
 
     >>> from pysnptools.kernelstandardizer import Identity as KS_Identity
     >>> from pysnptools.kernelreader import KernelNpz
-    >>> kerneldata1 = KernelNpz('../examples/toydata.kernel.npz').read()
+    >>> from pysnptools.util import example_file # Download and return local file name
+    >>> 
+    >>> kernel_file = example_file('pysnptools/examples/toydata.kernel.npz')
+    >>> kerneldata1 = KernelNpz(kernel_file).read()
     >>> print(np.diag(kerneldata1.val).sum())
     5000000.0
     >>> kerneldata1 = kerneldata1.standardize(KS_Identity())
@@ -96,5 +102,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)
 

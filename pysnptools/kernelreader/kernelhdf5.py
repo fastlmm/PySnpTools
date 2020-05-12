@@ -19,7 +19,9 @@ class KernelHdf5(PstHdf5,KernelReader):
 
         >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.kernelreader import KernelHdf5
-        >>> data_on_disk = KernelHdf5('../examples/toydata.kernel.hdf5')
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> hdf5_file = example_file('pysnptools/examples/toydata.kernel.hdf5')
+        >>> data_on_disk = KernelHdf5(hdf5_file)
         >>> print(data_on_disk.iid_count)
         500
 
@@ -46,7 +48,9 @@ class KernelHdf5(PstHdf5,KernelReader):
         >>> from pysnptools.snpreader import Bed
         >>> from pysnptools.standardizer import Unit
         >>> import pysnptools.util as pstutil
-        >>> kerneldata = Bed('../examples/toydata.bed',count_A1=False).read_kernel(Unit())     # Create a kernel from the data in the Bed file
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> bed_file = example_file('pysnptools/examples/toydata.5chrom.*','*.bed')
+        >>> kerneldata = Bed(bed_file,count_A1=False).read_kernel(Unit())     # Create a kernel from the data in the Bed file
         >>> pstutil.create_directory_if_necessary("tempdir/toydata.kernel.hdf5")
         >>> KernelHdf5.write("tempdir/toydata.kernel.hdf5",kerneldata)          # Write data in KernelHdf5 format
         KernelHdf5('tempdir/toydata.kernel.hdf5')
@@ -60,4 +64,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

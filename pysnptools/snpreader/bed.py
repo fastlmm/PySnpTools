@@ -102,7 +102,7 @@ class Bed(SnpReader):
 
         if not hasattr(self,"_col") or not hasattr(self,"_col_property"):
             self._col, self._col_property = SnpReader._read_map_or_bim(self.filename,remove_suffix="bed", add_suffix="bim")
-        self._assert_iid_sid_pos()
+        self._assert_iid_sid_pos(check_val=False)
 
         if not self.skip_format_check:
             self._open_bed()
@@ -134,7 +134,9 @@ class Bed(SnpReader):
 
         >>> from pysnptools.snpreader import Pheno, Bed
         >>> import pysnptools.util as pstutil
-        >>> snpdata = Pheno('../examples/toydata.phe').read()         # Read data from Pheno format
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> pheno_fn = example_file("pysnptools/examples/toydata.phe")
+        >>> snpdata = Pheno(pheno_fn).read()         # Read data from Pheno format
         >>> pstutil.create_directory_if_necessary("tempdir/toydata.bed")
         >>> Bed.write("tempdir/toydata.bed",snpdata,count_A1=False)   # Write data in Bed format
         Bed('tempdir/toydata.bed',count_A1=False)
@@ -315,14 +317,19 @@ class Bed(SnpReader):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    from pysnptools.snpreader import Pheno, Bed
-    import pysnptools.util as pstutil
-    import os
-    print(os.getcwd())
-    snpdata = Pheno('../examples/toydata.phe').read()         # Read data from Pheno format
-    pstutil.create_directory_if_necessary("tempdir/toydata.bed")
-    Bed.write("tempdir/toydata.bed",snpdata,count_A1=False)   # Write data in Bed format
+    if True:
+        from pysnptools.util import example_file
+        pheno_fn = example_file("pysnptools/examples/toydata.phe")
+
+    if False:
+        from pysnptools.snpreader import Pheno, Bed
+        import pysnptools.util as pstutil
+        import os
+        print(os.getcwd())
+        snpdata = Pheno('../examples/toydata.phe').read()         # Read data from Pheno format
+        pstutil.create_directory_if_necessary("tempdir/toydata.bed")
+        Bed.write("tempdir/toydata.bed",snpdata,count_A1=False)   # Write data in Bed format
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test

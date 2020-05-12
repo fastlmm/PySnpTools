@@ -102,4 +102,4 @@ if __name__ == "__main__":
     from pysnptools.util.mapreduce1 import map_reduce #Needed to work around thread local variable issue
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

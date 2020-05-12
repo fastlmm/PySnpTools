@@ -11,7 +11,9 @@ class Identity(Standardizer):
     >>> from __future__ import print_function #Python 2 & 3 compatibility
     >>> from pysnptools.standardizer import Identity
     >>> from pysnptools.snpreader import Bed
-    >>> snpdata1 = Bed('../../tests/datasets/all_chr.maf0.001.N300',count_A1=False).read()
+    >>> from pysnptools.util import example_file # Download and return local file name
+    >>> bedfile = example_file("tests/datasets/all_chr.maf0.001.N300.*","*.bed")
+    >>> snpdata1 = Bed(bedfile,count_A1=False).read()
     >>> print(snpdata1.val[0,0])
     2.0
     >>> snpdata1 = snpdata1.standardize(Identity())
@@ -44,4 +46,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

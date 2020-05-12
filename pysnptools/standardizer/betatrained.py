@@ -16,7 +16,9 @@ class BetaTrained(Standardizer):
     >>> from __future__ import print_function #Python 2 & 3 compatibility
     >>> from pysnptools.standardizer import Beta
     >>> from pysnptools.snpreader import Bed
-    >>> train = Bed('../../tests/datasets/all_chr.maf0.001.N300',count_A1=False)[1:,:].read() # read SNP values for all but the first iid
+    >>> from pysnptools.util import example_file # Download and return local file name
+    >>> bedfile = example_file("tests/datasets/all_chr.maf0.001.N300.*","*.bed")
+    >>> train = Bed(bedfile,count_A1=False)[1:,:].read() # read SNP values for all but the first iid
     >>> _, betatrained = train.standardize(Beta(1,25),return_trained=True) #beta standardize and remember the mean and stddev of each sid
     >>> print(betatrained.stats[:5,:]) #Print the means and stddev of the first five sids
     [[...1.94983278  0.21828988]
@@ -24,7 +26,7 @@ class BetaTrained(Standardizer):
      [...1.84280936  0.39057474]
      [...1.99665552  0.0577347 ]
      [...1.97658863  0.15120608]]
-    >>> test = Bed('../../tests/datasets/all_chr.maf0.001.N300',count_A1=False)[0,:].read() # read SNP values for the first iid
+    >>> test = Bed(bedfile,count_A1=False)[0,:].read() # read SNP values for the first iid
     >>> test = test.standardize(betatrained) # Use the mean of the train data to beta standardize the test data.
     >>> print('{0:.6f}'.format(test.val[0,0]))
     0.681674

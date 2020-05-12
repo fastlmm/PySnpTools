@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import numpy as np
+import sys
 import scipy as sp
 import logging
 import doctest
@@ -25,6 +26,7 @@ from pysnptools.snpreader.snpmemmap import TestSnpMemMap
 from pysnptools.snpreader.snpgen import TestSnpGen
 from pysnptools.snpreader.distributedbed import TestDistributedBed
 from pysnptools.util.generate import TestGenerate
+from pysnptools.util._example_file import TestExampleFile
 from pysnptools.kernelreader.test import _fortesting_JustCheckExists
 from pysnptools.util.intrangeset import TestIntRangeSet
 from pysnptools.util.test import TestUtilTools
@@ -87,6 +89,51 @@ class TestPySnpTools(unittest.TestCase):
         self.pheno_fn = self.currentFolder + "/examples/toydata.phe"
         self.snpdata = snpreader.read(order='F',force_python_only=True)
         self.snps = self.snpdata.val
+
+    def test_val_assign(self):
+        from pysnptools.snpreader import SnpData
+        from pysnptools.kernelreader import KernelData
+        from pysnptools.pstreader import PstData
+
+        iid_count = 3
+        sid_count = 2
+        iid = [[str(i),str(i)] for i in range(iid_count)]
+        sid = [str(s) for s in range(sid_count)]
+        np.random.seed(0)
+        vali = np.random.randint(10,size=[iid_count,sid_count])
+        vali2 = np.random.randint(10,size=[iid_count,sid_count])
+        snpdata = SnpData(iid=iid,sid=sid,val=vali)
+        snpdata.val = vali2
+        assert snpdata.val.dtype == np.float64
+
+        valk = np.random.randint(10,size=[iid_count,iid_count])
+        valk2 = np.random.randint(10,size=[iid_count,iid_count])
+        kerneldata = KernelData(iid=iid,val=valk)
+        assert np.float64 == kerneldata.val.dtype
+        kerneldata.val = valk2
+        assert np.float64 == kerneldata.val.dtype
+
+        valstr = np.array(vali,dtype=np.str_)
+        valstr[0,0] = 'cannot convert'
+        error_seen = False
+        try:
+            snpdata.val = valstr
+        except:
+            error_seen = True
+        assert error_seen
+        error_seen = False
+        try:
+            kerneldata.val = vali
+        except:
+            error_seen = True
+        assert error_seen
+        error_seen = False
+        try:
+            pstdata.val = vali
+        except:
+            error_seen = True
+        assert error_seen
+
 
     def test_diagKtoN(self):
         """
@@ -301,7 +348,7 @@ class TestPySnpTools(unittest.TestCase):
 
         from pysnptools.standardizer.identity import Identity
         from pysnptools.standardizer.diag_K_to_N import DiagKtoN
-        for dtype in [sp.float64,sp.float32]:
+        for dtype in [np.float64,np.float32]:
             for std in [Unit(),Beta(1,25),Identity(),DiagKtoN()]:
                 s = str(std)
                 np.random.seed(0)
@@ -343,7 +390,7 @@ class TestPySnpTools(unittest.TestCase):
         make sure blocked standardize yields same result as regular standardize
         """
 
-        for dtype in [sp.float64,sp.float32]:
+        for dtype in [np.float64,np.float32]:
 
             snps = snpreader.read(order='F',force_python_only=True,dtype=dtype).val
             self.assertEqual(dtype, snps.dtype)
@@ -487,13 +534,13 @@ class TestPySnpTools(unittest.TestCase):
         result = snpreader2.read(view_ok=True)
         self.assertFalse(snpreader2 is result)
         result2 = result[:,:].read()
-        self.assertFalse(sp.may_share_memory(result2.val,result.val))
+        self.assertFalse(np.may_share_memory(result2.val,result.val))
         result3 = result[:,:].read(view_ok=True)
-        self.assertTrue(sp.may_share_memory(result3.val,result.val))
+        self.assertTrue(np.may_share_memory(result3.val,result.val))
         result4 = result3.read()
-        self.assertFalse(sp.may_share_memory(result4.val,result3.val))
+        self.assertFalse(np.may_share_memory(result4.val,result3.val))
         result5 = result4.read(view_ok=True)
-        self.assertTrue(sp.may_share_memory(result4.val,result5.val))
+        self.assertTrue(np.may_share_memory(result4.val,result5.val))
 
     def test_load_and_standardize_hdf5(self):
         snpreader2 = SnpHdf5(self.currentFolder + "/examples/toydata.snpmajor.snp.hdf5")
@@ -535,7 +582,7 @@ class TestPySnpTools(unittest.TestCase):
         iid_index_list = range(N_original - 1,0,-2)
         snpreader3 = snpreader3[iid_index_list,:]
 
-        for dtype in [sp.float64,sp.float32]:
+        for dtype in [np.float64,np.float32]:
 
             G2 = snpreader2.read(order='F',force_python_only=True).val
             G2 = Unit().standardize(G2, block_size=10000, force_python_only=True)
@@ -565,12 +612,108 @@ class TestPySnpTools(unittest.TestCase):
             GCx = Unit().standardize(SNPs_floatCx)
             self.assertTrue(np.allclose(GFx, G2x, rtol=1e-05, atol=1e-05))
 
+    def test_val_is_float(self):
+        from pysnptools.snpreader import SnpData
+        from pysnptools.kernelreader import KernelData
+        from pysnptools.pstreader import PstData
+
+        iid_count = 3
+        sid_count = 2
+        iid = [[str(i),str(i)] for i in range(iid_count)]
+        sid = [str(s) for s in range(sid_count)]
+        np.random.seed(0)
+        vali = np.random.randint(10,size=[iid_count,sid_count])
+        snpdata = SnpData(iid=iid,sid=sid,val=vali)
+        assert snpdata.val.dtype == np.float64
+        snpdata = SnpData(iid=iid,sid=sid,val=np.array(vali,dtype=np.float32))
+        assert snpdata.val.dtype == np.float32
+        snpdata = SnpData(iid=iid,sid=sid,val=np.array(vali,dtype=np.float64))
+        assert snpdata.val.dtype == np.float64
+        snpdata = SnpData(iid=iid,sid=sid,val=np.array(vali,dtype=np.float16))
+        assert snpdata.val.dtype == np.float64
+        assert np.float64 == SnpData(iid=iid,sid=sid,val=np.array(vali,dtype=np.str_)).val.dtype
+
+        valstr = np.array(vali,dtype=np.str_)
+        valstr[0,0] = 'cannot convert'
+        error_seen = False
+        try:
+            SnpData(iid=iid,sid=sid,val=valstr) #expect error
+        except:
+            error_seen = True
+        assert error_seen
+        error_seen = False
+        try:
+            KernelData(iid=iid,val=valk3d) #expect error
+        except:
+            error_seen = True
+        assert error_seen
+
+    def test_read_dtype(self):
+        previous_wd = os.getcwd()
+        os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
+        bed = Bed('examples/toydata.bed',count_A1=True)
+        bed[:3,:2].read(dtype='float32').val
+
+        os.chdir(previous_wd)
+
+    def test_respect_read_inputs(self):
+        from pysnptools.snpreader import _MergeIIDs,_MergeSIDs, SnpGen, SnpMemMap
+
+        previous_wd = os.getcwd()
+        os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
+        snpreader_list = [
+                           _MergeIIDs([Bed('examples/toydata.bed',count_A1=True)[:5,:].read(),Bed('examples/toydata.bed',count_A1=True)[5:,:].read()]),
+                           SnpGen(seed=0,iid_count=500,sid_count=50),
+                           SnpHdf5('examples/toydata.snpmajor.snp.hdf5'),
+                           SnpMemMap('examples/tiny.snp.memmap'),
+                           SnpNpz('examples/toydata10.snp.npz'),
+                           Bed('examples/toydata.bed',count_A1=True)[::2,::2],
+                           _MergeSIDs([Bed('examples/toydata.bed',count_A1=True)[:,:5].read(),Bed('examples/toydata.bed',count_A1=True)[:,5:].read()]),
+                           Bed('examples/toydata.bed',count_A1=True),
+                           Dat('examples/toydata.dat'),
+                           Dense('examples/toydata100.dense.txt'),
+                           DistributedBed('examples/toydataSkip10.distributedbed'),
+                           Ped('examples/toydata.ped'),
+                           Pheno('examples/toydata.phe'),
+                           Bed('examples/toydata.bed',count_A1=True).read()
+                          ]
+
+
+        for snpreader in snpreader_list:
+            logging.info(str(snpreader))
+            for order in ['F','C','A']:
+                for dtype in [np.float32,np.float64]:
+                    for force_python_only in [True,False]:
+                        for view_ok in [True,False]:
+                            val = snpreader.read(order=order,dtype=dtype,force_python_only=force_python_only,view_ok=view_ok).val
+                            has_right_order = order=="A" or (order=="C" and val.flags["C_CONTIGUOUS"]) or (order=="F" and val.flags["F_CONTIGUOUS"])
+                            if hasattr(snpreader,'val') and not view_ok:
+                                assert snpreader.val is not val
+                            if (hasattr(snpreader,'val') and view_ok and snpreader.val is not val and
+                                (order == 'A' or (order == 'F' and snpreader.val.flags['F_CONTIGUOUS']) or (order == 'C' and snpreader.val.flags['C_CONTIGUOUS'])) and
+                                (dtype is None or  snpreader.val.dtype == dtype)):
+                                logging.info("{0} could have read a view, but didn't".format(snpreader))
+                            if not force_python_only: #Don't check this when force_python_only -- Bed is know to get the order wrong, but it doesn't matter
+                                assert val.dtype == dtype and has_right_order
+        os.chdir(previous_wd)
+
+
 
     def test_writes(self):
         from pysnptools.snpreader import SnpData, SnpHdf5, SnpNpz, SnpMemMap
 
-        the_class_and_suffix_list = [(DistributedBed, "distributed_bed"),(Dense,"dense"),(Bed,"bed"),(Dat,"dat"),(Ped,"ped"),(Pheno,"pheno"),
-                                    (SnpHdf5,"hdf5"),(SnpNpz,"npz"),(SnpMemMap,"memmap")]
+        the_class_and_suffix_list = [(DistributedBed, "distributed_bed",None,None),
+                                     (Dense,"dense",None,None),
+                                     (Bed,"bed",lambda filename:Bed(filename,count_A1=False),None),
+                                     (Dat,"dat",None,None),
+                                     (Ped,"ped",None,None),
+                                     (Pheno,"pheno",None,None),
+                                    (SnpHdf5,"hdf5",None,None),
+                                    (SnpNpz,"npz",None,None),
+                                    (SnpMemMap,"memmap",None,None)
+                                    ]
         cant_do_col_prop_none_set = {"dense","distributed_bed"}
         cant_do_col_len_0_set = {"distributed_bed"}
         cant_do_row_count_zero_set = {'dense','ped','pheno'}
@@ -591,7 +734,7 @@ class TestPySnpTools(unittest.TestCase):
         i = 0
         for row_count in [0,5,2,1]:
             for col_count in [4,2,1,0]:
-                val = np.random.random_integers(low=0,high=3,size=(row_count,col_count))*1.0
+                val = np.random.randint(0,4,size=(row_count,col_count))*1.0
                 val[val==3]=np.NaN
                 row = [('0','0'),('1','1'),('2','2'),('3','3'),('4','4')][:row_count]
                 col = ['s0','s1','s2','s3','s4'][:col_count]
@@ -599,7 +742,10 @@ class TestPySnpTools(unittest.TestCase):
                     row_prop = None
                     col_prop = None if is_none else [(x,x,x) for x in range(5)][:col_count]
                     snpdata = SnpData(iid=row,sid=col,val=val,pos=col_prop,name=str(i))
-                    for the_class,suffix in the_class_and_suffix_list:
+                    for the_class,suffix,constructor,writer in the_class_and_suffix_list:
+                        constructor = constructor or (lambda filename: the_class(filename))
+                        writer = writer or (lambda filename,_data: the_class.write(filename,_data))
+
                         if col_count == 0 and suffix in cant_do_col_len_0_set:
                             continue
                         if col_prop is None and suffix in cant_do_col_prop_none_set:
@@ -611,9 +757,10 @@ class TestPySnpTools(unittest.TestCase):
                         i += 1
                         if suffix in erase_any_write_dir and os.path.exists(filename):
                             shutil.rmtree(filename)
-                        the_class.write(filename,snpdata)
-                        for subsetter in [None, sp.s_[::2,::3]]:
-                            reader = the_class(filename)
+                        ret = writer(filename,snpdata)
+                        assert ret is not None
+                        for subsetter in [None, np.s_[::2,::3]]:
+                            reader = constructor(filename)
                             _fortesting_JustCheckExists().input(reader)
                             subreader = reader if subsetter is None else reader[subsetter[0],subsetter[1]]
                             readdata = subreader.read(order='C')
@@ -679,12 +826,12 @@ class NaNCNCTestCases(unittest.TestCase):
         for iid_index_list in [range(N_original), range(N_original//2), range(N_original - 1,0,-2)]:
             for snp_index_list in [range(snps_to_read_count), range(snps_to_read_count//2), range(snps_to_read_count - 1,0,-2)]:
                 for standardizer in [Unit(),Beta(1,25)]:
-                    reference_snps, reference_dtype = NaNCNCTestCases(iid_index_list, snp_index_list, standardizer, snp_reader_factory_bed(), sp.float64, "C", "False", None, None).read_and_standardize()
+                    reference_snps, reference_dtype = NaNCNCTestCases(iid_index_list, snp_index_list, standardizer, snp_reader_factory_bed(), np.float64, "C", "False", None, None).read_and_standardize()
                     for snpreader_factory in [snp_reader_factory_bed, 
                                              snp_reader_factory_snpmajor_hdf5, snp_reader_factory_iidmajor_hdf5,
                                              snp_reader_factory_dat
                                               ]:
-                        for dtype in [sp.float64,sp.float32]:
+                        for dtype in [np.float64,np.float32]:
                             for order in ["C", "F"]:
                                 for force_python_only in [False, True]:
                                     snpreader = snpreader_factory()
@@ -733,7 +880,9 @@ class NaNCNCTestCases(unittest.TestCase):
         self.assertTrue(snps[0,0] == 0)
         self.assertTrue(np.all(snps[:,1] == 0))
         if self.reference_snps is not None:
-            self.assertTrue(np.allclose(self.reference_snps, snps, rtol=1e-04 if dtype == sp.float32 or self.reference_dtype == sp.float32 else 1e-12))
+            self.assertTrue(np.allclose(self.reference_snps, snps, rtol=1e-04 if dtype == np.float32 or self.reference_dtype == np.float32 else 1e-12))
+
+
 
 # We do it this way instead of using doctest.DocTestSuite because doctest.DocTestSuite requires modules to be pickled, which python doesn't allow.
 # We need tests to be pickleable so that they can be run on a cluster.
@@ -743,7 +892,7 @@ class TestSnpDocStrings(unittest.TestCase):
         import pysnptools.snpreader.bed
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
-        result = doctest.testmod(pysnptools.snpreader.bed)
+        result = doctest.testmod(pysnptools.snpreader.bed,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -751,7 +900,7 @@ class TestSnpDocStrings(unittest.TestCase):
         import pysnptools.snpreader.snpdata
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
-        result = doctest.testmod(pysnptools.snpreader.dat)
+        result = doctest.testmod(pysnptools.snpreader.dat,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -759,7 +908,7 @@ class TestSnpDocStrings(unittest.TestCase):
         import pysnptools.snpreader.snpdata
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
-        result = doctest.testmod(pysnptools.snpreader.dense)
+        result = doctest.testmod(pysnptools.snpreader.dense,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -767,7 +916,7 @@ class TestSnpDocStrings(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
         import pysnptools.snpreader.pairs
-        result = doctest.testmod(pysnptools.snpreader.pairs)
+        result = doctest.testmod(pysnptools.snpreader.pairs,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -775,7 +924,7 @@ class TestSnpDocStrings(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
         import pysnptools.snpreader.ped
-        result = doctest.testmod(pysnptools.snpreader.ped)
+        result = doctest.testmod(pysnptools.snpreader.ped,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -783,7 +932,7 @@ class TestSnpDocStrings(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
         import pysnptools.snpreader.pheno
-        result = doctest.testmod(pysnptools.snpreader.pheno)
+        result = doctest.testmod(pysnptools.snpreader.pheno,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -791,7 +940,7 @@ class TestSnpDocStrings(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
         import pysnptools.snpreader.snpdata
-        result = doctest.testmod(pysnptools.snpreader.snpdata)
+        result = doctest.testmod(pysnptools.snpreader.snpdata,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -799,7 +948,7 @@ class TestSnpDocStrings(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
         import pysnptools.snpreader.snphdf5
-        result = doctest.testmod(pysnptools.snpreader.snphdf5)
+        result = doctest.testmod(pysnptools.snpreader.snphdf5,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -807,7 +956,7 @@ class TestSnpDocStrings(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
         import pysnptools.snpreader.snpmemmap
-        result = doctest.testmod(pysnptools.snpreader.snpmemmap)
+        result = doctest.testmod(pysnptools.snpreader.snpmemmap,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -815,7 +964,7 @@ class TestSnpDocStrings(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/util")
         import pysnptools.snpreader.snpgen
-        result = doctest.testmod(pysnptools.snpreader.snpgen)
+        result = doctest.testmod(pysnptools.snpreader.snpgen,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -823,7 +972,7 @@ class TestSnpDocStrings(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
         import pysnptools.snpreader.snpnpz
-        result = doctest.testmod(pysnptools.snpreader.snpnpz)
+        result = doctest.testmod(pysnptools.snpreader.snpnpz,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -831,10 +980,9 @@ class TestSnpDocStrings(unittest.TestCase):
         import pysnptools.snpreader.distributedbed
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/snpreader")
-        result = doctest.testmod(pysnptools.snpreader.distributedbed)
+        result = doctest.testmod(pysnptools.snpreader.distributedbed,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
-
 
     def test_snpreader(self):
         old_dir = os.getcwd()
@@ -849,7 +997,7 @@ class TestSnpDocStrings(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/util")
         import pysnptools.util
-        result = doctest.testmod(pysnptools.util)
+        result = doctest.testmod(pysnptools.util,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -899,6 +1047,7 @@ def getTestSuite():
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestKrDocStrings))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSnpGen))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestGenerate))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestExampleFile))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPstMemMap))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSnpMemMap))
     test_suite.addTests(NaNCNCTestCases.factory_iterator())
@@ -912,4 +1061,5 @@ if __name__ == '__main__':
 
     suites = getTestSuite()
     r = unittest.TextTestRunner(failfast=False)
-    r.run(suites)
+    ret = r.run(suites)
+    assert ret.wasSuccessful()

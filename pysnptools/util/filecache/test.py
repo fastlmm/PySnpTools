@@ -4,7 +4,7 @@ import os
 import tempfile
 import shutil
 import time
-from pysnptools.util.filecache import LocalCache, PeerToPeer
+from pysnptools.util.filecache import LocalCache, PeerToPeer, Hashdown
 
 
 class TestFileCache(unittest.TestCase):
@@ -18,6 +18,97 @@ class TestFileCache(unittest.TestCase):
         self._write_and_read(storage_closure())
         self._distribute(storage_closure)
     
+    def test_hashdown(self):
+        logging.info("test_hashdown")
+
+        from pysnptools.util.filecache.test import TestFileCache as self
+        logging.basicConfig(level=logging.INFO)
+        logging.info("test_hashdown")
+
+        url='https://github.com/fastlmm/PySnpTools/raw/9de8e93a91b330b064b482c918a38104904b45c0/pysnptools'
+        hashdown0 = Hashdown(url, allow_unknown_files=True)
+        for file in ['examples/toydata.bed','examples/toydata.bim','examples/toydata.fam','util/util.py']:
+            hashdown0.file_exists(file)
+        file_to_hash = hashdown0.file_to_hash
+        hashdown = Hashdown(url, file_to_hash=hashdown0.file_to_hash, allow_unknown_files=False)
+
+        #Clear the directory
+        assert self._is_error(lambda : hashdown.rmtree()) # raise error because this is read-only
+        #Rule: After you clear a directory, nothing is in it
+        assert 4 == self._len(hashdown.walk()) #returns the files in the file_to_hash_file
+        assert not hashdown.file_exists("test.txt")
+        assert not hashdown.file_exists("main.txt/test.txt")
+        assert not hashdown.file_exists(r"main.txt\test.txt")
+        assert self._is_error(lambda : hashdown.file_exists("test.txt/")) #Can't query something that can't be a file name
+        assert self._is_error(lambda : hashdown.file_exists("../test.txt")) #Can't leave the current directory
+        if os.name == 'nt':
+            assert self._is_error(lambda : hashdown.file_exists(r"c:\test.txt")) #Can't leave the current directory
+
+        #Rule: '/' and '\' are both OK, but you can't use ':' or '..' to leave the current root.
+        assert self._is_error(lambda : 0 == self._len(hashdown.walk("..")))
+        assert 0 == self._len(hashdown.walk("..x"))
+        assert 0 == self._len(hashdown.walk("test.txt")) #This is ok, because test.txt doesn't exist and therefore isn't a file
+        assert 0 == self._len(hashdown.walk("a/b"))
+        assert 0 == self._len(hashdown.walk("a\\b")) #Backslash or forward is fine
+        assert self._is_error(lambda : len(hashdown.walk("/"))) #Can't start with '/'
+        assert self._is_error(lambda : len(hashdown.walk(r"\\"))) #Can't start with '\'
+        assert self._is_error(lambda : len(hashdown.walk(r"\\computer1\share\3"))) #Can't start with UNC
+
+
+        #It should be there and be a file
+        assert hashdown.file_exists('examples/toydata.bim')
+        file_list = list(hashdown.walk())
+        assert len(file_list)==4 and 'examples/toydata.bim' in file_list
+        file_list2 = list(hashdown.walk("examples"))
+        assert len(file_list2)==3 and 'examples/toydata.bim' in file_list2
+        assert self._is_error(lambda : hashdown.join('examples/toydata.bim')) #Can't create a directory where a file exists
+        assert self._is_error(lambda : list(hashdown.walk('examples/toydata.bim'))) #Can't have directory where a file exists
+
+        #Read it
+        assert hashdown.load('examples/toydata.bim').split('\n')[0] =="1\tnull_0\t0\t1\tL\tH"
+        assert hashdown.file_exists('examples/toydata.bim')
+        assert self._is_error(lambda : hashdown.load("examples"))  #This is an error because examples is actually a directory and they can't be opened for reading
+
+
+        #Can query modified time of file.
+        assert self._is_error(lambda : hashdown.getmtime("a/b/c.txt")), "Can't get mod time from file that doesn't exist"
+        assert self._is_error(lambda : hashdown.getmtime("examples")), "Can't get mod time from directory"
+        assert hashdown.getmtime('examples/toydata.bim') == 0.0, "expect all mod times to be 0"
+
+        #try to write
+        assert self._is_error(lambda : hashdown.save("main.txt","")), "Can't write. It's read only"
+        #try to remove
+        assert self._is_error(lambda : hashdown.remove('examples/toydata.bim')), "Can't remove. It's read only"
+        assert self._is_error(lambda : hashdown.rmtree()), "Can't remove. It's read only"
+        #what if files are not local?
+        shutil.rmtree(hashdown.directory,ignore_errors=True)
+        #It should be there and be a file
+        assert hashdown.file_exists('examples/toydata.bim')
+        file_list = list(hashdown.walk())
+        assert len(file_list)==4 and 'examples/toydata.bim' in file_list
+        file_list2 = list(hashdown.walk("examples"))
+        assert len(file_list2)==3 and 'examples/toydata.bim' in file_list2
+        assert hashdown.load('examples/toydata.bim').split('\n')[0] =="1\tnull_0\t0\t1\tL\tH"
+        #What if put bad file locally?
+        os.rename(hashdown.directory+'/examples/toydata.bim',hashdown.directory+'/examples/toydata.fam')
+        assert hashdown.load('examples/toydata.fam').split('\n')[0] == 'per0 per0 0 0 0 0'
+        #What if hash doesn't match web hash?
+        hashdown.file_to_hash['examples/toydata.fam']='WRONG'
+        assert self._is_error(lambda : hashdown.load('examples/toydata.fam')), "unexpected hash"
+        #writing out file_to_hash and read_file_to_hash
+
+        hashdown.save_hashdown('ignore/toydata.hashdown.json')
+        hashdown2 = Hashdown.load_hashdown('ignore/toydata.hashdown.json')
+        #It should be there and be a file
+        assert hashdown2.file_exists('examples/toydata.bim')
+        file_list = list(hashdown2.walk())
+        assert len(file_list)==4 and 'examples/toydata.bim' in file_list
+        file_list2 = list(hashdown2.walk("examples"))
+        assert len(file_list2)==3 and 'examples/toydata.bim' in file_list2
+        assert hashdown2.load('examples/toydata.bim').split('\n')[0] =="1\tnull_0\t0\t1\tL\tH"
+        
+
+
     def test_peer_to_peer(self):
         from pysnptools.util.filecache import ip_address_pid
         logging.info("test_peer_to_peer")
@@ -57,7 +148,8 @@ class TestFileCache(unittest.TestCase):
     def tearDownClass(self):
         not os.path.exists(self.temp_parent) or shutil.rmtree(self.temp_parent)
 
-    def _is_error(self,lambda0):
+    @staticmethod
+    def _is_error(lambda0):
         try:
             lambda0()
         except Exception as e:
@@ -65,7 +157,8 @@ class TestFileCache(unittest.TestCase):
             return True
         return False
 
-    def _len(self,sequence):
+    @staticmethod
+    def _len(sequence):
         len = 0
         for item in sequence:
             len += 1
@@ -209,6 +302,7 @@ class TestFileCache(unittest.TestCase):
                     pysnptools.util.filecache.filecache,
                     pysnptools.util.filecache.localcache,
                     pysnptools.util.filecache.peertopeer,
+                    pysnptools.util.filecache.hashdown,
                     ]:
             result = doctest.testmod(mod,optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
             assert result.failed == 0, "failed doc test: " + __file__
@@ -222,7 +316,6 @@ def getTestSuite():
     
     test_suite = unittest.TestSuite([])
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestFileCache))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDocStrings))
     return test_suite
 
 if __name__ == '__main__':
@@ -230,6 +323,7 @@ if __name__ == '__main__':
     suites = getTestSuite()
 
     r = unittest.TextTestRunner(failfast=True)#!!! should be false
-    r.run(suites)
+    ret = r.run(suites)
+    assert ret.wasSuccessful()
 
     logging.info("done")

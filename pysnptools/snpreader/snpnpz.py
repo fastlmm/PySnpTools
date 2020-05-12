@@ -20,7 +20,9 @@ class SnpNpz(PstNpz,SnpReader):
 
         >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import SnpNpz
-        >>> data_on_disk = SnpNpz('../examples/toydata10.snp.npz')
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> npz_file = example_file('pysnptools/examples/toydata10.snp.npz')
+        >>> data_on_disk = SnpNpz(npz_file)
         >>> print((data_on_disk.iid_count, data_on_disk.sid_count))
         (500, 10)
 
@@ -58,7 +60,9 @@ class SnpNpz(PstNpz,SnpReader):
 
         >>> from pysnptools.snpreader import SnpNpz, Bed
         >>> import pysnptools.util as pstutil
-        >>> snpdata = Bed('../examples/toydata.bed',count_A1=False)[:,:10].read()     # Read first 10 snps from Bed format
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> bed_file = example_file("pysnptools/examples/toydata.5chrom.*","*.bed")
+        >>> snpdata = Bed(bed_file,count_A1=False)[:,:10].read()     # Read first 10 snps from Bed format
         >>> pstutil.create_directory_if_necessary("tempdir/toydata10.snp.npz")
         >>> SnpNpz.write("tempdir/toydata10.snp.npz",snpdata)          # Write data in SnpNpz format
         SnpNpz('tempdir/toydata10.snp.npz')
@@ -73,4 +77,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

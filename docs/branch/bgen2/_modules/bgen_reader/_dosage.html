@@ -1,0 +1,536 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>bgen_reader._dosage &mdash; bgen-reader 4.0.4 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/bootstrap-limix.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+
+<script src="//code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+<script>
+    window.jQuery || document.write("<script src=\"../../_static/jquery-3.3.1.min.js\"><\/script>");
+</script>
+<script type="text/javascript" src="../../_static/copybutton.js"></script>
+
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> bgen-reader
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../daskapi.html">Dask-Inspired API (original)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../numpyapi.html">NumPy-Inspired API (new)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../env_variables.html">Environment Variables</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">bgen-reader</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>bgen_reader._dosage</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for bgen_reader._dosage</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">asarray</span><span class="p">,</span> <span class="n">stack</span>
+
+<span class="kn">from</span> <span class="nn">._helper</span> <span class="kn">import</span> <span class="n">genotypes_to_allele_counts</span><span class="p">,</span> <span class="n">get_genotypes</span>
+
+
+<div class="viewcode-block" id="allele_frequency"><a class="viewcode-back" href="../../frequency.html#bgen_reader.allele_frequency">[docs]</a><span class="k">def</span> <span class="nf">allele_frequency</span><span class="p">(</span><span class="n">expec</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute allele frequency from its expectation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    expec : array_like</span>
+<span class="sd">        Allele expectations encoded as a samples-by-alleles matrix.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    :class:`numpy.ndarray`</span>
+<span class="sd">        Allele frequencies encoded as a variants-by-alleles matrix.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    .. doctest::</span>
+
+<span class="sd">        &gt;&gt;&gt; from bgen_reader import read_bgen, example_filepath</span>
+<span class="sd">        &gt;&gt;&gt; from bgen_reader import allele_expectation, allele_frequency</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; filepath = example_filepath(&quot;example.32bits.bgen&quot;)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; bgen = read_bgen(filepath, verbose=False)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; variants = bgen[&quot;variants&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; samples = bgen[&quot;samples&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; genotype = bgen[&quot;genotype&quot;]</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; variant = variants[variants[&quot;rsid&quot;] == &quot;RSID_6&quot;].compute()</span>
+<span class="sd">        &gt;&gt;&gt; variant_idx = variant.index.values[0]</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; p = genotype[variant_idx].compute()[&quot;probs&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; # For unphased genotypes only.</span>
+<span class="sd">        &gt;&gt;&gt; e = allele_expectation(bgen, variant_idx)</span>
+<span class="sd">        &gt;&gt;&gt; f = allele_frequency(e)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; alleles = variant[&quot;allele_ids&quot;].values[0].split(&quot;,&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; print(alleles[0] + &quot;: {}&quot;.format(f[0]))</span>
+<span class="sd">        A: 229.23103218810434</span>
+<span class="sd">        &gt;&gt;&gt; print(alleles[1] + &quot;: {}&quot;.format(f[1]))</span>
+<span class="sd">        G: 270.7689678118956</span>
+<span class="sd">        &gt;&gt;&gt; print(variant)</span>
+<span class="sd">                id    rsid chrom   pos  nalleles allele_ids  vaddr</span>
+<span class="sd">        4  SNPID_6  RSID_6    01  6000         2        A,G  19377</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">expec</span> <span class="o">=</span> <span class="n">asarray</span><span class="p">(</span><span class="n">expec</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">expec</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expectation matrix must be bi-dimensional.&quot;</span><span class="p">)</span>
+    <span class="n">ploidy</span> <span class="o">=</span> <span class="n">expec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">expec</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">ploidy</span></div>
+
+
+<div class="viewcode-block" id="compute_dosage"><a class="viewcode-back" href="../../dosage.html#bgen_reader.compute_dosage">[docs]</a><span class="k">def</span> <span class="nf">compute_dosage</span><span class="p">(</span><span class="n">expec</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute dosage from allele expectation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    expec : array_like</span>
+<span class="sd">        Allele expectations encoded as a samples-by-alleles matrix.</span>
+<span class="sd">    alt : array_like, optional</span>
+<span class="sd">        Alternative allele index. If ``None``, the allele having the minor</span>
+<span class="sd">        allele frequency for the provided ``expec`` is used as the alternative.</span>
+<span class="sd">        Defaults to ``None``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    :class:`numpy.ndarray`</span>
+<span class="sd">        Dosage encoded as an array of size equal to the number of samples.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">        :caption: First a quick-start example.</span>
+
+<span class="sd">        &gt;&gt;&gt; from bgen_reader import allele_expectation, compute_dosage</span>
+<span class="sd">        &gt;&gt;&gt; from bgen_reader import example_filepath, read_bgen</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; filepath = example_filepath(&quot;example.32bits.bgen&quot;)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # Read the example.</span>
+<span class="sd">        &gt;&gt;&gt; bgen = read_bgen(filepath, verbose=False)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # Extract the allele expectations of the fourth variant.</span>
+<span class="sd">        &gt;&gt;&gt; variant_idx = 3</span>
+<span class="sd">        &gt;&gt;&gt; e = allele_expectation(bgen, variant_idx)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # Compute the dosage when considering the first allele</span>
+<span class="sd">        &gt;&gt;&gt; # as the reference/alternative one.</span>
+<span class="sd">        &gt;&gt;&gt; alt_allele_idx = 1</span>
+<span class="sd">        &gt;&gt;&gt; d = compute_dosage(e, alt=alt_allele_idx)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # Print the dosage of the first five samples only.</span>
+<span class="sd">        &gt;&gt;&gt; print(d[:5])</span>
+<span class="sd">        [1.96185308 0.00982666 0.01745552 1.00347899 1.01153563]</span>
+
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">        :caption: Genotype probabilities, allele expectations and frequencies.</span>
+
+<span class="sd">        &gt;&gt;&gt; from bgen_reader import (</span>
+<span class="sd">        ...     allele_expectation,</span>
+<span class="sd">        ...     allele_frequency,</span>
+<span class="sd">        ...     compute_dosage,</span>
+<span class="sd">        ...     example_filepath,</span>
+<span class="sd">        ...     read_bgen,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; from pandas import DataFrame</span>
+<span class="sd">        &gt;&gt;&gt; from xarray import DataArray</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # Download an example</span>
+<span class="sd">        &gt;&gt;&gt; filepath = example_filepath(&quot;example.32bits.bgen&quot;)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # Open the bgen file.</span>
+<span class="sd">        &gt;&gt;&gt; bgen = read_bgen(filepath, verbose=False)</span>
+<span class="sd">        &gt;&gt;&gt; variants = bgen[&quot;variants&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; genotype = bgen[&quot;genotype&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; samples = bgen[&quot;samples&quot;]</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; variant_idx = 3</span>
+<span class="sd">        &gt;&gt;&gt; variant = variants.loc[variant_idx].compute()</span>
+<span class="sd">        &gt;&gt;&gt; # Print the metadata of the fourth variant.</span>
+<span class="sd">        &gt;&gt;&gt; print(variant)</span>
+<span class="sd">                id    rsid chrom   pos  nalleles allele_ids  vaddr</span>
+<span class="sd">        3  SNPID_5  RSID_5    01  5000         2        A,G  16034</span>
+
+<span class="sd">        &gt;&gt;&gt; geno = bgen[&quot;genotype&quot;][variant_idx].compute()</span>
+<span class="sd">        &gt;&gt;&gt; metageno = DataFrame({k: geno[k] for k in [&quot;ploidy&quot;, &quot;missing&quot;]},</span>
+<span class="sd">        ...                      index=samples)</span>
+<span class="sd">        &gt;&gt;&gt; metageno.index.name = &quot;sample&quot;</span>
+<span class="sd">        &gt;&gt;&gt; print(metageno)  # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">                    ploidy  missing</span>
+<span class="sd">        sample</span>
+<span class="sd">        sample_001       2    False</span>
+<span class="sd">        sample_002       2    False</span>
+<span class="sd">        sample_003       2    False</span>
+<span class="sd">        sample_004       2    False</span>
+<span class="sd">        ...            ...      ...</span>
+<span class="sd">        sample_497       2    False</span>
+<span class="sd">        sample_498       2    False</span>
+<span class="sd">        sample_499       2    False</span>
+<span class="sd">        sample_500       2    False</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        [500 rows x 2 columns]</span>
+<span class="sd">        &gt;&gt;&gt; p = DataArray(</span>
+<span class="sd">        ...     geno[&quot;probs&quot;],</span>
+<span class="sd">        ...     name=&quot;probability&quot;,</span>
+<span class="sd">        ...     coords={&quot;sample&quot;: samples},</span>
+<span class="sd">        ...     dims=[&quot;sample&quot;, &quot;genotype&quot;],</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; # Print the genotype probabilities.</span>
+<span class="sd">        &gt;&gt;&gt; print(p.to_series().unstack(level=-1))  # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">        genotype          0        1        2</span>
+<span class="sd">        sample</span>
+<span class="sd">        sample_001  0.00488  0.02838  0.96674</span>
+<span class="sd">        sample_002  0.99045  0.00928  0.00027</span>
+<span class="sd">        sample_003  0.98932  0.00391  0.00677</span>
+<span class="sd">        sample_004  0.00662  0.98328  0.01010</span>
+<span class="sd">        ...             ...      ...      ...</span>
+<span class="sd">        sample_497  0.00137  0.01312  0.98550</span>
+<span class="sd">        sample_498  0.00552  0.99423  0.00024</span>
+<span class="sd">        sample_499  0.01266  0.01154  0.97580</span>
+<span class="sd">        sample_500  0.00021  0.98431  0.01547</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        [500 rows x 3 columns]</span>
+<span class="sd">        &gt;&gt;&gt; alleles = variant[&quot;allele_ids&quot;].values[0].split(&quot;,&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; e = DataArray(</span>
+<span class="sd">        ...     allele_expectation(bgen, variant_idx),</span>
+<span class="sd">        ...     name=&quot;expectation&quot;,</span>
+<span class="sd">        ...     coords={&quot;sample&quot;: samples, &quot;allele&quot;: alleles},</span>
+<span class="sd">        ...     dims=[&quot;sample&quot;, &quot;allele&quot;],</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; # Print the allele expectations.</span>
+<span class="sd">        &gt;&gt;&gt; print(e.to_series().unstack(level=-1))  # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">        allele            A        G</span>
+<span class="sd">        sample</span>
+<span class="sd">        sample_001  0.03815  1.96185</span>
+<span class="sd">        sample_002  1.99017  0.00983</span>
+<span class="sd">        sample_003  1.98254  0.01746</span>
+<span class="sd">        sample_004  0.99652  1.00348</span>
+<span class="sd">        ...             ...      ...</span>
+<span class="sd">        sample_497  0.01587  1.98413</span>
+<span class="sd">        sample_498  1.00528  0.99472</span>
+<span class="sd">        sample_499  0.03687  1.96313</span>
+<span class="sd">        sample_500  0.98474  1.01526</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        [500 rows x 2 columns]</span>
+<span class="sd">        &gt;&gt;&gt; rsid = variant[&quot;rsid&quot;].values[0]</span>
+<span class="sd">        &gt;&gt;&gt; chrom = variant[&quot;chrom&quot;].values[0]</span>
+<span class="sd">        &gt;&gt;&gt; variant_name = f&quot;{chrom}:{rsid}&quot;</span>
+<span class="sd">        &gt;&gt;&gt; f = DataFrame(allele_frequency(e), columns=[variant_name], index=alleles)</span>
+<span class="sd">        &gt;&gt;&gt; f.index.name = &quot;allele&quot;</span>
+<span class="sd">        &gt;&gt;&gt; # Allele frequencies.</span>
+<span class="sd">        &gt;&gt;&gt; print(f) # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">                01:RSID_5</span>
+<span class="sd">        allele</span>
+<span class="sd">        A       305.97218</span>
+<span class="sd">        G       194.02782</span>
+<span class="sd">        &gt;&gt;&gt; alt = f.idxmin().values[0]</span>
+<span class="sd">        &gt;&gt;&gt; alt_idx = alleles.index(alt)</span>
+<span class="sd">        &gt;&gt;&gt; d = compute_dosage(e, alt=alt_idx).to_series()</span>
+<span class="sd">        &gt;&gt;&gt; d = DataFrame(d.values, columns=[f&quot;alt={alt}&quot;], index=d.index)</span>
+<span class="sd">        &gt;&gt;&gt; # Dosages when considering G as the alternative allele.</span>
+<span class="sd">        &gt;&gt;&gt; print(d) # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">                      alt=G</span>
+<span class="sd">        sample</span>
+<span class="sd">        sample_001  1.96185</span>
+<span class="sd">        sample_002  0.00983</span>
+<span class="sd">        sample_003  0.01746</span>
+<span class="sd">        sample_004  1.00348</span>
+<span class="sd">        ...             ...</span>
+<span class="sd">        sample_497  1.98413</span>
+<span class="sd">        sample_498  0.99472</span>
+<span class="sd">        sample_499  1.96313</span>
+<span class="sd">        sample_500  1.01526</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        [500 rows x 1 columns]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">alt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">expec</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">expec</span><span class="p">[:,</span> <span class="n">alt</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+        <span class="n">alt</span> <span class="o">=</span> <span class="n">asarray</span><span class="p">(</span><span class="n">alt</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">asarray</span><span class="p">(</span><span class="n">expec</span><span class="p">,</span> <span class="nb">float</span><span class="p">)[:,</span> <span class="n">alt</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="allele_expectation"><a class="viewcode-back" href="../../expectation.html#bgen_reader.allele_expectation">[docs]</a><span class="k">def</span> <span class="nf">allele_expectation</span><span class="p">(</span><span class="n">bgen</span><span class="p">,</span> <span class="n">variant_idx</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Allele expectation.</span>
+
+<span class="sd">    Compute the expectation of each allele from the genotype probabilities.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bgen : bgen_file</span>
+<span class="sd">        Bgen file handler.</span>
+<span class="sd">    variant_idx : int</span>
+<span class="sd">        Variant index.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    :class:`numpy.ndarray`</span>
+<span class="sd">        Samples-by-alleles matrix of allele expectations.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    This function supports unphased genotypes only.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    .. doctest::</span>
+
+<span class="sd">        &gt;&gt;&gt; from bgen_reader import allele_expectation, example_filepath, read_bgen</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; from texttable import Texttable</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; filepath = example_filepath(&quot;example.32bits.bgen&quot;)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # Read the example.</span>
+<span class="sd">        &gt;&gt;&gt; bgen = read_bgen(filepath, verbose=False)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; variants = bgen[&quot;variants&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; samples = bgen[&quot;samples&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; genotype = bgen[&quot;genotype&quot;]</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; genotype = bgen[&quot;genotype&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; # This `compute` call will return a pandas data frame,</span>
+<span class="sd">        &gt;&gt;&gt; variant = variants[variants[&quot;rsid&quot;] == &quot;RSID_6&quot;].compute()</span>
+<span class="sd">        &gt;&gt;&gt; # from which we retrieve the variant index.</span>
+<span class="sd">        &gt;&gt;&gt; variant_idx = variant.index.values[0]</span>
+<span class="sd">        &gt;&gt;&gt; print(variant)</span>
+<span class="sd">                id    rsid chrom   pos  nalleles allele_ids  vaddr</span>
+<span class="sd">        4  SNPID_6  RSID_6    01  6000         2        A,G  19377</span>
+<span class="sd">        &gt;&gt;&gt; genotype = bgen[&quot;genotype&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; # Samples is a pandas series, and we retrieve the</span>
+<span class="sd">        &gt;&gt;&gt; # sample index from the sample name.</span>
+<span class="sd">        &gt;&gt;&gt; sample_idx = samples[samples == &quot;sample_005&quot;].index.values[0]</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; genotype = bgen[&quot;genotype&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; # This `compute` call will return a dictionary from which</span>
+<span class="sd">        &gt;&gt;&gt; # we can get the probability matrix the corresponding</span>
+<span class="sd">        &gt;&gt;&gt; # variant.</span>
+<span class="sd">        &gt;&gt;&gt; p = genotype[variant_idx].compute()[&quot;probs&quot;][sample_idx]</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; genotype = bgen[&quot;genotype&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; # Allele expectation makes sense for unphased genotypes only,</span>
+<span class="sd">        &gt;&gt;&gt; # which is the case here.</span>
+<span class="sd">        &gt;&gt;&gt; e = allele_expectation(bgen, variant_idx)[sample_idx]</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; genotype = bgen[&quot;genotype&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; alleles = variant[&quot;allele_ids&quot;].values[0].split(&quot;,&quot;)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; genotype = bgen[&quot;genotype&quot;]</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # Print what we have got in a nice format.</span>
+<span class="sd">        &gt;&gt;&gt; table = Texttable()</span>
+<span class="sd">        &gt;&gt;&gt; table = table.add_rows(</span>
+<span class="sd">        ...     [</span>
+<span class="sd">        ...         [&quot;&quot;, &quot;AA&quot;, &quot;AG&quot;, &quot;GG&quot;, &quot;E[.]&quot;],</span>
+<span class="sd">        ...         [&quot;p&quot;] + list(p) + [&quot;na&quot;],</span>
+<span class="sd">        ...         [&quot;#&quot; + alleles[0], 2, 1, 0, e[0]],</span>
+<span class="sd">        ...         [&quot;#&quot; + alleles[1], 0, 1, 2, e[1]],</span>
+<span class="sd">        ...     ]</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; print(table.draw())</span>
+<span class="sd">        +----+-------+-------+-------+-------+</span>
+<span class="sd">        |    |  AA   |  AG   |  GG   | E[.]  |</span>
+<span class="sd">        +====+=======+=======+=======+=======+</span>
+<span class="sd">        | p  | 0.012 | 0.987 | 0.001 | na    |</span>
+<span class="sd">        +----+-------+-------+-------+-------+</span>
+<span class="sd">        | #A | 2     | 1     | 0     | 1.011 |</span>
+<span class="sd">        +----+-------+-------+-------+-------+</span>
+<span class="sd">        | #G | 0     | 1     | 2     | 0.989 |</span>
+<span class="sd">        +----+-------+-------+-------+-------+</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">geno</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;genotype&quot;</span><span class="p">][</span><span class="n">variant_idx</span><span class="p">]</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">geno</span><span class="p">[</span><span class="s2">&quot;phased&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Allele expectation is define for unphased genotypes only.&quot;</span><span class="p">)</span>
+
+    <span class="n">nalleles</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;variants&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">variant_idx</span><span class="p">,</span> <span class="s2">&quot;nalleles&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">genotypes</span> <span class="o">=</span> <span class="n">get_genotypes</span><span class="p">(</span><span class="n">geno</span><span class="p">[</span><span class="s2">&quot;ploidy&quot;</span><span class="p">],</span> <span class="n">nalleles</span><span class="p">)</span>
+    <span class="n">expec</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">genotype</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">genotypes</span><span class="p">):</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">asarray</span><span class="p">(</span><span class="n">genotypes_to_allele_counts</span><span class="p">(</span><span class="n">genotype</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">count</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">expec</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">count</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">geno</span><span class="p">[</span><span class="s2">&quot;probs&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">n</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">stack</span><span class="p">(</span><span class="n">expec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Danilo Horta
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

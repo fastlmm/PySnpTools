@@ -89,6 +89,10 @@ class PstData(PstReader):
             warnings.warn("'parent_string' is deprecated. Use 'name'", DeprecationWarning)
         self._name = name
 
+    def _assert_row_col_and_properties(self,check_val):
+        if check_val:
+            assert self._val.shape[:2] == (len(self._row),len(self._col)), "val shape should match that of row_count x col_count"
+            
     def __eq__(a,b):
         return a.allclose(b,equal_nan=False)
 
@@ -141,7 +145,7 @@ class PstData(PstReader):
         if input is None:
             assert row_count == 0 or col_count == 0, "If val is None, either row_count or col_count must be 0"
             input = _default_empty_creator_val(row_count, col_count)
-        elif not isinstance(input,np.ndarray or (input.dtype not in [np.float32,np.float64])):
+        elif not isinstance(input,np.ndarray) or input.dtype not in [np.float32,np.float64]:
             input = np.array(input,dtype=np.float64)
 
         assert len(input.shape)==2, "Expect val to be two dimensional."
@@ -181,13 +185,17 @@ class PstData(PstReader):
         return self._val
 
     def _set_val(self, new_value):
-        self._val = new_value
+        self._val = PstData._fixup_input_val(new_value,row_count=len(self._row),col_count=len(self._col))
+        self._assert_row_col_and_properties(check_val=True)
 
     val = property(_get_val,_set_val)
     """The 2D NumPy array of floats that represents the values.
 
     >>> from pysnptools.pstreader import PstNpz
-    >>> pstdata = PstNpz('../examples/toydata.pst.npz')[:5,:].read() #read data for first 5 rows
+    >>> from fastlmm.util import example_file
+    >>> 
+    >>> pstnpz_file = example_file('pysnptools/examples/toydata.pst.npz')
+    >>> pstdata = PstNpz(pstnpz_file)[:5,:].read() #read data for first 5 rows
     >>> print(pstdata.val[4,100]) #print one of the values
     2.0
     """
@@ -205,5 +213,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test

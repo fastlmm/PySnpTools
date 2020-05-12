@@ -29,10 +29,12 @@ class SnpKernel(KernelReader):
         >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import Bed
         >>> from pysnptools.standardizer import Unit
-        >>> snp_on_disk = Bed('../examples/toydata.bed',count_A1=False)     # A Bed file is specified, but nothing is read from disk
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> bed_file = example_file('pysnptools/examples/toydata.5chrom.*','*.bed')
+        >>> snp_on_disk = Bed(bed_file,count_A1=False)     # A Bed file is specified, but nothing is read from disk
         >>> kernel_on_disk = SnpKernel(snp_on_disk, Unit(),block_size=500)  # A kernel is specified, but nothing is read from disk
         >>> print(kernel_on_disk) #Print the specification
-        SnpKernel(Bed('../examples/toydata.bed',count_A1=False),standardizer=Unit(),block_size=500)
+        SnpKernel(Bed(...pysnptools/examples/toydata.5chrom.bed',count_A1=False),standardizer=Unit(),block_size=500)
         >>> print(kernel_on_disk.iid_count)                                  # iid information is read from disk, but not SNP data
         500
         >>> kerneldata = kernel_on_disk.read().standardize()                # SNPs are read and Unit standardized, 500 at a time, to create a kernel, which is then standardized
@@ -176,5 +178,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test

@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Expectation &mdash; bgen-reader 4.0.4 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/bootstrap-limix.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Frequency" href="frequency.html" />
+    <link rel="prev" title="Dosage" href="dosage.html" />
+
+<script src="//code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+<script>
+    window.jQuery || document.write("<script src=\"_static/jquery-3.3.1.min.js\"><\/script>");
+</script>
+<script type="text/javascript" src="_static/copybutton.js"></script>
+
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> bgen-reader
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="daskapi.html">Dask-Inspired API (original)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read.html">Read</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dosage.html">Dosage</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Expectation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frequency.html">Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metafile.html">Metafile</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="numpyapi.html">NumPy-Inspired API (new)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="env_variables.html">Environment Variables</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">bgen-reader</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="daskapi.html">Dask-Inspired API (original)</a> &raquo;</li>
+        
+      <li>Expectation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/expectation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="expectation">
+<h1>Expectation<a class="headerlink" href="#expectation" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt>
+<code class="sig-prename descclassname">bgen_reader.</code><code class="sig-name descname">allele_expectation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bgen</span></em>, <em class="sig-param"><span class="n">variant_idx</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bgen_reader/_dosage.html#allele_expectation"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Allele expectation.</p>
+<p>Compute the expectation of each allele from the genotype probabilities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bgen</strong> (<em>bgen_file</em>) – Bgen file handler.</p></li>
+<li><p><strong>variant_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Variant index.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Samples-by-alleles matrix of allele expectations.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function supports unphased genotypes only.</p>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">allele_expectation</span><span class="p">,</span> <span class="n">example_filepath</span><span class="p">,</span> <span class="n">read_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">texttable</span> <span class="kn">import</span> <span class="n">Texttable</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filepath</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;example.32bits.bgen&quot;</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read the example.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">read_bgen</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variants</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;variants&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">samples</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;samples&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genotype</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;genotype&quot;</span><span class="p">]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genotype</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;genotype&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># This `compute` call will return a pandas data frame,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variant</span> <span class="o">=</span> <span class="n">variants</span><span class="p">[</span><span class="n">variants</span><span class="p">[</span><span class="s2">&quot;rsid&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;RSID_6&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># from which we retrieve the variant index.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variant_idx</span> <span class="o">=</span> <span class="n">variant</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">variant</span><span class="p">)</span>
+<span class="go">        id    rsid chrom   pos  nalleles allele_ids  vaddr</span>
+<span class="go">4  SNPID_6  RSID_6    01  6000         2        A,G  19377</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genotype</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;genotype&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Samples is a pandas series, and we retrieve the</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># sample index from the sample name.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sample_idx</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">samples</span> <span class="o">==</span> <span class="s2">&quot;sample_005&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genotype</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;genotype&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># This `compute` call will return a dictionary from which</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># we can get the probability matrix the corresponding</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># variant.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">genotype</span><span class="p">[</span><span class="n">variant_idx</span><span class="p">]</span><span class="o">.</span><span class="n">compute</span><span class="p">()[</span><span class="s2">&quot;probs&quot;</span><span class="p">][</span><span class="n">sample_idx</span><span class="p">]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genotype</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;genotype&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Allele expectation makes sense for unphased genotypes only,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># which is the case here.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">allele_expectation</span><span class="p">(</span><span class="n">bgen</span><span class="p">,</span> <span class="n">variant_idx</span><span class="p">)[</span><span class="n">sample_idx</span><span class="p">]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genotype</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;genotype&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">alleles</span> <span class="o">=</span> <span class="n">variant</span><span class="p">[</span><span class="s2">&quot;allele_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genotype</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;genotype&quot;</span><span class="p">]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Print what we have got in a nice format.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">Texttable</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">add_rows</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">[</span>
+<span class="gp">... </span>        <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;AA&quot;</span><span class="p">,</span> <span class="s2">&quot;AG&quot;</span><span class="p">,</span> <span class="s2">&quot;GG&quot;</span><span class="p">,</span> <span class="s2">&quot;E[.]&quot;</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;na&quot;</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="p">[</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+<span class="gp">... </span>        <span class="p">[</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+<span class="gp">... </span>    <span class="p">]</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">draw</span><span class="p">())</span>
+<span class="go">+----+-------+-------+-------+-------+</span>
+<span class="go">|    |  AA   |  AG   |  GG   | E[.]  |</span>
+<span class="go">+====+=======+=======+=======+=======+</span>
+<span class="go">| p  | 0.012 | 0.987 | 0.001 | na    |</span>
+<span class="go">+----+-------+-------+-------+-------+</span>
+<span class="go">| #A | 2     | 1     | 0     | 1.011 |</span>
+<span class="go">+----+-------+-------+-------+-------+</span>
+<span class="go">| #G | 0     | 1     | 2     | 0.989 |</span>
+<span class="go">+----+-------+-------+-------+-------+</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="frequency.html" class="btn btn-neutral float-right" title="Frequency" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dosage.html" class="btn btn-neutral float-left" title="Dosage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Danilo Horta
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

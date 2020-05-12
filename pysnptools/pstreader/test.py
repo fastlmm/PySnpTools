@@ -228,7 +228,7 @@ class TestPstDocStrings(unittest.TestCase):
         import pysnptools.pstreader.pstdata
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.pstreader.pstdata)
+        result = doctest.testmod(pysnptools.pstreader.pstdata,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -236,7 +236,7 @@ class TestPstDocStrings(unittest.TestCase):
         import pysnptools.pstreader.psthdf5
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.pstreader.psthdf5)
+        result = doctest.testmod(pysnptools.pstreader.psthdf5,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -244,7 +244,7 @@ class TestPstDocStrings(unittest.TestCase):
         import pysnptools.pstreader.pstmemmap
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.pstreader.pstmemmap)
+        result = doctest.testmod(pysnptools.pstreader.pstmemmap,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -252,7 +252,7 @@ class TestPstDocStrings(unittest.TestCase):
         import pysnptools.pstreader.pstnpz
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.pstreader.pstnpz)
+        result = doctest.testmod(pysnptools.pstreader.pstnpz,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -301,4 +301,5 @@ if __name__ == '__main__':
 
     suites = getTestSuite()
     r = unittest.TextTestRunner(failfast=False)
-    r.run(suites)
+    ret = r.run(suites)
+    assert ret.wasSuccessful()

@@ -116,11 +116,15 @@ class SnpGen(SnpReader):
     def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
         self._run_once()
         import pysnptools.util as pstutil
+        dtype = np.dtype(dtype)
+
+        if order == 'A':
+            order = 'F'
 
         row_index_count = len(row_index_or_none) if row_index_or_none is not None else self._iid_count # turn to a count of the index positions e.g. all of them
         col_index = col_index_or_none if col_index_or_none is not None else np.arange(self._sid_count) # turn to an array of index positions, e.g. 0,1,200,2200,10
         batch_index = col_index // self._sid_batch_size  #find the batch index of each index position, e.g. 0,0,0,2,0
-        val = np.empty((row_index_count,len(col_index))) #allocate memory for result
+        val = np.empty((row_index_count,len(col_index)),order=order,dtype=dtype) #allocate memory for result
         list_batch_index = list(set(batch_index))
         for i in list_batch_index:  #for each distinct batch index, generate snps
             logging.info("working on snpgen batch {0} of {1}".format(i,len(list_batch_index))) #!!!why does this produce messages like 'working on snpgen batch 8 of 2'?
@@ -144,8 +148,6 @@ class SnpGen(SnpReader):
         y_sample = np.array([dist_fit(x) for x in x_sample])                    #Find the relative weight of each point
         dist = y_sample/y_sample.sum()
         return x_sample, dist
-
-
 
     @staticmethod
     def _get_sid(sid_start, sid_stop):
@@ -223,8 +225,9 @@ if __name__ == "__main__":
 
     suites = getTestSuite()
     r = unittest.TextTestRunner(failfast=True)
-    r.run(suites)
+    ret = r.run(suites)
+    assert ret.wasSuccessful()
 
-    result = doctest.testmod()
+    result = doctest.testmod(optionflags=doctest.ELLIPSIS)
     assert result.failed == 0, "failed doc test: " + __file__
 

@@ -129,13 +129,15 @@ class KernelData(KernelReader,PstData):
         :rtype: :class:`.KernelData` (standardizes in place, but for convenience, returns 'self')
 
         >>> from pysnptools.kernelreader import KernelNpz
+        >>> from pysnptools.util import example_file # Download and return local file name
         >>> import numpy as np
-        >>> kernel_on_disk = KernelNpz('../examples/toydata.kernel.npz')
+        >>> kernel_file = example_file('pysnptools/examples/toydata.kernel.npz')
+        >>> kernel_on_disk = KernelNpz(kernel_file)
         >>> kerneldata1 = kernel_on_disk.read() # read all kernel values into memory
         >>> print(np.diag(kerneldata1.val).sum())
         5000000.0
         >>> kerneldata1.standardize() # standardize changes the values in kerneldata1.val
-        KernelData(KernelNpz('../examples/toydata.kernel.npz'))
+        KernelData(KernelNpz(...pysnptools/examples/toydata.kernel.npz'))
         >>> print(np.diag(kerneldata1.val).sum())
         500.0
         >>> kerneldata2 = kernel_on_disk.read().standardize() # Read and standardize in one expression with only one ndarray allocated.
@@ -149,5 +151,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test

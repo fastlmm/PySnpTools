@@ -26,7 +26,10 @@ class PstHdf5(PstReader):
 
         >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.pstreader import PstHdf5
-        >>> on_disk = PstHdf5('../examples/toydata.iidmajor.snp.hdf5') # PstHdf5 can load .pst.hdf5, .snp.hdf5, and kernel.hdf5
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> 
+        >>> psthdf5_file = example_file('pysnptools/examples/toydata.iidmajor.snp.hdf5')
+        >>> on_disk = PstHdf5(psthdf5_file) # PstHdf5 can load .pst.hdf5, .snp.hdf5, and kernel.hdf5
         >>> print(on_disk.row_count)
         500
 
@@ -279,4 +282,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

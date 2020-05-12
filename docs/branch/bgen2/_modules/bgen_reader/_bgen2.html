@@ -1,0 +1,1264 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>bgen_reader._bgen2 &mdash; bgen-reader 4.0.4 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/bootstrap-limix.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+
+<script src="//code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+<script>
+    window.jQuery || document.write("<script src=\"../../_static/jquery-3.3.1.min.js\"><\/script>");
+</script>
+<script type="text/javascript" src="../../_static/copybutton.js"></script>
+
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> bgen-reader
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../daskapi.html">Dask-Inspired API (original)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../numpyapi.html">NumPy-Inspired API (new)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../env_variables.html">Environment Variables</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">bgen-reader</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>bgen_reader._bgen2</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for bgen_reader._bgen2</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mkdtemp</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">asarray</span><span class="p">,</span> <span class="n">stack</span>
+
+<span class="kn">from</span> <span class="nn">._bgen_file</span> <span class="kn">import</span> <span class="n">bgen_file</span>
+<span class="kn">from</span> <span class="nn">._bgen_metafile</span> <span class="kn">import</span> <span class="n">bgen_metafile</span>
+<span class="kn">from</span> <span class="nn">._ffi</span> <span class="kn">import</span> <span class="n">ffi</span><span class="p">,</span> <span class="n">lib</span>
+<span class="kn">from</span> <span class="nn">._file</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">assert_file_exist</span><span class="p">,</span>
+    <span class="n">assert_file_readable</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">._helper</span> <span class="kn">import</span> <span class="n">_log_in_place</span>
+<span class="kn">from</span> <span class="nn">._helper</span> <span class="kn">import</span> <span class="n">genotypes_to_allele_counts</span><span class="p">,</span> <span class="n">get_genotypes</span>
+<span class="kn">from</span> <span class="nn">._reader</span> <span class="kn">import</span> <span class="n">_get_samples</span>
+
+
+<span class="c1"># https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard</span>
+<div class="viewcode-block" id="open_bgen"><a class="viewcode-back" href="../../open.html#bgen_reader.open_bgen">[docs]</a><span class="k">class</span> <span class="nc">open_bgen</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A NumPy-inspired class for fast opening and reading of BGEN files.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath</span>
+<span class="sd">        BGEN file path.</span>
+<span class="sd">    samples_filepath</span>
+<span class="sd">        Path to a `sample format`_ file or ``None`` to read samples from the BGEN file itself.</span>
+<span class="sd">        Defaults to ``None``.</span>
+<span class="sd">    verbose</span>
+<span class="sd">        ``True`` (default) to show progress; ``False`` otherwise.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    an open_bgen object : :class:`open_bgen`</span>
+
+
+<span class="sd">    .. _open_examples:</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">        With the `with &lt;https://docs.python.org/3/reference/compound_stmts.html#grammar-token-with-stmt&gt;`__ statement, list :attr:`samples` and variant :attr:`ids`, then :meth:`read` the whole file.</span>
+
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.ids)</span>
+<span class="sd">            ...     print(bgen.samples)</span>
+<span class="sd">            ...     print(bgen.read())</span>
+<span class="sd">            [&#39;SNP1&#39; &#39;SNP2&#39; &#39;SNP3&#39; &#39;SNP4&#39;]</span>
+<span class="sd">            [&#39;sample_0&#39; &#39;sample_1&#39; &#39;sample_2&#39; &#39;sample_3&#39;]</span>
+<span class="sd">            [[[1. 0. 1. 0.]</span>
+<span class="sd">              [0. 1. 1. 0.]</span>
+<span class="sd">              [1. 0. 0. 1.]</span>
+<span class="sd">              [0. 1. 0. 1.]]</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">             [[0. 1. 1. 0.]</span>
+<span class="sd">              [1. 0. 0. 1.]</span>
+<span class="sd">              [0. 1. 0. 1.]</span>
+<span class="sd">              [1. 0. 1. 0.]]</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">             [[1. 0. 0. 1.]</span>
+<span class="sd">              [0. 1. 0. 1.]</span>
+<span class="sd">              [1. 0. 1. 0.]</span>
+<span class="sd">              [0. 1. 1. 0.]]</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">             [[0. 1. 0. 1.]</span>
+<span class="sd">              [1. 0. 1. 0.]</span>
+<span class="sd">              [0. 1. 1. 0.]</span>
+<span class="sd">              [1. 0. 0. 1.]]]</span>
+
+<span class="sd">        Open the file (without `with`) and read probabilities for one variant.</span>
+
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; bgen = open_bgen(file, verbose=False)</span>
+<span class="sd">            &gt;&gt;&gt; print(bgen.read(2))</span>
+<span class="sd">            [[[1. 0. 0. 1.]]</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">             [[0. 1. 0. 1.]]</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">             [[1. 0. 1. 0.]]</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">             [[0. 1. 1. 0.]]]</span>
+<span class="sd">            &gt;&gt;&gt; del bgen                 # close and delete object</span>
+
+<span class="sd">        Open the file and then first read for a :class:`slice` of samples and variants, and then for a single sample and variant.</span>
+
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; bgen = open_bgen(file, verbose=False)</span>
+<span class="sd">            &gt;&gt;&gt; print(bgen.read((slice(1,3),slice(2,4))))</span>
+<span class="sd">            [[[0. 1. 0. 1.]</span>
+<span class="sd">              [1. 0. 1. 0.]]</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">             [[1. 0. 1. 0.]</span>
+<span class="sd">              [0. 1. 1. 0.]]]</span>
+<span class="sd">            &gt;&gt;&gt; print(bgen.read((0,1)))</span>
+<span class="sd">            [[[0. 1. 1. 0.]]]</span>
+<span class="sd">            &gt;&gt;&gt; del bgen                 # close and delete object</span>
+
+<span class="sd">        .. _sample format: https://www.well.ox.ac.uk/~gav/qctool/documentation/sample_file_formats.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">filepath</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
+        <span class="n">samples_filepath</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="n">assert_file_exist</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="n">assert_file_readable</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filepath</span> <span class="o">=</span> <span class="n">filepath</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bgen_context_manager</span> <span class="o">=</span> <span class="n">bgen_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bgen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bgen_context_manager</span><span class="o">.</span><span class="fm">__enter__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="n">_get_samples</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bgen</span><span class="p">,</span> <span class="n">samples_filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;str&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_samples</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+
+        <span class="n">metadata2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadatapath_from_filename</span><span class="p">(</span>
+            <span class="n">filepath</span>
+        <span class="p">)</span>  <span class="c1"># LATER could make a version of this method public</span>
+        <span class="k">if</span> <span class="n">metadata2</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">metadata2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span>
+            <span class="n">filepath</span>
+        <span class="p">):</span>
+            <span class="n">metadata2</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">metadata2</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">metadata2</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ids</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ids&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rsids</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;rsids&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_vaddr</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;vaddr&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chromosomes</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;chromosomes&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;positions&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nalleles</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nalleles&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_allele_ids</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;allele_ids&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ncombinations</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ncombinations&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_phased</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;phased&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tempdir</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">tempdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;pysnptools&quot;</span><span class="p">))</span>
+                <span class="n">metafile_filepath</span> <span class="o">=</span> <span class="n">tempdir</span> <span class="o">/</span> <span class="s2">&quot;bgen.metadata&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_bgen</span><span class="o">.</span><span class="n">create_metafile</span><span class="p">(</span><span class="n">metafile_filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_map_metadata</span><span class="p">(</span><span class="n">metafile_filepath</span><span class="p">)</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span>
+                    <span class="n">metadata2</span><span class="p">,</span>
+                    <span class="n">ids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ids</span><span class="p">,</span>
+                    <span class="n">rsids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rsids</span><span class="p">,</span>
+                    <span class="n">vaddr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vaddr</span><span class="p">,</span>
+                    <span class="n">chromosomes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_chromosomes</span><span class="p">,</span>
+                    <span class="n">positions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="p">,</span>
+                    <span class="n">nalleles</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_nalleles</span><span class="p">,</span>
+                    <span class="n">allele_ids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_allele_ids</span><span class="p">,</span>
+                    <span class="n">ncombinations</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncombinations</span><span class="p">,</span>
+                    <span class="n">phased</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_phased</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">tempdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_combinations</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncombinations</span><span class="p">)</span>
+
+<div class="viewcode-block" id="open_bgen.read"><a class="viewcode-back" href="../../open.html#bgen_reader.open_bgen.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">index</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+        <span class="n">order</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
+        <span class="n">max_combinations</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_probabilities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">return_missings</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_ploidies</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read genotype information from an :class:`open_bgen` object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index</span>
+<span class="sd">            An expression specifying the samples and variants to read. (See :ref:`read_examples`, below).</span>
+<span class="sd">            Defaults to ``None``, meaning read all.</span>
+<span class="sd">        dtype : data-type</span>
+<span class="sd">            The desired data-type for the returned probability array.</span>
+<span class="sd">            Defaults to :class:`numpy.float64`. Use :class:`numpy.float32` or :class:`numpy.float16`, when appropriate,</span>
+<span class="sd">            to save 50% or 75% of memory. (See :ref:`read_notes`, below).</span>
+<span class="sd">        order : {&#39;F&#39;,&#39;C&#39;}</span>
+<span class="sd">            The desired memory layout for the returned probability array.</span>
+<span class="sd">            Defaults to ``F`` (Fortran order, which is variant-major)</span>
+<span class="sd">        max_combinations : int or ``None``.</span>
+<span class="sd">            The number of values to allocate for each probability distribution.</span>
+<span class="sd">            Defaults to a number just large enough for any data in the file.</span>
+<span class="sd">            For unphased, diploid, biallelic data, it will default to 3. For phased, diploid, biallelic data, it will</span>
+<span class="sd">            default to 4. Any overallocated space is filled with :const:`numpy.nan`.</span>
+<span class="sd">        return_probabilities: bool</span>
+<span class="sd">            Read and return the probabilities for samples and variants specified.</span>
+<span class="sd">            Defaults to ``True``.</span>
+<span class="sd">        return_missings: bool</span>
+<span class="sd">            Return a boolean array telling which probabilities are missing.</span>
+<span class="sd">            Defaults to ``False``.</span>
+<span class="sd">        return_ploidies: bool</span>
+<span class="sd">            Read and return the ploidy for the samples and variants specified.</span>
+<span class="sd">            Defaults to ``False``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        zero to three :class:`numpy.ndarray`</span>
+<span class="sd">            always in this order:</span>
+
+<span class="sd">            * a :class:`numpy.ndarray` of probabilities with ``dtype`` and shape `(nsamples_out,nvariants_out,max_combinations)`,</span>
+<span class="sd">              if ``return_probabilities`` is ``True`` (the default). Missing data is filled with :const:`numpy.nan`.</span>
+<span class="sd">            * a :class:`numpy.ndarray` of ``bool`` of shape `(nsamples_out,nvariants_out)`, if ``return_missings`` is ``True``</span>
+<span class="sd">            * a :class:`numpy.ndarray` of ``int`` of shape `(nsamples_out,nvariants_out)`, if ``return_ploidies`` is ``True``</span>
+
+
+<span class="sd">        .. _read_notes:</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+
+<span class="sd">        * About ``dtype``</span>
+
+<span class="sd">            If you know the compression level of your BGEN file, you can sometimes save 50% or 75% on memory with ``dtype``.</span>
+<span class="sd">            T(est with your data to confirm you are not losing any precision.) The approximate relationship is:</span>
+
+<span class="sd">                * BGEN compression 1 to 10 bits: ``dtype`` =&#39;float16&#39;</span>
+<span class="sd">                * BGEN compression 11 to 23 bits: ``dtype`` =&#39;float32&#39;</span>
+<span class="sd">                * BGEN compression 24 to 32 bits: ``dtype`` =&#39;float64&#39; (default)</span>
+
+
+<span class="sd">        .. _read_examples:</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        * Index Examples</span>
+
+<span class="sd">            To read all data in a BGEN file, set ``index`` to ``None``. This is the default.</span>
+
+<span class="sd">            .. doctest::</span>
+
+<span class="sd">                &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">                &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">                &gt;&gt;&gt;</span>
+<span class="sd">                &gt;&gt;&gt; with open_bgen(example_filepath(&quot;haplotypes.bgen&quot;), verbose=False) as bgen_h:</span>
+<span class="sd">                ...     print(bgen_h.read()) #real all</span>
+<span class="sd">                [[[1. 0. 1. 0.]</span>
+<span class="sd">                  [0. 1. 1. 0.]</span>
+<span class="sd">                  [1. 0. 0. 1.]</span>
+<span class="sd">                  [0. 1. 0. 1.]]</span>
+<span class="sd">                &lt;BLANKLINE&gt;</span>
+<span class="sd">                 [[0. 1. 1. 0.]</span>
+<span class="sd">                  [1. 0. 0. 1.]</span>
+<span class="sd">                  [0. 1. 0. 1.]</span>
+<span class="sd">                  [1. 0. 1. 0.]]</span>
+<span class="sd">                &lt;BLANKLINE&gt;</span>
+<span class="sd">                 [[1. 0. 0. 1.]</span>
+<span class="sd">                  [0. 1. 0. 1.]</span>
+<span class="sd">                  [1. 0. 1. 0.]</span>
+<span class="sd">                  [0. 1. 1. 0.]]</span>
+<span class="sd">                &lt;BLANKLINE&gt;</span>
+<span class="sd">                 [[0. 1. 0. 1.]</span>
+<span class="sd">                  [1. 0. 1. 0.]</span>
+<span class="sd">                  [0. 1. 1. 0.]</span>
+<span class="sd">                  [1. 0. 0. 1.]]]</span>
+
+<span class="sd">            To read selected variants, set ``index`` to an ``int``, a list of ``int``, a :class:`slice`, or a list of ``bool``.</span>
+<span class="sd">            Negative integers count from the end of the data.</span>
+
+<span class="sd">            .. doctest::</span>
+
+<span class="sd">                &gt;&gt;&gt; bgen_e = open_bgen(example_filepath(&quot;example.bgen&quot;), verbose=False)</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read(5)  # read the variant indexed by 5.</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)      # print the dimensions of the returned numpy array.</span>
+<span class="sd">                (500, 1, 3)</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read([5,6,1])  # read the variant indexed by 5, 6, and 1</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (500, 3, 3)</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read(slice(5)) #read the first 5 variants</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (500, 5, 3)</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read(slice(2,5)) #read variants from 2 (inclusive) to 5 (exclusive)</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (500, 3, 3)</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read(slice(2,None)) # read variants starting at index 2.</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (500, 197, 3)</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read(slice(None,None,10)) #read every 10th variant</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (500, 20, 3)</span>
+<span class="sd">                &gt;&gt;&gt; print(np.unique(bgen_e.chromosomes)) # print unique chrom values</span>
+<span class="sd">                [&#39;01&#39;]</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read(bgen_e.chromosomes==&#39;01&#39;) # read all variants in chrom 1</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (500, 199, 3)</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read(-1) # read the last variant</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (500, 1, 3)</span>
+
+<span class="sd">            To read selected samples, set ``index`` to a tuple of the form ``(sample_index,None)``, where ``sample index`` follows the form</span>
+<span class="sd">            of ``variant index``, above.</span>
+
+<span class="sd">            .. doctest::</span>
+
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read((0,None)) # Read 1st sample (across all variants)</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (1, 199, 3)</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read((slice(None,None,10),None)) # Read every 10th sample</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (50, 199, 3)</span>
+
+<span class="sd">            To read selected samples and selected variants, set ``index`` to a tuple of the form ``(sample_index,variant_index)``,</span>
+<span class="sd">            where ``sample index`` and ``variant_index`` follow the forms above.</span>
+
+<span class="sd">            .. doctest::</span>
+
+<span class="sd">                &gt;&gt;&gt; # Read samples 10 (inclusive) to 20 (exclusive) and the first 15 variants.</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read((slice(10,20),slice(15)))</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (10, 15, 3)</span>
+<span class="sd">                &gt;&gt;&gt; #read last and 2nd-to-last sample and the last variant</span>
+<span class="sd">                &gt;&gt;&gt; probs = bgen_e.read(([-1,-2],-1))</span>
+<span class="sd">                &gt;&gt;&gt; print(probs.shape)</span>
+<span class="sd">                (2, 1, 3)</span>
+
+<span class="sd">        * Multiple Return Example</span>
+
+<span class="sd">            Read probabilities, missingness, and ploidy. Print all unique ploidies values.</span>
+
+<span class="sd">            .. doctest::</span>
+
+<span class="sd">                &gt;&gt;&gt; probs,missing,ploidy = bgen_e.read(return_missings=True,return_ploidies=True)</span>
+<span class="sd">                &gt;&gt;&gt; print(np.unique(ploidy))</span>
+<span class="sd">                [2]</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="c1"># LATER could allow strings (variant names) and lists of strings</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_bgen_context_manager&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;I/O operation on a closed file&quot;</span><span class="p">)</span>
+
+        <span class="n">max_combinations</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">max_combinations</span> <span class="k">if</span> <span class="n">max_combinations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_combinations</span>
+        <span class="p">)</span>  <span class="c1"># Can&#39;t use &#39;or&#39; because it treats 0 as False</span>
+
+        <span class="n">samples_index</span><span class="p">,</span> <span class="n">variants_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_index</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="n">samples_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_range</span><span class="p">[</span>
+            <span class="n">samples_index</span>
+        <span class="p">]</span>  <span class="c1"># converts slice(), etc to a list of  numbers</span>
+        <span class="n">vaddr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vaddr</span><span class="p">[</span><span class="n">variants_index</span><span class="p">]</span>
+        <span class="n">ncombinations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncombinations</span><span class="p">[</span><span class="n">variants_index</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ncombinations</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">max</span><span class="p">(</span><span class="n">ncombinations</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_combinations</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Need at least </span><span class="si">{0}</span><span class="s2"> max_combinations, but only </span><span class="si">{1}</span><span class="s2"> given&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">max</span><span class="p">(</span><span class="n">ncombinations</span><span class="p">),</span> <span class="n">max_combinations</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># allocating prob_buffer only when its size changes makes reading</span>
+        <span class="c1"># 10x5M data 30% faster</span>
+        <span class="k">if</span> <span class="n">return_probabilities</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
+                <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">samples_index</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">vaddr</span><span class="p">),</span> <span class="n">max_combinations</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
+                <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">prob_buffer</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">return_missings</span><span class="p">:</span>
+            <span class="n">missing_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
+                <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">samples_index</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">vaddr</span><span class="p">)),</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;bool&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_ploidies</span><span class="p">:</span>
+            <span class="n">ploidy_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
+                <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">samples_index</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">vaddr</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span>
+            <span class="p">)</span>
+
+        <span class="c1"># LATER multithread?</span>
+        <span class="n">approx_read_seconds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vaddr</span><span class="p">)</span> <span class="o">/</span> <span class="mf">20000.0</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">vaddr</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsamples</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="mi">2</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">*</span> <span class="mf">1000.0</span>
+        <span class="p">)</span>
+        <span class="n">vaddr_per_second</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vaddr</span><span class="p">)</span> <span class="o">//</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">approx_read_seconds</span><span class="p">)))</span>
+        <span class="n">vaddr_per_second</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">vaddr_per_second</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="p">)</span>  <span class="c1"># Do &quot;logarithmic rounding&quot; to make numbers look nicer, e.g.  999 -&gt; 1000</span>
+        <span class="k">with</span> <span class="n">_log_in_place</span><span class="p">(</span><span class="s2">&quot;reading&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">)</span> <span class="k">as</span> <span class="n">updater</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">out_index</span><span class="p">,</span> <span class="n">vaddr0</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vaddr</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">out_index</span> <span class="o">%</span> <span class="n">vaddr_per_second</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">updater</span><span class="p">(</span><span class="s2">&quot;part </span><span class="si">{0:,}</span><span class="s2"> of </span><span class="si">{1:,}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">out_index</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vaddr</span><span class="p">)))</span>
+
+                <span class="n">genotype</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">bgen_file_open_genotype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bgen</span><span class="o">.</span><span class="n">_bgen_file</span><span class="p">,</span> <span class="n">vaddr0</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">return_probabilities</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="n">prob_buffer</span> <span class="ow">is</span> <span class="kc">None</span>
+                        <span class="ow">or</span> <span class="n">ncombinations</span><span class="p">[</span><span class="n">out_index</span><span class="p">]</span> <span class="o">!=</span> <span class="n">prob_buffer</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="p">):</span>
+                        <span class="n">prob_buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
+                            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_samples</span><span class="p">),</span> <span class="n">ncombinations</span><span class="p">[</span><span class="n">out_index</span><span class="p">]),</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                            <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">,</span>
+                            <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float64&quot;</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="n">lib</span><span class="o">.</span><span class="n">bgen_genotype_read</span><span class="p">(</span>
+                        <span class="n">genotype</span><span class="p">,</span> <span class="n">ffi</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s2">&quot;double *&quot;</span><span class="p">,</span> <span class="n">prob_buffer</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">val</span><span class="p">[:,</span> <span class="n">out_index</span><span class="p">,</span> <span class="p">:</span> <span class="n">ncombinations</span><span class="p">[</span><span class="n">out_index</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">prob_buffer</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">samples_index</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_range</span><span class="p">)</span>
+                        <span class="k">else</span> <span class="n">prob_buffer</span><span class="p">[</span><span class="n">samples_index</span><span class="p">,</span> <span class="p">:]</span>
+                    <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">return_missings</span><span class="p">:</span>
+                    <span class="n">missing_val</span><span class="p">[:,</span> <span class="n">out_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">lib</span><span class="o">.</span><span class="n">bgen_genotype_missing</span><span class="p">(</span><span class="n">genotype</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">samples_index</span>
+                    <span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">return_ploidies</span><span class="p">:</span>
+                    <span class="n">ploidy_val</span><span class="p">[:,</span> <span class="n">out_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">lib</span><span class="o">.</span><span class="n">bgen_genotype_ploidy</span><span class="p">(</span><span class="n">genotype</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">samples_index</span>
+                    <span class="p">]</span>
+
+                <span class="n">lib</span><span class="o">.</span><span class="n">bgen_genotype_close</span><span class="p">(</span><span class="n">genotype</span><span class="p">)</span>
+
+        <span class="n">result_array</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">([</span><span class="n">val</span><span class="p">]</span> <span class="k">if</span> <span class="n">return_probabilities</span> <span class="k">else</span> <span class="p">[])</span>
+            <span class="o">+</span> <span class="p">([</span><span class="n">missing_val</span><span class="p">]</span> <span class="k">if</span> <span class="n">return_missings</span> <span class="k">else</span> <span class="p">[])</span>
+            <span class="o">+</span> <span class="p">([</span><span class="n">ploidy_val</span><span class="p">]</span> <span class="k">if</span> <span class="n">return_ploidies</span> <span class="k">else</span> <span class="p">[])</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_array</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">result_array</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nsamples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The number of samples in the data (``int``)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.nsamples)</span>
+<span class="sd">            4</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_samples</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nvariants</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The number of variants in the data (``int``)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.nvariants)</span>
+<span class="sd">            4</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">max_combinations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The maximum number of values in any variant&#39;s probability distribution (``int``).</span>
+
+<span class="sd">        For unphased, diploidy, biallelic data, it will be 3. For phased, diploidy, biallelic data it will be 4. In general,</span>
+<span class="sd">        it is the maximum value in :attr:`~bgen_reader.open_bgen.ncombinations`.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.max_combinations)</span>
+<span class="sd">            4</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_combinations</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The tuple (:attr:`~bgen_reader.open_bgen.nsamples`, :attr:`~bgen_reader.open_bgen.nvariants`,</span>
+<span class="sd">        :attr:`~bgen_reader.open_bgen.max_combinations`)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.shape)</span>
+<span class="sd">            (4, 4, 4)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsamples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvariants</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_combinations</span><span class="p">)</span>
+
+    <span class="c1"># This is static so that test code can use it easily.</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_metadatapath_from_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.metadata2.npz&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The sample identifiers (a :class:`numpy.ndarray` of ``str``)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.samples)</span>
+<span class="sd">            [&#39;sample_0&#39; &#39;sample_1&#39; &#39;sample_2&#39; &#39;sample_3&#39;]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_samples</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The variant identifiers (a :class:`numpy.ndarray` of ``str``)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.ids)</span>
+<span class="sd">            [&#39;SNP1&#39; &#39;SNP2&#39; &#39;SNP3&#39; &#39;SNP4&#39;]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ids</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rsids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The variant RS numbers (a :class:`numpy.ndarray` of ``str``)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.rsids)</span>
+<span class="sd">            [&#39;RS1&#39; &#39;RS2&#39; &#39;RS3&#39; &#39;RS4&#39;]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rsids</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">chromosomes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The chromosome of each variant (a :class:`numpy.ndarray` of ``str``)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.chromosomes)</span>
+<span class="sd">            [&#39;1&#39; &#39;1&#39; &#39;1&#39; &#39;1&#39;]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chromosomes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The genetic position of each variant (a :class:`numpy.ndarray` of ``int``)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.positions)</span>
+<span class="sd">            [1 2 3 4]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nalleles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The number of alleles for each variant (a :class:`numpy.ndarray` of ``int``)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.nalleles)</span>
+<span class="sd">            [2 2 2 2]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nalleles</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">allele_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The comma-delimited list of alleles for each variant (a :class:`numpy.ndarray` of ``str``)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.allele_ids)</span>
+<span class="sd">            [&#39;A,G&#39; &#39;A,G&#39; &#39;A,G&#39; &#39;A,G&#39;]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allele_ids</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ncombinations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The number of values needed for each variant&#39;s probability distribution (a :class:`numpy.ndarray` of ``int``)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.ncombinations)</span>
+<span class="sd">            [4 4 4 4]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncombinations</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phased</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For each variant, ``True`` if and only the variant is phased (a :class:`numpy.ndarray` of bool)</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; with open_bgen(file, verbose=False) as bgen:</span>
+<span class="sd">            ...     print(bgen.phased)</span>
+<span class="sd">            [ True  True  True  True]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phased</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_split_index</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">samples_index</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="o">.</span><span class="n">_fix_up_index</span><span class="p">(</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">variants_index</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="o">.</span><span class="n">_fix_up_index</span><span class="p">(</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">samples_index</span><span class="p">,</span> <span class="n">variants_index</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_fix_up_index</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># make a shortcut for None</span>
+            <span class="k">return</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>  <span class="c1"># If index is an int, return it in an array</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="fm">__index__</span><span class="p">()</span>  <span class="c1"># (see</span>
+            <span class="c1"># https://stackoverflow.com/questions/3501382/checking-whether-a-variable-is-an-integer-or-not)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">index</span>
+
+    <span class="k">def</span> <span class="nf">_map_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metafile_filepath</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">_log_in_place</span><span class="p">(</span><span class="s2">&quot;metadata&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">)</span> <span class="k">as</span> <span class="n">updater</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">bgen_metafile</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">metafile_filepath</span><span class="p">))</span> <span class="k">as</span> <span class="n">mf</span><span class="p">:</span>
+                <span class="n">nparts</span> <span class="o">=</span> <span class="n">mf</span><span class="o">.</span><span class="n">npartitions</span>
+                <span class="p">(</span>
+                    <span class="n">id_list</span><span class="p">,</span>
+                    <span class="n">rsid_list</span><span class="p">,</span>
+                    <span class="n">chrom_list</span><span class="p">,</span>
+                    <span class="n">position_list</span><span class="p">,</span>
+                    <span class="n">vaddr_list</span><span class="p">,</span>
+                    <span class="n">nalleles_list</span><span class="p">,</span>
+                    <span class="n">allele_ids_list</span><span class="p">,</span>
+                    <span class="n">ncombinations_list</span><span class="p">,</span>
+                    <span class="n">phased_list</span><span class="p">,</span>
+                <span class="p">)</span> <span class="o">=</span> <span class="p">([],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[])</span>
+
+                <span class="k">for</span> <span class="n">ipart2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nparts</span><span class="p">):</span>  <span class="c1"># LATER multithread?</span>
+                    <span class="c1"># LATER in notebook this message doesn&#39;t appear on one line</span>
+                    <span class="n">updater</span><span class="p">(</span><span class="s2">&quot;step 2: part </span><span class="si">{0:,}</span><span class="s2"> of </span><span class="si">{1:,}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ipart2</span><span class="p">,</span> <span class="n">nparts</span><span class="p">))</span>
+
+                    <span class="p">(</span>
+                        <span class="n">nvariants</span><span class="p">,</span>
+                        <span class="n">vid</span><span class="p">,</span>
+                        <span class="n">rsid</span><span class="p">,</span>
+                        <span class="n">chrom</span><span class="p">,</span>
+                        <span class="n">position</span><span class="p">,</span>
+                        <span class="n">nalleles</span><span class="p">,</span>
+                        <span class="n">allele_ids</span><span class="p">,</span>
+                        <span class="n">offset</span><span class="p">,</span>
+                    <span class="p">)</span> <span class="o">=</span> <span class="n">mf</span><span class="o">.</span><span class="n">_inner_read_partition</span><span class="p">(</span><span class="n">ipart2</span><span class="p">)</span>
+
+                    <span class="n">id_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vid</span><span class="p">)</span>
+                    <span class="n">rsid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rsid</span><span class="p">)</span>
+                    <span class="n">chrom_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chrom</span><span class="p">)</span>
+                    <span class="n">position_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+                    <span class="n">nalleles_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nalleles</span><span class="p">)</span>
+                    <span class="n">allele_ids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">allele_ids</span><span class="p">)</span>
+                    <span class="n">vaddr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+
+            <span class="c1"># LATER use concatenate(...out=) instead</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">id_list</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;str&quot;</span>
+            <span class="p">)</span>  <span class="c1"># dtype needed to make unicode</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rsids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">rsid_list</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;str&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_vaddr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">vaddr_list</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chromosomes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">chrom_list</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;str&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">position_list</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nalleles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">nalleles_list</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_allele_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">allele_ids_list</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;str&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">vaddr0</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vaddr</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">updater</span><span class="p">(</span><span class="s2">&quot;step 3: part </span><span class="si">{0:,}</span><span class="s2"> of </span><span class="si">{1:,}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvariants</span><span class="p">))</span>
+                <span class="n">genotype</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">bgen_file_open_genotype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bgen</span><span class="o">.</span><span class="n">_bgen_file</span><span class="p">,</span> <span class="n">vaddr0</span><span class="p">)</span>
+                <span class="n">ncombinations_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lib</span><span class="o">.</span><span class="n">bgen_genotype_ncombs</span><span class="p">(</span><span class="n">genotype</span><span class="p">))</span>
+                <span class="n">phased_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lib</span><span class="o">.</span><span class="n">bgen_genotype_phased</span><span class="p">(</span><span class="n">genotype</span><span class="p">))</span>
+                <span class="n">lib</span><span class="o">.</span><span class="n">bgen_genotype_close</span><span class="p">(</span><span class="n">genotype</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ncombinations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ncombinations_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_phased</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">phased_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;bool&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">(&#39;</span><span class="si">{1}</span><span class="s2">&#39;)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filepath</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="open_bgen.close"><a class="viewcode-back" href="../../open.html#bgen_reader.open_bgen.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close a :class:`open_bgen` object that was opened for reading.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+
+<span class="sd">        Better alternatives to :meth:`close` include the</span>
+<span class="sd">        `with &lt;https://docs.python.org/3/reference/compound_stmts.html#grammar-token-with-stmt&gt;`__</span>
+<span class="sd">        statement (closes the file automatically) and the `del</span>
+<span class="sd">        &lt;https://docs.python.org/3/reference/simple_stmts.html#grammar-token-del-stmt&gt;`__</span>
+<span class="sd">        statement (which closes the file and *deletes* the object).</span>
+<span class="sd">        Doing nothing, while not better, is usually fine.</span>
+
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt; file = example_filepath(&quot;haplotypes.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; bgen = open_bgen(file, verbose=False)</span>
+<span class="sd">            &gt;&gt;&gt; print(bgen.read(2))</span>
+<span class="sd">            [[[1. 0. 0. 1.]]</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">             [[0. 1. 0. 1.]]</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">             [[1. 0. 1. 0.]]</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">             [[0. 1. 1. 0.]]]</span>
+<span class="sd">            &gt;&gt;&gt; bgen.close()     #&#39;del bgen&#39; is better.</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="fm">__exit__</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_bgen_context_manager&quot;</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bgen_context_manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">):</span>  <span class="c1"># we need to test this because Python doesn&#39;t guarantee that __init__ was</span>
+            <span class="c1"># fully run</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bgen_context_manager</span><span class="o">.</span><span class="fm">__exit__</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">del</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_bgen_context_manager</span>
+            <span class="p">)</span>  <span class="c1"># This allows __del__ and __exit__ to be called twice on the same object with</span>
+            <span class="c1"># no bad effect.</span>
+
+<div class="viewcode-block" id="open_bgen.allele_expectation"><a class="viewcode-back" href="../../open.html#bgen_reader.open_bgen.allele_expectation">[docs]</a>    <span class="k">def</span> <span class="nf">allele_expectation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">return_frequencies</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot; Allele expectation, frequency, and dosage.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            index</span>
+<span class="sd">                An expression specifying the samples and variants of interest. (See :ref:`read_examples` in :meth:`.read` for details.)</span>
+<span class="sd">                Defaults to ``None``, meaning compute for all samples and variants.</span>
+<span class="sd">            return_frequencies: bool</span>
+<span class="sd">                Return an array telling the allele frequencies.</span>
+<span class="sd">                Defaults to ``False``</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        one or two :class:`numpy.ndarray`:</span>
+<span class="sd">            always in this order</span>
+
+<span class="sd">            * Samples-by-variants-by-alleles matrix of allele expectations,</span>
+<span class="sd">            * Samples-by-variants-by-alleles matrix of frequencies, if ``return_frequencies`` is ``True``</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        This method supports unphased genotypes only.</span>
+
+
+<span class="sd">        .. _allele_expectation_examples:</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import allele_expectation, example_filepath, read_bgen</span>
+<span class="sd">            &gt;&gt;&gt; from texttable import Texttable</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; filepath = example_filepath(&quot;example.32bits.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; # Read the example.</span>
+<span class="sd">            &gt;&gt;&gt; bgen = open_bgen(filepath, verbose=False)</span>
+<span class="sd">            &gt;&gt;&gt; sample_index = bgen.samples==&quot;sample_005&quot; # will be only 1 sample</span>
+<span class="sd">            &gt;&gt;&gt; variant_index = bgen.rsids==&quot;RSID_6&quot;      # will be only 1 variant</span>
+<span class="sd">            &gt;&gt;&gt; p = bgen.read((sample_index,variant_index))</span>
+<span class="sd">            &gt;&gt;&gt; # Allele expectation makes sense for unphased genotypes only,</span>
+<span class="sd">            &gt;&gt;&gt; # which is the case here.</span>
+<span class="sd">            &gt;&gt;&gt; e = bgen.allele_expectation((sample_index,variant_index))</span>
+<span class="sd">            &gt;&gt;&gt; alleles_per_variant = [allele_ids.split(&#39;,&#39;) for allele_ids in bgen.allele_ids[variant_index]]</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; # Print what we have got in a nice format.</span>
+<span class="sd">            &gt;&gt;&gt; table = Texttable()</span>
+<span class="sd">            &gt;&gt;&gt; table = table.add_rows(</span>
+<span class="sd">            ...     [</span>
+<span class="sd">            ...         [&quot;&quot;, &quot;AA&quot;, &quot;AG&quot;, &quot;GG&quot;, &quot;E[.]&quot;],</span>
+<span class="sd">            ...         [&quot;p&quot;] + list(p[0,0,:]) + [&quot;na&quot;],</span>
+<span class="sd">            ...         [&quot;#&quot; + alleles_per_variant[0][0], 2, 1, 0, e[0,0,0]],</span>
+<span class="sd">            ...         [&quot;#&quot; + alleles_per_variant[0][1], 0, 1, 2, e[0,0,1]],</span>
+<span class="sd">            ...     ]</span>
+<span class="sd">            ... )</span>
+<span class="sd">            &gt;&gt;&gt; print(table.draw())</span>
+<span class="sd">            +----+-------+-------+-------+-------+</span>
+<span class="sd">            |    |  AA   |  AG   |  GG   | E[.]  |</span>
+<span class="sd">            +====+=======+=======+=======+=======+</span>
+<span class="sd">            | p  | 0.012 | 0.987 | 0.001 | na    |</span>
+<span class="sd">            +----+-------+-------+-------+-------+</span>
+<span class="sd">            | #A | 2     | 1     | 0     | 1.011 |</span>
+<span class="sd">            +----+-------+-------+-------+-------+</span>
+<span class="sd">            | #G | 0     | 1     | 2     | 0.989 |</span>
+<span class="sd">            +----+-------+-------+-------+-------+</span>
+
+
+<span class="sd">        If ``return_frequencies`` is true, this method will also return the allele frequency.</span>
+
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import open_bgen, example_filepath</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; filepath = example_filepath(&quot;example.32bits.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; bgen = open_bgen(filepath, verbose=False)</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; variant_index = (bgen.rsids==&quot;RSID_6&quot;)      # will be only 1 variant</span>
+<span class="sd">            &gt;&gt;&gt; e,f = bgen.allele_expectation(variant_index, return_frequencies=True)</span>
+<span class="sd">            &gt;&gt;&gt; alleles_per_variant = [allele_ids.split(&#39;,&#39;) for allele_ids in bgen.allele_ids[variant_index]]</span>
+<span class="sd">            &gt;&gt;&gt; print(alleles_per_variant[0][0] + &quot;: {}&quot;.format(f[0,0]))</span>
+<span class="sd">            A: 229.23103218810434</span>
+<span class="sd">            &gt;&gt;&gt; print(alleles_per_variant[0][1] + &quot;: {}&quot;.format(f[0,1]))</span>
+<span class="sd">            G: 270.7689678118956</span>
+<span class="sd">            &gt;&gt;&gt; print(bgen.ids[variant_index][0],bgen.rsids[variant_index][0])</span>
+<span class="sd">            SNPID_6 RSID_6</span>
+
+<span class="sd">        To find dosage, just select the column of interest from the expectation.</span>
+
+<span class="sd">        .. doctest::</span>
+
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import example_filepath, open_bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; filepath = example_filepath(&quot;example.32bits.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; # Read the example.</span>
+<span class="sd">            &gt;&gt;&gt; bgen = open_bgen(filepath, verbose=False)</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; # Extract the allele expectations of the fourth variant.</span>
+<span class="sd">            &gt;&gt;&gt; variant_index = 3</span>
+<span class="sd">            &gt;&gt;&gt; e = bgen.allele_expectation(variant_index)</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; # Compute the dosage when considering the allele</span>
+<span class="sd">            &gt;&gt;&gt; # in position 1 as the reference/alternative one.</span>
+<span class="sd">            &gt;&gt;&gt; alt_allele_index = 1</span>
+<span class="sd">            &gt;&gt;&gt; dosage = e[...,1]</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; # Print the dosage for only the first five samples</span>
+<span class="sd">            &gt;&gt;&gt; # and the one (and only) variant</span>
+<span class="sd">            &gt;&gt;&gt; print(dosage[:5,0])</span>
+<span class="sd">            [1.96185308 0.00982666 0.01745552 1.00347899 1.01153563]</span>
+<span class="sd">            &gt;&gt;&gt; del bgen</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">            &gt;&gt;&gt; from bgen_reader import open_bgen</span>
+<span class="sd">            &gt;&gt;&gt; filepath = example_filepath(&quot;example.32bits.bgen&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; bgen = open_bgen(filepath, verbose=False)</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; variant_index = [3]</span>
+<span class="sd">            &gt;&gt;&gt; # Print the metadata of the fourth variant.</span>
+<span class="sd">            &gt;&gt;&gt; print(bgen.ids[variant_index],bgen.rsids[variant_index])</span>
+<span class="sd">            [&#39;SNPID_5&#39;] [&#39;RSID_5&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; probs, missing, ploidy = bgen.read(variant_index,return_missings=True,return_ploidies=True)</span>
+<span class="sd">            &gt;&gt;&gt; print(np.unique(missing),np.unique(ploidy))</span>
+<span class="sd">            [False] [2]</span>
+<span class="sd">            &gt;&gt;&gt; df1 = pd.DataFrame({&#39;sample&#39;:bgen.samples,&#39;0&#39;:probs[:,0,0],&#39;1&#39;:probs[:,0,1],&#39;2&#39;:probs[:,0,2]})</span>
+<span class="sd">            &gt;&gt;&gt; print(df1) # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">                        sample        0        1        2</span>
+<span class="sd">            0    sample_001  0.00488  0.02838  0.96674</span>
+<span class="sd">            1    sample_002  0.99045  0.00928  0.00027</span>
+<span class="sd">            2    sample_003  0.98932  0.00391  0.00677</span>
+<span class="sd">            3    sample_004  0.00662  0.98328  0.01010</span>
+<span class="sd">            ..          ...      ...      ...      ...</span>
+<span class="sd">            496  sample_497  0.00137  0.01312  0.98550</span>
+<span class="sd">            497  sample_498  0.00552  0.99423  0.00024</span>
+<span class="sd">            498  sample_499  0.01266  0.01154  0.97580</span>
+<span class="sd">            499  sample_500  0.00021  0.98431  0.01547</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">            [500 rows x 4 columns]</span>
+<span class="sd">            &gt;&gt;&gt; alleles_per_variant = [allele_ids.split(&#39;,&#39;) for allele_ids in bgen.allele_ids[variant_index]]</span>
+<span class="sd">            &gt;&gt;&gt; e,f = bgen.allele_expectation(variant_index,return_frequencies=True)</span>
+<span class="sd">            &gt;&gt;&gt; df2 = pd.DataFrame({&#39;sample&#39;:bgen.samples,alleles_per_variant[0][0]:e[:,0,0],alleles_per_variant[0][1]:e[:,0,1]})</span>
+<span class="sd">            &gt;&gt;&gt; print(df2)  # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">                        sample        A        G</span>
+<span class="sd">            0    sample_001  0.03815  1.96185</span>
+<span class="sd">            1    sample_002  1.99017  0.00983</span>
+<span class="sd">            2    sample_003  1.98254  0.01746</span>
+<span class="sd">            3    sample_004  0.99652  1.00348</span>
+<span class="sd">            ..          ...      ...      ...</span>
+<span class="sd">            496  sample_497  0.01587  1.98413</span>
+<span class="sd">            497  sample_498  1.00528  0.99472</span>
+<span class="sd">            498  sample_499  0.03687  1.96313</span>
+<span class="sd">            499  sample_500  0.98474  1.01526</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">            [500 rows x 3 columns]</span>
+<span class="sd">            &gt;&gt;&gt; df3 = pd.DataFrame({&#39;allele&#39;:alleles_per_variant[0],bgen.rsids[variant_index][0]:f[0,:]})</span>
+<span class="sd">            &gt;&gt;&gt; print(df3)</span>
+<span class="sd">              allele    RSID_5</span>
+<span class="sd">            0      A 305.97218</span>
+<span class="sd">            1      G 194.02782</span>
+<span class="sd">            &gt;&gt;&gt; alt_index = f[0,:].argmin()</span>
+<span class="sd">            &gt;&gt;&gt; alt = alleles_per_variant[0][alt_index]</span>
+<span class="sd">            &gt;&gt;&gt; dosage = e[:,0,alt_index]</span>
+<span class="sd">            &gt;&gt;&gt; df4 = pd.DataFrame({&#39;sample&#39;:bgen.samples,f&quot;alt={alt}&quot;:dosage})</span>
+<span class="sd">            &gt;&gt;&gt; # Dosages when considering G as the alternative allele.</span>
+<span class="sd">            &gt;&gt;&gt; print(df4) # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">                     sample    alt=G</span>
+<span class="sd">            0    sample_001  1.96185</span>
+<span class="sd">            1    sample_002  0.00983</span>
+<span class="sd">            2    sample_003  0.01746</span>
+<span class="sd">            3    sample_004  1.00348</span>
+<span class="sd">            ..          ...      ...</span>
+<span class="sd">            496  sample_497  1.98413</span>
+<span class="sd">            497  sample_498  0.99472</span>
+<span class="sd">            498  sample_499  1.96313</span>
+<span class="sd">            499  sample_500  1.01526</span>
+<span class="sd">            &lt;BLANKLINE&gt;</span>
+<span class="sd">            [500 rows x 2 columns]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">samples_index</span><span class="p">,</span> <span class="n">variants_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_index</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">phased_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phased</span><span class="p">[</span><span class="n">variants_index</span><span class="p">]</span>
+        <span class="n">nalleles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nalleles</span><span class="p">[</span><span class="n">variants_index</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">phased_list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Allele expectation is define for unphased genotypes only.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nalleles</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Current code requires that all selected variants have the same number of alleles&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">probs</span><span class="p">,</span> <span class="n">ploidy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">return_ploidies</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">outer_expec</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">vi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">genotypes</span> <span class="o">=</span> <span class="n">get_genotypes</span><span class="p">(</span><span class="n">ploidy</span><span class="p">[:,</span> <span class="n">vi</span><span class="p">],</span> <span class="n">nalleles</span><span class="p">[</span><span class="n">vi</span><span class="p">])</span>
+            <span class="n">probsvi</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[:,</span> <span class="n">vi</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">expec</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">genotype</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">genotypes</span><span class="p">):</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="n">asarray</span><span class="p">(</span><span class="n">genotypes_to_allele_counts</span><span class="p">(</span><span class="n">genotype</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">count</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">expec</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">count</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">probsvi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">n</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">outer_expec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stack</span><span class="p">(</span><span class="n">expec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">expec</span> <span class="o">=</span> <span class="n">stack</span><span class="p">(</span><span class="n">outer_expec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_frequencies</span><span class="p">:</span>
+            <span class="n">ploidy0</span> <span class="o">=</span> <span class="n">expec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="n">expec</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">ploidy0</span>
+            <span class="k">return</span> <span class="n">expec</span><span class="p">,</span> <span class="n">freq</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">expec</span></div>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="fm">__exit__</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Danilo Horta
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

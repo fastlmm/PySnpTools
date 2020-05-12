@@ -34,7 +34,9 @@ class Ped(_OneShot,SnpReader):
 
         >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import Ped
-        >>> data_on_disk = Ped('../examples/toydata.ped')
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> ped_file = example_file('pysnptools/examples/toydata.ped')
+        >>> data_on_disk = Ped(ped_file)
         >>> print((data_on_disk.iid_count, data_on_disk.sid_count))
         (500, 10000)
 
@@ -86,7 +88,9 @@ class Ped(_OneShot,SnpReader):
 
         >>> from pysnptools.snpreader import Ped, Bed
         >>> import pysnptools.util as pstutil
-        >>> snpdata = Bed('../examples/toydata.bed',count_A1=False)[:,:10].read()  # Read first 10 snps from Bed format
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> bed_file = example_file("pysnptools/examples/toydata.5chrom.*","*.bed")
+        >>> snpdata = Bed(bed_file,count_A1=False)[:,:10].read()  # Read first 10 snps from Bed format
         >>> pstutil.create_directory_if_necessary("tempdir/toydata10.ped")
         >>> Ped.write("tempdir/toydata10.ped",snpdata)            # Write data in Ped format
         Ped('tempdir/toydata10.ped')
@@ -130,4 +134,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

@@ -10,7 +10,7 @@ class SnpHdf5(PstHdf5,SnpReader):
 
     See :class:`.SnpReader` for general examples of using SnpReaders.
 
-    The general HDF5 format is described in http://www.hdfgroup.org/HDF5/. The SnpHdf5 format stores
+    The general HDF5 format is described `here <http://www.hdfgroup.org/HDF5/>`__. The SnpHdf5 format stores
     val, iid, sid, and pos information in Hdf5 format.
    
     **Constructor:**
@@ -20,7 +20,9 @@ class SnpHdf5(PstHdf5,SnpReader):
 
         >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import SnpHdf5
-        >>> data_on_disk = SnpHdf5('../examples/toydata.snpmajor.snp.hdf5')
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> hd5f_file = example_file("pysnptools/examples/toydata.snpmajor.snp.hdf5")
+        >>> data_on_disk = SnpHdf5(hd5f_file)
         >>> print((data_on_disk.iid_count, data_on_disk.sid_count))
         (500, 10000)
 
@@ -34,16 +36,18 @@ class SnpHdf5(PstHdf5,SnpReader):
     @property
     def row(self):
         self._run_once()
-        if self._row.dtype.type is not np.str:
+        if self._row.dtype.type is not np.str_:
             self._row = np.array(self._row,dtype='str')
         return self._row
 
     @property
     def col(self):
         self._run_once()
-        if self._col.dtype.type is not np.str:
+        if self._col.dtype.type is not np.str_:
             self._col = np.array(self._col,dtype='str')
         return self._col
+
+    #LATER make flush visible here and in other *.hdf5 locations
 
     @staticmethod
     def write(filename, snpdata, hdf5_dtype=None, sid_major=True):
@@ -55,13 +59,15 @@ class SnpHdf5(PstHdf5,SnpReader):
         :type snpdata: :class:`SnpData`
         :param hdf5_dtype: None (use the .val's dtype) or a Hdf5 dtype, e.g. 'f8','f4',etc.
         :type hdf5_dtype: string
-        :param col_major: Tells if vals should be stored on disk in sid_major (default) or iid_major format.
-        :type col_major: bool
+        :param sid_major: Tells if vals should be stored on disk in sid_major (default) or iid_major format.
+        :type sid_major: bool
         :rtype: :class:`.SnpHdf5`
 
         >>> from pysnptools.snpreader import SnpHdf5, Bed
         >>> import pysnptools.util as pstutil
-        >>> snpdata = Bed('../examples/toydata.bed',count_A1=False)[:,:10].read()     # Read first 10 snps from Bed format
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> bedfile = example_file("pysnptools/examples/toydata.5chrom.*","*.bed")
+        >>> snpdata = Bed(bedfile,count_A1=False)[:,:10].read()     # Read first 10 snps from Bed format
         >>> pstutil.create_directory_if_necessary("tempdir/toydata10.snp.hdf5")
         >>> SnpHdf5.write("tempdir/toydata10.snp.hdf5",snpdata)        # Write data in SnpHdf5 format
         SnpHdf5('tempdir/toydata10.snp.hdf5')
@@ -78,4 +84,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

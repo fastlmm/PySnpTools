@@ -55,9 +55,13 @@ def intersect_apply(data_list, sort_by_dataset=True, intersect_before_standardiz
     >>> from pysnptools.standardizer import Unit
     >>> #Create five datasets in different formats
     >>> ignore_in = None
-    >>> kernel_in = SnpKernel(Bed('../../tests/datasets/all_chr.maf0.001.N300',count_A1=False),Unit()) # Create a kernel from a Bed file
-    >>> pheno_in = Pheno('../../tests/datasets/phenSynthFrom22.23.N300.randcidorder.txt',missing="")
-    >>> cov = Pheno('../../tests/datasets/all_chr.maf0.001.covariates.N300.txt',missing="").read()
+    >>> from pysnptools.util import example_file # Download and return local file name
+    >>> bedfile = example_file("tests/datasets/all_chr.maf0.001.N300.*","*.bed")
+    >>> phenofile = example_file("tests/datasets/phenSynthFrom22.23.N300.randcidorder.txt")
+    >>> covfile = example_file("tests/datasets/all_chr.maf0.001.covariates.N300.txt")
+    >>> kernel_in = SnpKernel(Bed(bedfile,count_A1=False),Unit()) # Create a kernel from a Bed file
+    >>> pheno_in = Pheno(phenofile,missing="")
+    >>> cov = Pheno(covfile,missing="").read()
     >>> cov_as_tuple_in = (cov.val,cov.iid) #We could do cov directly, but as an example we make it a tuple.
     >>>
     >>> # Create five new datasets with consistent iids
@@ -505,7 +509,6 @@ def log_in_place(name, level, time_lambda=time.time, show_log_diffs=False):
     t_wait = time_lambda()
     last_len = [0] #We have to make this an array so that the value is by reference.
     last_message_hash = [None]
-    line_end = '\r'
     every_printed = [False] #Don't print the final newline if nothing is ever printed
 
     def writer(message):
@@ -567,10 +570,11 @@ def _datestamp(appendrandom=False):
     return s
 
 from pysnptools.util.generate import snp_gen
+from pysnptools.util._example_file import example_file
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

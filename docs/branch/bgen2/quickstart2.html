@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Quick Start &mdash; bgen-reader 4.0.4 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/bootstrap-limix.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Details" href="open.html" />
+    <link rel="prev" title="NumPy-Inspired API (new)" href="numpyapi.html" />
+
+<script src="//code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+<script>
+    window.jQuery || document.write("<script src=\"_static/jquery-3.3.1.min.js\"><\/script>");
+</script>
+<script type="text/javascript" src="_static/copybutton.js"></script>
+
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> bgen-reader
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="daskapi.html">Dask-Inspired API (original)</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="numpyapi.html">NumPy-Inspired API (new)</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Quick Start</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#unphased-genotype">Unphased genotype</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phased-genotype">Phased genotype</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#complex-file">Complex file</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="open.html">Details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="env_variables.html">Environment Variables</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">bgen-reader</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="numpyapi.html">NumPy-Inspired API (new)</a> &raquo;</li>
+        
+      <li>Quick Start</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/quickstart2.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="quick-start">
+<span id="quick-start2"></span><h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
+<p>We first download the <code class="docutils literal notranslate"><span class="pre">example.bgen</span></code>, <code class="docutils literal notranslate"><span class="pre">haplotypes.bgen</span></code>, and <code class="docutils literal notranslate"><span class="pre">complex.bgen</span></code> files:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">example_filepath</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">example_bgen_path</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;example.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">haplotypes_bgen_path</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;haplotypes.bgen&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">complex_bgen_path</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;complex.bgen&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This software reads the files the same way, but they present
+different levels of genotype complexity.
+The variant loci of the genotype stored in <code class="docutils literal notranslate"><span class="pre">example.bgen</span></code> have the ploidy two and are all unphased.
+The <code class="docutils literal notranslate"><span class="pre">haplotypes.bgen</span></code> file stores a phased, diploid genotype.
+Both the genotypes stored in <code class="docutils literal notranslate"><span class="pre">example.bgen</span></code> and <code class="docutils literal notranslate"><span class="pre">haplotypes.bgen</span></code> are biallelic, that is with two alleles
+at each loci.
+The <code class="docutils literal notranslate"><span class="pre">complex.bgen</span></code> file, on the other hand, has varying ploidy levels and alleles numbers
+across the variant loci.</p>
+<div class="section" id="unphased-genotype">
+<span id="unphased-genotype2"></span><h2>Unphased genotype<a class="headerlink" href="#unphased-genotype" title="Permalink to this headline">¶</a></h2>
+<p>With unphased genotype we don’t have the information about which chromosome holds a
+given allele.
+Let’s read the <code class="docutils literal notranslate"><span class="pre">example.bgen</span></code> file and print out some information.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">open_bgen</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">example_bgen_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Samples</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">samples</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span> <span class="c1">#first 5</span>
+<span class="go">[&#39;sample_001&#39; &#39;sample_002&#39; &#39;sample_003&#39; &#39;sample_004&#39; &#39;sample_005&#39;]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Variants ids.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">ids</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span> <span class="c1">#first 5</span>
+<span class="go">[&#39;SNPID_2&#39; &#39;SNPID_3&#39; &#39;SNPID_4&#39; &#39;SNPID_5&#39; &#39;SNPID_6&#39;]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># There are 199 variants in total.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">nvariants</span><span class="p">)</span>
+<span class="go">199</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read the probabilities of the first variant</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+<span class="go">[[[       nan        nan        nan]]</span>
+
+<span class="go"> [[0.02780236 0.00863674 0.9635609 ]]</span>
+
+<span class="go"> [[0.01736504 0.04968414 0.93295083]]</span>
+
+<span class="go"> ...</span>
+
+<span class="go"> [[0.01419069 0.02810669 0.95770262]]</span>
+
+<span class="go"> [[0.91949463 0.05206298 0.02844239]]</span>
+
+<span class="go"> [[0.00244141 0.98410029 0.0134583 ]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># The above matrix is of size samples-by-1-variants-by-(combination-of-alleles).</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(500, 1, 3)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read the probabilities of all the samples and all variants</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># The matrix is of size samples-by-variants-(combination-of-alleles).</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(500, 199, 3)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read the probabilities of the first 5 samples and</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#variants 15 (inclusive) to 25 (exclusive)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">((</span><span class="nb">slice</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span><span class="nb">slice</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="mi">25</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="go">(5, 10, 3)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">bgen</span>  <span class="c1">#close the file and delete the open_bgen object</span>
+</pre></div>
+</div>
+<p>The 3rd dimension of the probability matrix of a given variant depends on the
+number of alleles, the ploidy, and whether the locus is phased or unphased.
+See <a class="reference internal" href="open.html#bgen_reader.open_bgen.ncombinations" title="bgen_reader.open_bgen.ncombinations"><code class="xref py py-attr docutils literal notranslate"><span class="pre">bgen_reader.open_bgen.ncombinations</span></code></a>. For details, see the
+<a href="https://github.com/limix/bgen" target="_blank">bgen specification⧉</a>.</p>
+</div>
+<div class="section" id="phased-genotype">
+<span id="phased-genotype2"></span><h2>Phased genotype<a class="headerlink" href="#phased-genotype" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">haplotypes_bgen_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Samples</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+<span class="go">[&#39;sample_0&#39; &#39;sample_1&#39; &#39;sample_2&#39; &#39;sample_3&#39;]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Variants ids.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+<span class="go">[&#39;SNP1&#39; &#39;SNP2&#39; &#39;SNP3&#39; &#39;SNP4&#39;]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read the probabilities and ploidies for the second individual and first variant</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span><span class="p">,</span><span class="n">ploidy</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="n">return_ploidies</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+<span class="go">[[[0. 1. 1. 0.]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># How many haplotypes?</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ploidy</span><span class="p">)</span>
+<span class="go">[[2]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Is the first variant phased?</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">phased</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># And how many alleles for the first variant?</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">nalleles</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Therefore, the first haplotype has probability 100%</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># of having the allele</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">alleles</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="go">G</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># And the second haplotype has probability 100% of having</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># the first allele</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">A</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">bgen</span>  <span class="c1">#close the file and delete the open_bgen object</span>
+</pre></div>
+</div>
+<p>Please refer to <a href="https://github.com/limix/bgen" target="_blank">bgen specification⧉</a> for a detailed description.</p>
+</div>
+<div class="section" id="complex-file">
+<span id="complex-file2"></span><h2>Complex file<a class="headerlink" href="#complex-file" title="Permalink to this headline">¶</a></h2>
+<p>The bgen file format allows the storage of very heterogeneous genetic data.
+In the <code class="docutils literal notranslate"><span class="pre">complex.bgen</span></code> file we have variants with different ploidy and numbers of
+alleles, as well as phased<em>ness</em>.</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">complex_bgen_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Note how the number of alleles very widely across loci.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">allele_ids</span><span class="p">)</span>
+<span class="go">[&#39;A,G&#39; &#39;A,G&#39; &#39;A,G&#39; &#39;A,G,T&#39; &#39;A,G&#39; &#39;A,G,GT,GTT&#39; &#39;A,G,GT,GTT,GTTT,GTTTT&#39;</span>
+<span class="go"> &#39;A,G,GT,GTT,GTTT,GTTTT,GTTTTT&#39; &#39;A,G,GT,GTT,GTTT,GTTTT,GTTTTT,GTTTTTT&#39;</span>
+<span class="go"> &#39;A,G&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+<span class="go">[&#39;sample_0&#39; &#39;sample_1&#39; &#39;sample_2&#39; &#39;sample_3&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Print the probabilities for the second individual and first variant</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="n">max_combinations</span><span class="o">=</span><span class="n">bgen</span><span class="o">.</span><span class="n">ncombinations</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+<span class="go">[[[1. 0. 0.]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># The 4th individual and 9th variant has ploidy ...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probs</span><span class="p">,</span> <span class="n">ploidy</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">read</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span><span class="n">max_combinations</span><span class="o">=</span><span class="n">bgen</span><span class="o">.</span><span class="n">ncombinations</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span><span class="n">return_ploidies</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ploidy</span><span class="p">)</span>
+<span class="go">[[2]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># and number of alleles equal to ...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">nalleles</span><span class="p">[</span><span class="mi">8</span><span class="p">])</span>
+<span class="go">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Its probability distribution is given by the array</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+<span class="go">[[[0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 1. 0. 0. 0. 0. 0. 0.</span>
+<span class="go">   0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Since the 9th variant is unphased,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bgen</span><span class="o">.</span><span class="n">phased</span><span class="p">[</span><span class="mi">8</span><span class="p">])</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># we can pick an alternative allele and compute the dosage</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># from allele expectation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># If we select the third allele as being the alternative one, we have</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_expectation</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dosage</span> <span class="o">=</span> <span class="n">e</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">dosage</span><span class="p">)</span>
+<span class="go">[0. 0. 0. 1.]</span>
+</pre></div>
+</div>
+<p>Please, refer to <a class="reference internal" href="open.html#bgen_reader.open_bgen.allele_expectation" title="bgen_reader.open_bgen.allele_expectation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">bgen_reader.open_bgen.allele_expectation()</span></code></a> for further details.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="open.html" class="btn btn-neutral float-right" title="Details" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="numpyapi.html" class="btn btn-neutral float-left" title="NumPy-Inspired API (new)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Danilo Horta
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

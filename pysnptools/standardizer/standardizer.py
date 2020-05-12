@@ -13,7 +13,9 @@ class Standardizer(object):
     >>> from six.moves import range #Python 2 & 3 compatibility
     >>> from pysnptools.standardizer import Unit
     >>> from pysnptools.snpreader import Bed
-    >>> snpdata1 = Bed('../../tests/datasets/all_chr.maf0.001.N300',count_A1=False).read().standardize(Unit())
+    >>> from pysnptools.util import example_file # Download and return local file name
+    >>> bedfile = example_file("tests/datasets/all_chr.maf0.001.N300.*","*.bed")
+    >>> snpdata1 = Bed(bedfile,count_A1=False).read().standardize(Unit())
     >>> print('{0:.6f}'.format(snpdata1.val[0,0]))
     0.229416
 
@@ -26,7 +28,7 @@ class Standardizer(object):
 
     Can also return a constant SNP standardizer that can be applied to other :class:`.SnpData`.
 
-    >>> snp_whole = Bed('../../tests/datasets/all_chr.maf0.001.N300',count_A1=False)
+    >>> snp_whole = Bed(bedfile,count_A1=False)
     >>> train_idx, test_idx = range(10,snp_whole.iid_count), range(0,10) #test on the first 10, train on the rest
     >>> snp_train, trained_standardizer = Unit().standardize(snp_whole[train_idx,:].read(),return_trained=True)
     >>> print('{0:.6f}'.format(snp_train.val[0,0]))
@@ -39,7 +41,7 @@ class Standardizer(object):
 
     Standardize any Numpy array.
 
-    >>> val = Bed('../../tests/datasets/all_chr.maf0.001.N300',count_A1=False).read().val
+    >>> val = Bed(bedfile,count_A1=False).read().val
     >>> print(val[0,0])
     2.0
     >>> val = Unit().standardize(val)
