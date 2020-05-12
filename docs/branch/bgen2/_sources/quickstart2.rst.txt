@@ -175,7 +175,7 @@ alleles, as well as phased\ *ness*.
    >>> # we can pick an alternative allele and compute the dosage
    >>> # from allele expectation.
    >>> # If we select the third allele as being the alternative one, we have
-   >>> e = bgen.allele_expectation(8)
+   >>> e = bgen.allele_expectation(8,assume_constant_ploidy=False)
    >>> dosage = e[:,0,2]
    >>> print(dosage)
    [0. 0. 0. 1.]

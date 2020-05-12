@@ -205,7 +205,7 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">None</s
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filepath</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;example.32bits.bgen&quot;</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read the example.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">read_bgen</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">read_bgen</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Extract the allele expectations of the fourth variant.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">variant_idx</span> <span class="o">=</span> <span class="mi">3</span>
@@ -217,7 +217,7 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">None</s
 <span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">compute_dosage</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="n">alt_allele_idx</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Print the dosage of the first five samples only.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">d</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span>
 <span class="go">[1.96185308 0.00982666 0.01745552 1.00347899 1.01153563]</span>
 </pre></div>
 </div>
@@ -238,7 +238,7 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">None</s
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filepath</span> <span class="o">=</span> <span class="n">example_filepath</span><span class="p">(</span><span class="s2">&quot;example.32bits.bgen&quot;</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Open the bgen file.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">read_bgen</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">read_bgen</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">variants</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;variants&quot;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">genotype</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;genotype&quot;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">samples</span> <span class="o">=</span> <span class="n">bgen</span><span class="p">[</span><span class="s2">&quot;samples&quot;</span><span class="p">]</span>
@@ -246,7 +246,7 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">None</s
 <span class="gp">&gt;&gt;&gt; </span><span class="n">variant_idx</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">variant</span> <span class="o">=</span> <span class="n">variants</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">variant_idx</span><span class="p">]</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Print the metadata of the fourth variant.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">variant</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">variant</span><span class="p">)</span>
 <span class="go">        id    rsid chrom   pos  nalleles allele_ids  vaddr</span>
 <span class="go">3  SNPID_5  RSID_5    01  5000         2        A,G  16034</span>
 
@@ -254,7 +254,7 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">None</s
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metageno</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">geno</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ploidy&quot;</span><span class="p">,</span> <span class="s2">&quot;missing&quot;</span><span class="p">]},</span>
 <span class="gp">... </span>                     <span class="n">index</span><span class="o">=</span><span class="n">samples</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metageno</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;sample&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">metageno</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">metageno</span><span class="p">)</span>  
 <span class="go">            ploidy  missing</span>
 <span class="go">sample</span>
 <span class="go">sample_001       2    False</span>
@@ -275,7 +275,7 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">None</s
 <span class="gp">... </span>    <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sample&quot;</span><span class="p">,</span> <span class="s2">&quot;genotype&quot;</span><span class="p">],</span>
 <span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Print the genotype probabilities.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">level</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">level</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>  
 <span class="go">genotype          0        1        2</span>
 <span class="go">sample</span>
 <span class="go">sample_001  0.00488  0.02838  0.96674</span>
@@ -297,7 +297,7 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">None</s
 <span class="gp">... </span>    <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sample&quot;</span><span class="p">,</span> <span class="s2">&quot;allele&quot;</span><span class="p">],</span>
 <span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Print the allele expectations.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">level</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">level</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>  
 <span class="go">allele            A        G</span>
 <span class="go">sample</span>
 <span class="go">sample_001  0.03815  1.96185</span>
@@ -313,11 +313,11 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">None</s
 <span class="go">[500 rows x 2 columns]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rsid</span> <span class="o">=</span> <span class="n">variant</span><span class="p">[</span><span class="s2">&quot;rsid&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chrom</span> <span class="o">=</span> <span class="n">variant</span><span class="p">[</span><span class="s2">&quot;chrom&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">variant_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">chrom</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">rsid</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variant_name</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;{chrom}:{rsid}&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">allele_frequency</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">variant_name</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">alleles</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;allele&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Allele frequencies.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> 
 <span class="go">        01:RSID_5</span>
 <span class="go">allele</span>
 <span class="go">A       305.97218</span>
@@ -325,9 +325,9 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">None</s
 <span class="gp">&gt;&gt;&gt; </span><span class="n">alt</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">alt_idx</span> <span class="o">=</span> <span class="n">alleles</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">alt</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">compute_dosage</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="n">alt_idx</span><span class="p">)</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;alt=</span><span class="si">{</span><span class="n">alt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="s2">&quot;alt={alt}&quot;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Dosages when considering G as the alternative allele.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> 
 <span class="go">              alt=G</span>
 <span class="go">sample</span>
 <span class="go">sample_001  1.96185</span>

@@ -164,23 +164,23 @@
 <span></span><span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mkdtemp</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkdtemp</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">asarray</span><span class="p">,</span> <span class="n">stack</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">asarray</span><span class="p">,</span> <span class="n">stack</span>
 
-<span class="kn">from</span> <span class="nn">._bgen_file</span> <span class="kn">import</span> <span class="n">bgen_file</span>
-<span class="kn">from</span> <span class="nn">._bgen_metafile</span> <span class="kn">import</span> <span class="n">bgen_metafile</span>
-<span class="kn">from</span> <span class="nn">._ffi</span> <span class="kn">import</span> <span class="n">ffi</span><span class="p">,</span> <span class="n">lib</span>
-<span class="kn">from</span> <span class="nn">._file</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">._bgen_file</span> <span class="k">import</span> <span class="n">bgen_file</span>
+<span class="kn">from</span> <span class="nn">._bgen_metafile</span> <span class="k">import</span> <span class="n">bgen_metafile</span>
+<span class="kn">from</span> <span class="nn">._ffi</span> <span class="k">import</span> <span class="n">ffi</span><span class="p">,</span> <span class="n">lib</span>
+<span class="kn">from</span> <span class="nn">._file</span> <span class="k">import</span> <span class="p">(</span>
     <span class="n">assert_file_exist</span><span class="p">,</span>
     <span class="n">assert_file_readable</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">._helper</span> <span class="kn">import</span> <span class="n">_log_in_place</span>
-<span class="kn">from</span> <span class="nn">._helper</span> <span class="kn">import</span> <span class="n">genotypes_to_allele_counts</span><span class="p">,</span> <span class="n">get_genotypes</span>
-<span class="kn">from</span> <span class="nn">._reader</span> <span class="kn">import</span> <span class="n">_get_samples</span>
+<span class="kn">from</span> <span class="nn">._helper</span> <span class="k">import</span> <span class="n">_log_in_place</span>
+<span class="kn">from</span> <span class="nn">._helper</span> <span class="k">import</span> <span class="n">genotypes_to_allele_counts</span><span class="p">,</span> <span class="n">get_genotypes</span>
+<span class="kn">from</span> <span class="nn">._reader</span> <span class="k">import</span> <span class="n">_get_samples</span>
 
 
 <span class="c1"># https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard</span>
@@ -273,7 +273,7 @@
 <span class="sd">        .. _sample format: https://www.well.ox.ac.uk/~gav/qctool/documentation/sample_file_formats.html</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">filepath</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
         <span class="n">samples_filepath</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -950,7 +950,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_ncombinations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ncombinations_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_phased</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">phased_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;bool&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">(&#39;</span><span class="si">{1}</span><span class="s2">&#39;)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filepath</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
 <div class="viewcode-block" id="open_bgen.close"><a class="viewcode-back" href="../../open.html#bgen_reader.open_bgen.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -984,10 +984,10 @@
 <span class="sd">            &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="fm">__exit__</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_bgen_context_manager&quot;</span><span class="p">)</span>
             <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bgen_context_manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -1000,7 +1000,10 @@
             <span class="c1"># no bad effect.</span>
 
 <div class="viewcode-block" id="open_bgen.allele_expectation"><a class="viewcode-back" href="../../open.html#bgen_reader.open_bgen.allele_expectation">[docs]</a>    <span class="k">def</span> <span class="nf">allele_expectation</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">return_frequencies</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">index</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">assume_constant_ploidy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">return_frequencies</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot; Allele expectation, frequency, and dosage.</span>
 
@@ -1009,6 +1012,9 @@
 <span class="sd">            index</span>
 <span class="sd">                An expression specifying the samples and variants of interest. (See :ref:`read_examples` in :meth:`.read` for details.)</span>
 <span class="sd">                Defaults to ``None``, meaning compute for all samples and variants.</span>
+<span class="sd">            assume_constant_ploidy: bool</span>
+<span class="sd">                When ploidy count can be assumed to be constant, calculations are much faster.</span>
+<span class="sd">                Defaults to ``True``</span>
 <span class="sd">            return_frequencies: bool</span>
 <span class="sd">                Return an array telling the allele frequencies.</span>
 <span class="sd">                Defaults to ``False``</span>
@@ -1192,33 +1198,53 @@
                 <span class="s2">&quot;Allele expectation is define for unphased genotypes only.&quot;</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nalleles</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nalleles</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Current code requires that all selected variants have the same number of alleles&quot;</span>
             <span class="p">)</span>
+        <span class="k">if</span> <span class="n">assume_constant_ploidy</span><span class="p">:</span>
+            <span class="n">ploidy0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">return_probabilities</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_ploidies</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span>
+            <span class="p">]</span>
+            <span class="n">genotype</span> <span class="o">=</span> <span class="n">get_genotypes</span><span class="p">(</span><span class="n">ploidy0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nalleles</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">asarray</span><span class="p">(</span><span class="n">genotypes_to_allele_counts</span><span class="p">(</span><span class="n">genotype</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
 
-        <span class="n">probs</span><span class="p">,</span> <span class="n">ploidy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">return_ploidies</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="n">outer_expec</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">vi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
-            <span class="n">genotypes</span> <span class="o">=</span> <span class="n">get_genotypes</span><span class="p">(</span><span class="n">ploidy</span><span class="p">[:,</span> <span class="n">vi</span><span class="p">],</span> <span class="n">nalleles</span><span class="p">[</span><span class="n">vi</span><span class="p">])</span>
-            <span class="n">probsvi</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[:,</span> <span class="n">vi</span><span class="p">,</span> <span class="p">:]</span>
-            <span class="n">expec</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">genotype</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">genotypes</span><span class="p">):</span>
-                <span class="n">count</span> <span class="o">=</span> <span class="n">asarray</span><span class="p">(</span><span class="n">genotypes_to_allele_counts</span><span class="p">(</span><span class="n">genotype</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
-                <span class="n">n</span> <span class="o">=</span> <span class="n">count</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">expec</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">count</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">probsvi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">n</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-            <span class="n">outer_expec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stack</span><span class="p">(</span><span class="n">expec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
-        <span class="n">expec</span> <span class="o">=</span> <span class="n">stack</span><span class="p">(</span><span class="n">outer_expec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="p">):</span>  <span class="c1"># handle the case where user asks for no samples or no variants</span>
+                <span class="n">expecx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">count</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">count</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Try &#39;assume_constant_ploidy=False&#39;&quot;</span><span class="p">)</span>
+                <span class="n">expecx</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">probs</span><span class="p">,</span> <span class="n">ploidy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">return_ploidies</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="p">):</span>  <span class="c1"># handle the case where user asks for no samples or no variants</span>
+                <span class="n">expecx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">nalleles</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outer_expec</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">vi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>  <span class="c1"># for each variant ...</span>
+                    <span class="n">genotypes</span> <span class="o">=</span> <span class="n">get_genotypes</span><span class="p">(</span><span class="n">ploidy</span><span class="p">[:,</span> <span class="n">vi</span><span class="p">],</span> <span class="n">nalleles</span><span class="p">[</span><span class="n">vi</span><span class="p">])</span>
+                    <span class="n">probsvi</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[:,</span> <span class="n">vi</span><span class="p">,</span> <span class="p">:]</span>
+                    <span class="n">expec</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">genotype</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">genotypes</span><span class="p">):</span>
+                        <span class="n">count</span> <span class="o">=</span> <span class="n">asarray</span><span class="p">(</span><span class="n">genotypes_to_allele_counts</span><span class="p">(</span><span class="n">genotype</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
+                        <span class="n">n</span> <span class="o">=</span> <span class="n">count</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">expec</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">count</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">probsvi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">n</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="n">outer_expec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stack</span><span class="p">(</span><span class="n">expec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+                <span class="n">expecx</span> <span class="o">=</span> <span class="n">stack</span><span class="p">(</span><span class="n">outer_expec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">return_frequencies</span><span class="p">:</span>
-            <span class="n">ploidy0</span> <span class="o">=</span> <span class="n">expec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">freq</span> <span class="o">=</span> <span class="n">expec</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">ploidy0</span>
-            <span class="k">return</span> <span class="n">expec</span><span class="p">,</span> <span class="n">freq</span>
+            <span class="n">nallele0</span> <span class="o">=</span> <span class="n">expecx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="n">expecx</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">nallele0</span>
+            <span class="k">return</span> <span class="n">expecx</span><span class="p">,</span> <span class="n">freq</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">expec</span></div>
+            <span class="k">return</span> <span class="n">expecx</span></div>
 
-    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="fm">__exit__</span><span class="p">()</span></div>
 </pre></div>
 

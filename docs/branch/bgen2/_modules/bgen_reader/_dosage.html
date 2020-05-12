@@ -161,9 +161,9 @@
            <div itemprop="articleBody">
             
   <h1>Source code for bgen_reader._dosage</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">asarray</span><span class="p">,</span> <span class="n">stack</span>
+<span></span><span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">asarray</span><span class="p">,</span> <span class="n">stack</span>
 
-<span class="kn">from</span> <span class="nn">._helper</span> <span class="kn">import</span> <span class="n">genotypes_to_allele_counts</span><span class="p">,</span> <span class="n">get_genotypes</span>
+<span class="kn">from</span> <span class="nn">._helper</span> <span class="k">import</span> <span class="n">genotypes_to_allele_counts</span><span class="p">,</span> <span class="n">get_genotypes</span>
 
 
 <div class="viewcode-block" id="allele_frequency"><a class="viewcode-back" href="../../frequency.html#bgen_reader.allele_frequency">[docs]</a><span class="k">def</span> <span class="nf">allele_frequency</span><span class="p">(</span><span class="n">expec</span><span class="p">):</span>
@@ -214,8 +214,8 @@
     <span class="n">expec</span> <span class="o">=</span> <span class="n">asarray</span><span class="p">(</span><span class="n">expec</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">expec</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expectation matrix must be bi-dimensional.&quot;</span><span class="p">)</span>
-    <span class="n">ploidy</span> <span class="o">=</span> <span class="n">expec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">expec</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">ploidy</span></div>
+    <span class="n">nallele0</span> <span class="o">=</span> <span class="n">expec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">expec</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">nallele0</span></div>
 
 
 <div class="viewcode-block" id="compute_dosage"><a class="viewcode-back" href="../../dosage.html#bgen_reader.compute_dosage">[docs]</a><span class="k">def</span> <span class="nf">compute_dosage</span><span class="p">(</span><span class="n">expec</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

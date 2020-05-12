@@ -4,6 +4,24 @@ Bgen-reader's documentation
 
 :Date: |today|
 :Version: |version|
+:Sample:
+
+    .. code-block:: python
+
+        >>> # Download a sample file
+        >>> from bgen_reader import example_filepath
+        >>> bgen_file = example_filepath("example.bgen")
+
+        >>> # Read from the file
+        >>> from bgen_reader import open_bgen
+        >>> bgen = open_bgen(bgen_file, verbose=False)
+        >>> probs0 = bgen.read(0)   # Read 1st variant
+        >>> print(probs0.shape)     # Shape of the NumPy array
+        (500, 1, 3)
+        >>> probs_all = bgen.read() # Read all variants
+        >>> print(probs_all.shape)  # Shape of the NumPy array
+        (500, 199, 3)
+
 
 |Bgen| is a file format for storing large genetic datasets.
 It supports both unphased genotypes and phased haplotype data with variable

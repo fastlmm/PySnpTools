@@ -198,7 +198,7 @@ across the variant loci.</p>
 <p>With unphased genotype we don’t have the information about which chromosome holds a
 given allele.
 Let’s read the <code class="docutils literal notranslate"><span class="pre">example.bgen</span></code> file and print out some information.</p>
-<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="kn">import</span> <span class="n">open_bgen</span>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bgen_reader</span> <span class="k">import</span> <span class="n">open_bgen</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bgen</span> <span class="o">=</span> <span class="n">open_bgen</span><span class="p">(</span><span class="n">example_bgen_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
@@ -328,7 +328,7 @@ alleles, as well as phased<em>ness</em>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># we can pick an alternative allele and compute the dosage</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># from allele expectation.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># If we select the third allele as being the alternative one, we have</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_expectation</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">bgen</span><span class="o">.</span><span class="n">allele_expectation</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="n">assume_constant_ploidy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dosage</span> <span class="o">=</span> <span class="n">e</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">dosage</span><span class="p">)</span>
 <span class="go">[0. 0. 0. 1.]</span>
