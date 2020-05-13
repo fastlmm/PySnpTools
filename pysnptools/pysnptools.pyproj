@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{60f1cb4a-9da3-47c2-9b89-60ac1ce93347}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>util\filecache\test.py</StartupFile>
+    <StartupFile>util\filecache\s3.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.\snpreader</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -112,6 +112,9 @@
     <Compile Include="standardizer\__init__.py" />
     <Compile Include="snpreader\distributedbed.py" />
     <Compile Include="test.py" />
+    <Compile Include="util\filecache\s3.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="util\_example_file.py">
       <SubType>Code</SubType>
     </Compile>

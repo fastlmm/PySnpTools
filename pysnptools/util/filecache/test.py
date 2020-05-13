@@ -4,7 +4,7 @@ import os
 import tempfile
 import shutil
 import time
-from pysnptools.util.filecache import LocalCache, PeerToPeer, Hashdown
+from pysnptools.util.filecache import LocalCache, PeerToPeer, Hashdown, S3
 
 
 class TestFileCache(unittest.TestCase):
@@ -127,6 +127,23 @@ class TestFileCache(unittest.TestCase):
         self._distribute(storage_closure)
         
 
+    def test_s3(self):
+        from pysnptools.util.filecache import ip_address_pid
+        logging.info("s3")
+
+        temp_dir = self._temp_dir()
+
+        def storage_closure():
+            def id_and_path_function():
+                self.count += 1
+                return self.count, temp_dir+'/{0}'.format(self.count)
+
+            storage = S3(common_directory=temp_dir+'/common',id_and_path_function=id_and_path_function)
+            return storage
+
+        self._write_and_read(storage_closure())
+        self._distribute(storage_closure)
+        
     @staticmethod
     def file_name(self,testcase_name):
             temp_fn = os.path.join(self.tempout_dir,testcase_name+".txt")
@@ -303,6 +320,7 @@ class TestFileCache(unittest.TestCase):
                     pysnptools.util.filecache.localcache,
                     pysnptools.util.filecache.peertopeer,
                     pysnptools.util.filecache.hashdown,
+                    pysnptools.util.filecache.s3,
                     ]:
             result = doctest.testmod(mod,optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
             assert result.failed == 0, "failed doc test: " + __file__
