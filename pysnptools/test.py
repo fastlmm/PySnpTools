@@ -670,7 +670,7 @@ class TestPySnpTools(unittest.TestCase):
 
         bed = Bed('examples/toydata.5chrom.bed',count_A1=True)
         bed[:3,:2].read(dtype='float32').val
-
+        #!!!cmk shouldn't there be a check that dtype is float32?
         os.chdir(previous_wd)
 
     def test_respect_read_inputs(self):

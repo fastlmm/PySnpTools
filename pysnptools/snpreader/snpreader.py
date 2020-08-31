@@ -62,6 +62,7 @@ class SnpReader(PstReader):
         :class:`.Dat`             text, floats        No                     .dat/.map/.fam     Yes
         :class:`.Ped`             text, 0,1,2         No                     .ped/.map          Yes
         :class:`.Dense`           text, 0,1,2         No                     .dense.txt         Yes
+        :class:`.DistributedBed`  binary, 0,1,2       Yes (by sid)           .bed/.bim/.fam     Yes
         :class:`.SnpNpz`          binary, floats      No                     .snp.npz           Yes
         :class:`.SnpHdf5`         binary, floats      Yes (by sid or iid)    .snp.hdf5          Yes
         :class:`.SnpMemMap`       mem-mapped floats   Yes                    .snp.memmap        Yes              
