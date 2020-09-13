@@ -44,7 +44,7 @@ class TestPySnpTools(unittest.TestCase):
 
         #currentFolder + "/examples/toydata.5chrom.bed"
         #currentFolder + "/examples/delme.hdf5"
-        bedFileName = r"c:\Source\carlk\fastlmm\tests\datasets\all_chr.maf0.001.N300" #!! local paths
+        bedFileName = r"c:\Source\carlk\fastlmm\tests\datasets\all_chr.maf0.001.N300.bed" #!! local paths
         hdf5Pattern = r"c:\Source\carlk\fastlmm\tests\datasets\del.{0}.hdf5"#!!
         tt0 = time.time()
         snpreader_bed = Bed(bedFileName,count_A1=False)
