@@ -981,8 +981,7 @@ if __name__ == "__main__":
 
         start = time.time()
 
-        filename = "M:/deldir/genbgen/good/merged_487400x220000.bgen"
-        #filename = "M:/deldir/genbgen/good/merged_487400x1100000.bgen"
+        filename = r"M:\deldir\genbgen\good\test_data\merged_487400x220000.bgen"
         bgen = Bgen(filename, fresh_properties=False)
         val = bgen[:, 1000000:1000031].read().val
         # val = bgen[200000:200031, 100000:100031].read().val

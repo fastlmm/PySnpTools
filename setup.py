@@ -77,7 +77,7 @@ else:
     cmdclass = {}
 
 install_requires = ['scipy>=1.1.0', 'numpy>=1.11.3', 'pandas>=0.19.0', 'psutil>=5.6.3', 'h5py>=2.10.0', 'dill>=0.2.9',
-                   'backports.tempfile>=1.0', 'bgen-reader>=4.0.5', 'wheel>=0.34.2']
+                   'backports.tempfile>=1.0', 'bgen-reader>=4.0.6', 'wheel>=0.34.2']
 
 class CleanCommand(Clean):
     description = "Remove build directories, and compiled files (including .pyc)"
