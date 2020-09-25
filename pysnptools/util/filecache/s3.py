@@ -19,17 +19,17 @@ class S3(FileCache):
     **Constructor:**
         :Parameters: * **folder** (*string*) -- The path on S3 storage under which data will be stored. The form of the path is:
                            /BUCKET/morepath.
-                     * **local_lambda** (*a zero-augment lambda*) -- When called, tells were to store data locally. See cmk :func:`ip_address_local`.
+                     * **id_and_path_function** (*a zero-augment lambda*) -- When called, tells were to store data locally. See cmk :func:`ip_address_local`.
 
         cmk tell about creds
 
     **All the methods of FileCache plus these:**
     '''
 
-    def __init__(self, folder, local_lambda=lambda:(None,"."), process_count=None,upload_local=False):
+    def __init__(self, folder, id_and_path_function=lambda:(None,"."), process_count=None,upload_local=False):
         super(S3, self).__init__()
         self.folder = folder
-        self.local_lambda = local_lambda
+        self.id_and_path_function = id_and_path_function
         self.s3_file_system = s3fs.S3FileSystem() #cmk do something with process_count
         self._upload_local = upload_local #cmk?
 
@@ -48,13 +48,13 @@ class S3(FileCache):
                 self.s3_file_system.upload(local,remote,do_sync_date=True,updater=updater)
             return True
         else:
-            return self.s3_file_system.exists(remote) and not self.s3_file_system.isdir(remote)
+            return self.s3_file_system.exists(remote) and self.s3_file_system.isfile(remote)
 
     def _get_remote(self,file_name):
             return self.folder + "/" + file_name
 
     def _get_local(self,file_name):
-        local = _path_join(self.local_lambda()[1], self.folder, file_name)
+        local = _path_join(self.id_and_path_function()[1], self.folder, file_name)
         return local
 
     @contextmanager
@@ -65,7 +65,7 @@ class S3(FileCache):
             size = os.path.getsize(local)
             with progress_reporter("Uploading local before read: "+os.path.basename(local), size, level=logging.INFO) as updater2:
                 self.s3_file_system.upload(local,remote,do_sync_date=True,updater=updater2)
-        self.s3_file_system.download(remote,local,as_needed=True,updater=updater)
+        self.s3_file_system.get(remote,local)#cmk,as_needed=True,updater=updater)
         yield local
 
     @contextmanager
@@ -86,27 +86,29 @@ class S3(FileCache):
 
     def _simple_remove(self,simple_file_name,updater=None):
         assert self._simple_file_exists(simple_file_name), "Expect file to exist (and be a file) ({0},'{1}')".format(self,simple_file_name)
-        self.s3_file_system.remove(self.folder + "/" + simple_file_name,updater=updater)
+        self.s3_file_system.rm(self.folder + "/" + simple_file_name)#!!!cmk,updater=updater)
         if self._upload_local:
            local=self._get_local(simple_file_name)
            if os.path.exists(local):
                 os.remove(local)
 
     def _simple_rmtree(self,updater=None):
-        if self.s3_file_system.rm(self.folder):
+        if self.s3_file_system.exists(self.folder):
             self.s3_file_system.rm(self.folder,recursive=True)
 
     def _simple_join(self,path):
         assert not self.s3_file_system.exists(self.folder + "/" + path) or self.s3_file_system.isdir(self.folder + "/" + path), "Can't treat an existing file as a directory: '{0}'".format(self.folder + "/" + path)
-        return S3(self.folder + "/" + path, local_lambda=self.local_lambda,upload_local=self._upload_local)
+        return S3(self.folder + "/" + path, id_and_path_function=self.id_and_path_function,upload_local=self._upload_local)
 
         
     def _simple_walk(self):
-        return self.s3_file_system.find(self.folder)
+        for full in self.s3_file_system.find(self.folder):
+            rel = os.path.relpath("/"+full,self.folder).replace('\\','/')
+            yield rel
 
     def _simple_getmtime(self,simple_file_name):
         assert self._simple_file_exists(simple_file_name),"Can only get mtime from files"
-        return self.s3_file_system.getmdate(self.folder + "/" + simple_file_name)
+        return self.s3_file_system.modified(self.folder + "/" + simple_file_name).timestamp()
 
 
 
@@ -129,7 +131,7 @@ if __name__ == '__main__':
         def id_and_path_function():
             ip = ip_address()
             return ip, 's3/{0}'.format(ip)
-        file_cache = S3(folder='/traviscibucket/deldir',local_lambda=id_and_path_function)
+        file_cache = S3(folder='/traviscibucket/deldir',id_and_path_function=id_and_path_function)
         print(file_cache)
         #-> PeerToPeer('peertopeer1/common',id_and_path_function=...')
 

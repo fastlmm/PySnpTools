@@ -4,12 +4,12 @@ import os
 import tempfile
 import shutil
 import time
-from pysnptools.util.filecache import LocalCache, PeerToPeer, Hashdown
+from pysnptools.util.filecache import LocalCache, PeerToPeer, Hashdown, S3
 
 
 class TestFileCache(unittest.TestCase):
 
-    def test_local_file(self):
+    def cmktest_local_file(self):
         logging.info("test_local_file")
 
         temp_dir = self._temp_dir()
@@ -18,7 +18,7 @@ class TestFileCache(unittest.TestCase):
         self._write_and_read(storage_closure())
         self._distribute(storage_closure)
     
-    def test_hashdown(self):
+    def cmktest_hashdown(self):
         logging.info("test_hashdown")
 
         from pysnptools.util.filecache.test import TestFileCache as self
@@ -109,7 +109,7 @@ class TestFileCache(unittest.TestCase):
         
 
 
-    def test_peer_to_peer(self):
+    def cmktest_peer_to_peer(self):
         from pysnptools.util.filecache import ip_address_pid
         logging.info("test_peer_to_peer")
 
@@ -126,6 +126,22 @@ class TestFileCache(unittest.TestCase):
         self._write_and_read(storage_closure())
         self._distribute(storage_closure)
         
+    def test_s3(self):
+        from pysnptools.util.filecache import ip_address_pid
+        logging.info("test_s3")
+
+        temp_dir = self._temp_dir()
+
+        def storage_closure():
+            def id_and_path_function():
+                self.count += 1
+                return self.count, temp_dir+'/{0}'.format(self.count)
+
+            storage = S3(folder='/traviscibucket/deldir/common',id_and_path_function=id_and_path_function) #!!!cmk can/should we create buckets? should be more tempy
+            return storage
+
+        self._write_and_read(storage_closure())
+        self._distribute(storage_closure)
 
     @staticmethod
     def file_name(self,testcase_name):
@@ -290,7 +306,7 @@ class TestFileCache(unittest.TestCase):
         #read on #2 and see that it is different.
         assert storage2.load("a/b/c.txt")=="There"
 
-    def test_util_filecache_testmod(self):
+    def cmktest_util_filecache_testmod(self):
         import doctest
         import pysnptools.util.filecache
         old_dir = os.getcwd()

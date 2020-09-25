@@ -104,6 +104,7 @@ from pysnptools.util.filecache.filecache import FileCache
 from pysnptools.util.filecache.localcache import LocalCache
 from pysnptools.util.filecache.peertopeer import PeerToPeer
 from pysnptools.util.filecache.hashdown import Hashdown
+from pysnptools.util.filecache.s3 import S3
 
 
 if __name__ == "__main__":
