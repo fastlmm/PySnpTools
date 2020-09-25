@@ -119,6 +119,7 @@ class FileCache(object):
     def walk(self,path=None):
         '''
         Generates the relative paths of the files in the :class:`FileCache`. It is OK if there are no files.
+        #cmk say files return nothing
 
         :param path: (Default, None, the current :class:`FileCache`). Optional path (subdirectory, not file) to start in.
         :type path: string
