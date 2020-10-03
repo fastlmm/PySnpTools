@@ -131,6 +131,7 @@
     <Compile Include="standardizer\__init__.py" />
     <Compile Include="snpreader\distributedbed.py" />
     <Compile Include="test.py" />
+    <Compile Include="util\filecache\s3so.py" />
     <Compile Include="util\filecache\s3.py">
       <SubType>Code</SubType>
     </Compile>

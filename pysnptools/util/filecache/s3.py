@@ -97,7 +97,8 @@ class S3(FileCache):
             self.s3_file_system.rm(self.folder,recursive=True)
 
     def _simple_join(self,path):
-        assert not self.s3_file_system.exists(self.folder + "/" + path) or self.s3_file_system.isdir(self.folder + "/" + path), "Can't treat an existing file as a directory: '{0}'".format(self.folder + "/" + path)
+        if self.s3_file_system.exists(self.folder + "/" + path) and self.s3_file_system.isfile(self.folder + "/" + path):
+            raise NotADirectoryError("Can't treat an existing file as a directory: '{0}'".format(self.folder + "/" + path))
         return S3(self.folder + "/" + path, id_and_path_function=self.id_and_path_function,upload_local=self._upload_local)
 
         
