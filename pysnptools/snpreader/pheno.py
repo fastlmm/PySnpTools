@@ -132,8 +132,16 @@ class Pheno(_OneShot, SnpReader):
                 f.write(tmpstr)
         return Pheno(filename,missing=missing)
 
+def cmktest():
+    from pysnptools.snpreader import Pheno, SnpData
+    os.chdir(r"D:\OneDrive\Projects\Science\userhelp\koa")
+
+    pheno_file_1 = "double_pheno.txt"
+    pheno1 = Pheno(pheno_file_1).read()
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+    cmktest()
 
     import doctest
     doctest.testmod(optionflags=doctest.ELLIPSIS)

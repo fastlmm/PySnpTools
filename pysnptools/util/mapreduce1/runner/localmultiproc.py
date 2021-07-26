@@ -40,6 +40,7 @@ class LocalMultiProc(Runner):
     '''
 
     def __init__(self, taskcount, mkl_num_threads = None, just_one_process = False, logging_handler=logging.StreamHandler(sys.stdout)):
+        # !!! cmk make so not just mkl_num_threads
         self.just_one_process = just_one_process
         logger = logging.getLogger()
         if not logger.handlers:
