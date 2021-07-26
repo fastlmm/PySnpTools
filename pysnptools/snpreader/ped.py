@@ -8,7 +8,6 @@ from pysnptools.snpreader import SnpData
 import numpy as np
 import warnings
 from pysnptools.pstreader import _OneShot
-from six.moves import range
 
 
 class Ped(_OneShot,SnpReader):
@@ -32,7 +31,6 @@ class Ped(_OneShot,SnpReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import Ped
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> ped_file = example_file('pysnptools/examples/toydata.ped')

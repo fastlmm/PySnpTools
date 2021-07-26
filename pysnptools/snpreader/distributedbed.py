@@ -12,8 +12,6 @@ from pysnptools.snpreader import _snps_fixup
 from pysnptools.util import log_in_place
 from pysnptools.util.mapreduce1 import map_reduce
 from pysnptools.util.filecache import FileCache
-import six
-from six.moves import range
 
 class DistributedBed(SnpReader):
     '''
@@ -27,7 +25,6 @@ class DistributedBed(SnpReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> import os
         >>> from pysnptools.snpreader import DistributedBed
         >>> from pysnptools.util import example_file # Download and return local file name
@@ -88,20 +85,23 @@ class DistributedBed(SnpReader):
 
                 for reader in reader_list:
                     reader._row = self._merge.row
-            
 
-    #def __del__(self):
-    #    for handle in self._file_dict.itervalues():
-    #        handle.close()
+    def __getstate__(self):
+        return self._storage
+
+    def __setstate__(self,state):
+        storage = state
+        self.__init__(storage)
+
 
     def copyinputs(self, copier):
         pass
 
-    def _read(self, iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         self._run_once()
         dtype = np.dtype(dtype)
 
-        return self._merge._read(iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok)
+        return self._merge._read(iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok, num_threads)
 
     #!!! in future could make a default for piece_per_chrom_count that made each piece some GB size
     @staticmethod
@@ -268,18 +268,19 @@ class _Distributed1Bed(SnpReader):
         self._file_dict["bed"] = local_bed
 
     def __del__(self):
-        for handle in six.itervalues(self._file_dict):
+        for handle in self._file_dict.values():
             handle.__exit__(None,None,None)
         self._file_dict = {}
-
+ 
+  
     def copyinputs(self, copier):
         pass
 
-    def _read(self, iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         self._run_once()
         dtype = np.dtype(dtype)
 
-        return self.local._read(iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok)
+        return self.local._read(iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok, num_threads)
     
     @staticmethod
     def write(path, storage, snpdata, count_A1=True, updater=None):

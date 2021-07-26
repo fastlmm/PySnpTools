@@ -18,7 +18,6 @@ class SnpHdf5(PstHdf5,SnpReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import SnpHdf5
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> hd5f_file = example_file("pysnptools/examples/toydata.snpmajor.snp.hdf5")

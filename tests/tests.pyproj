@@ -7,7 +7,7 @@
     <ProjectHome>
     </ProjectHome>
     <StartupFile>test.py</StartupFile>
-    <SearchPath>..\;..\..\bed-reader;..\..\bgen-reader-py</SearchPath>
+    <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>tests</Name>
@@ -22,7 +22,7 @@
     <InterpreterArguments />
     <IsWindowsApplication>False</IsWindowsApplication>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <InterpreterId>Global|ContinuumAnalytics|Anaconda37-64</InterpreterId>
+    <InterpreterId>CondaEnv|CondaEnv|gtg</InterpreterId>
     <TestFramework>unittest</TestFramework>
     <UnitTestPattern>test*.py</UnitTestPattern>
     <UnitTestRootDirectory>..</UnitTestRootDirectory>
@@ -55,7 +55,7 @@
     <Content Include="datasets\phenSynthFrom22.23.N300.randcidorder.txt" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda37-64" />
+    <InterpreterReference Include="CondaEnv|CondaEnv|gtg" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

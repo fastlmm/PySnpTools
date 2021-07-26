@@ -1,11 +1,9 @@
-from __future__ import print_function
-
 import numpy as np
 from itertools import *
 import pandas as pd
 import logging
 from pysnptools.pstreader import PstReader
-
+import pysnptools.util as pstutil
 
 def _default_empty_creator(count):
     return np.empty([count or 0, 0],dtype='str')
@@ -30,7 +28,6 @@ class PstData(PstReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.pstreader import PstData
         >>> pstdata = PstData(row=[['fam0','iid0'],['fam0','iid1']], col=['snp334','snp349','snp921'], val=[[0.,2.,0.],[0.,1.,2.]])
         >>> print(pstdata.val[0,1], pstdata.row_count, pstdata.col_count)
@@ -139,14 +136,16 @@ class PstData(PstReader):
         return input
 
     @staticmethod
-    def _fixup_input_val(input,row_count,col_count,empty_creator=_default_empty_creator_val, _require_float32_64=True):
+    def _fixup_input_val(input,row_count,col_count,empty_creator=_default_empty_creator_val, _require_float32_64=True, xp = None):
+        xp = pstutil.array_module(xp)
+
         if input is None:
             assert row_count == 0 or col_count == 0, "If val is None, either row_count or col_count must be 0"
             input = _default_empty_creator_val(row_count, col_count)
-        elif not isinstance(input,np.ndarray):
-            input = np.array(input,dtype=np.float64)
-        elif _require_float32_64 and input.dtype not in [np.float32,np.float64]:
-            input = np.array(input,dtype=np.float64)
+        elif not isinstance(input,xp.ndarray):
+            input = xp.array(input,dtype=xp.float64)
+        elif _require_float32_64 and input.dtype not in [xp.float32,xp.float64]:
+            input = xp.array(input,dtype=xp.float64)
 
         assert len(input.shape) in {2,3}, "Expect val to be two or three dimensional."
         assert input.shape[0] == row_count, "Expect number of rows ({0}) in val to match the number of row names given ({1})".format(input.shape[0], row_count)
@@ -215,9 +214,9 @@ class PstData(PstReader):
 
     # Most _read's support only indexlists or None, but this one supports Slices, too.
     _read_accepts_slices = True
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         dtype = np.dtype(dtype)
-        val, shares_memory = self._apply_sparray_or_slice_to_val(self.val, row_index_or_none, col_index_or_none, order, dtype, force_python_only)
+        val, shares_memory = self._apply_sparray_or_slice_to_val(self.val, row_index_or_none, col_index_or_none, order, dtype, force_python_only, num_threads)
         if shares_memory and not view_ok:
             val = val.copy(order='K')
         return val

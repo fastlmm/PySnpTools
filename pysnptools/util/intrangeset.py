@@ -7,7 +7,6 @@ import numpy as np
 import unittest
 import doctest
 import six
-from six.moves import range
 import numbers
 import io
 
@@ -24,7 +23,7 @@ class IntRangeSet(object):
 
     .. image:: example1.png
 
-    >>> from __future__ import print_function #Python 2 & 3 compatibility
+    >>> from pysnptools.util import IntRangeSet
     >>> a = IntRangeSet("100:500,501:1000") # a is the set of integers from 100 to 500 (exclusive) and 501 to 1000 (exclusive)
     >>> b = IntRangeSet("-20,400:600")      # b is the set of integers -20 and the range 400 to 600 (exclusive)
     >>> c = a | b                           # c is the union of a and b, namely -20 and 100 to 1000 (exclusive)
@@ -55,8 +54,6 @@ class IntRangeSet(object):
     Zip together the two lists to create an iterable of exon_start,exon_stop tuples. Then
     'set subtract' all these ranges from int_range_set
 
-    >>> from __future__ import absolute_import #Python 2 & 3 compatibility
-    >>> from six.moves import range #Python 2 & 3 compatibility
     >>> int_range_set -= zip(exon_starts,exon_stops)
     >>> print(int_range_set) # See what it looks like
     IntRangeSet('30818:32358,32562:36715')
@@ -1813,8 +1810,8 @@ class TestIntRangeSet(unittest.TestCase):
         IntRangeSet._test()
 
     def test_doc(self):
-        import pysnptools.util.intrangeset
-        doctest.testmod(pysnptools.util.intrangeset)
+        import pysnptools.util.intrangeset as set_mod
+        doctest.testmod(set_mod)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

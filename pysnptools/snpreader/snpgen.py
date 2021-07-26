@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 from pysnptools.util import log_in_place
 import numpy as np
 import logging
@@ -7,7 +5,6 @@ import os
 import unittest
 import doctest
 from pysnptools.snpreader import SnpReader
-from six.moves import range
 
 class SnpGen(SnpReader):
     '''
@@ -25,7 +22,6 @@ class SnpGen(SnpReader):
         
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import SnpGen
         >>> #Prepare to generate data for 1000 individuals and 1,000,000 SNPs
         >>> snp_gen = SnpGen(seed=332,iid_count=1000,sid_count=1000*1000)
@@ -116,7 +112,7 @@ class SnpGen(SnpReader):
         copier.input(self._cache_file)
 
     # Most _read's support only indexlists or None, but this one supports Slices, too.
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         self._run_once()
         import pysnptools.util as pstutil
         dtype = np.dtype(dtype)
@@ -132,7 +128,7 @@ class SnpGen(SnpReader):
         with log_in_place("working on snpgen batch", logging.INFO) as updater:
             for ii,i in enumerate(list_batch_index):  #for each distinct batch index, generate snps
                 updater("{0} of {1}".format(ii,len(list_batch_index)))
-                start = i*self._block_size  #e.g. 0 (then 2000)
+                start = int(i)*self._block_size  #e.g. 0 (then 2000)
                 stop = start + self._block_size #e.g. 1000, then 3000
                 batch_val = self._get_val2(start,stop,order=order,dtype=dtype) # generate whole batch
                 a = (batch_index==i) #e.g. [True,True,True,False,True], then [False,False,False,True,False]

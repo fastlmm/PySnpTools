@@ -53,13 +53,13 @@ class _Snp2Dist(DistReader):
         distval = distval.reshape([snpval.shape[0],snpval.shape[1],distval.shape[-1]],order=order)
         return distval
 
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         assert row_index_or_none is None and col_index_or_none is None #real assert because indexing should already be pushed to the inner snpreader
         dtype = np.dtype(dtype)
 
         #Do all-at-once (not in blocks) if 1. No block size is given or 2. The #ofSNPs < Min(block_size,iid_count)
         if self.block_size is None or (self.sid_count <= self.block_size or self.sid_count <= self.iid_count):
-            snpdata,_ = SnpReader._as_snpdata(self.snpreader,dtype=dtype,order=order,force_python_only=force_python_only,standardizer=stdizer.Identity())
+            snpdata,_ = SnpReader._as_snpdata(self.snpreader,dtype=dtype,order=order,force_python_only=force_python_only,standardizer=stdizer.Identity(),num_threads=num_threads)
             val = self._snpval_to_distval(snpdata.val,order,dtype)
 
             has_right_order = order="A" or (order=="C" and val.flags["C_CONTIGUOUS"]) or (order=="F" and val.flags["F_CONTIGUOUS"])
@@ -77,11 +77,12 @@ class _Snp2Dist(DistReader):
 
             for start in range(0, self.sid_count, self.block_size):
                 ct += self.block_size
-                snpdata = self.snpreader[:,start:start+self.block_size].read(order=order,dtype=dtype,force_python_only=force_python_only,view_ok=True) # a view is always OK, because we'll allocate memory in the next step
+                snpdata = self.snpreader[:,start:start+self.block_size].read(order=order,dtype=dtype,force_python_only=force_python_only,view_ok=True,num_threads=num_threads) # a view is always OK, because we'll allocate memory in the next step
                 val[:,start:start+self.block_size] = self._snpval_to_distval(snpdata.val,order,dtype)
                 if ct % self.block_size==0:
                     diff = time.time()-ts
-                    if diff > 1: logging.info("read %s SNPs in %.2f seconds" % (ct, diff))
+                    if diff > 5:
+                       logging.info("read %s SNPs in %.2f seconds" % (ct, diff))
 
             t1 = time.time()
             logging.info("%.2f seconds elapsed" % (t1-t0))

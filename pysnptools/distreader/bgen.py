@@ -13,7 +13,7 @@ import math
 import subprocess
 import pysnptools.util as pstutil
 from pysnptools.distreader import DistReader
-
+from bed_reader import get_num_threads
 
 def default_iid_function(sample):
     """
@@ -106,7 +106,8 @@ class Bgen(DistReader):
                        (Default: :meth:`bgen.default_sid_function`.) Can also be the string 'id' or 'rsid', which is faster than using a function.
                      * **sample** (optional, string) -- A GEN sample file. If given, overrides information in \*.bgen file.
                      * **num_threads** (optinal, int) -- The number of threads with which to read data. Defaults to all available processors.
-                            Can also be set with the 'MKL_NUM_THREADS' environment variable.
+                            Can also be set with these environment variables (listed in priority order):
+                            'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
                      * **fresh_properties** (optional, bool) -- When true (default), memory will be allocated for the iid, sid, and
                        pos properties. This is safe. When false, the properties will use the Bgen's on-disk 'memmap'. That saves
                        memory, but is only safe if the Bgen object is still around when the properties are used.
@@ -324,14 +325,20 @@ class Bgen(DistReader):
         dtype,
         force_python_only,
         view_ok,
+        num_threads,
     ):
         self._run_once()
 
         if order == "A":
             order = "F"
 
+        num_threads = get_num_threads(
+                self._num_threads if num_threads is None else num_threads
+            )
+
+
         val = self._open_bgen.read(
-            (iid_index_or_none, sid_index_or_none), dtype=dtype, order=order, num_threads=self._num_threads
+            (iid_index_or_none, sid_index_or_none), dtype=dtype, order=order, num_threads=num_threads
         )
         assert val.shape[-1] == 3, "Expect ploidy to be 2"
         return val
@@ -912,14 +919,14 @@ class TestBgen(unittest.TestCase):
             assert bgen.sid_count == 199
 
     def test_doctest(self):
-        import pysnptools.distreader.bgen
         import doctest
+        import pysnptools.distreader.bgen as bgen_mod
 
         old_level = logging.getLogger().level
         logging.getLogger().setLevel(logging.WARN)
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.distreader.bgen)
+        result = doctest.testmod(bgen_mod)
         os.chdir(old_dir)
         logging.getLogger().setLevel(old_level)
         assert result.failed == 0, "failed doc test: " + __file__

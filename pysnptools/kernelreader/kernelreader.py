@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import numpy as np
 import os.path
 from itertools import *
@@ -15,7 +13,6 @@ class KernelReader(PstReader):
 
     * A class such as :class:`KernelNpz` for you to a file with data. For example,
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.kernelreader import KernelNpz
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> 
@@ -100,7 +97,6 @@ class KernelReader(PstReader):
         Some of the classes, such as :class:`.KernelNpz`, also provide a static :meth:`KernelNpz.write` method for writing :class:`.KernelData`.
 
         >>> # create a kernel from a Bed file and write to KernelNpz format
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import Bed
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> from pysnptools.standardizer import Unit
@@ -170,7 +166,6 @@ class KernelReader(PstReader):
         :Example:
 
         >>> from pysnptools.kernelreader import KernelNpz
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> 
         >>> kernel_file = example_file('pysnptools/examples/toydata.kernel.npz')
@@ -247,7 +242,7 @@ class KernelReader(PstReader):
 
 
     #!!check that views always return contiguous memory by default
-    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False):
+    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False, num_threads=None):
         """Reads the kernel values and returns a :class:`.KernelData` (with :attr:`KernelData.val` property containing a new ndarray of the kernel values).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
@@ -264,7 +259,6 @@ class KernelReader(PstReader):
             be done without outside library code.
         :type force_python_only: bool
 
-
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`KernelData.val`'s ndarray. If True,
             if practical and reading from a :class:`KernelData`, will return a new 
             :class:`KernelData` with a ndarray shares memory with the original :class:`KernelData`.
@@ -273,6 +267,11 @@ class KernelReader(PstReader):
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
             share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
         :type view_ok: bool
+
+        :param num_threads: optional -- The number of threads with which to standardize data. Defaults to all available
+            processors. Can also be set with these environment variables (listed in priority order):
+            'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
+        :type num_threads: None or int
 
         :rtype: :class:`.KernelData`
 
@@ -297,7 +296,7 @@ class KernelReader(PstReader):
         >>> #print(np.may_share_memory(subset_kerneldata.val, subsub_kerneldata.val)) # Do the two ndarray's share memory? They could. Currently they won't.       
         """
         dtype = np.dtype(dtype)
-        val = self._read(None, None, order, dtype, force_python_only, view_ok)
+        val = self._read(None, None, order, dtype, force_python_only, view_ok, num_threads)
         from pysnptools.kernelreader import KernelData
         ret = KernelData(iid0=self.iid0, iid1=self.iid1, val=val, name=str(self))
         return ret

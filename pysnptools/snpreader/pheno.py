@@ -7,7 +7,6 @@ from pysnptools.snpreader import SnpData
 import pysnptools.util.pheno as pstpheno
 import pysnptools.util as pstutil
 from pysnptools.pstreader import _OneShot
-from six.moves import range
 
 class Pheno(_OneShot, SnpReader):
     '''
@@ -38,7 +37,6 @@ class Pheno(_OneShot, SnpReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import Pheno, Bed
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> pheno_file = example_file('pysnptools/examples/toydata.phe')

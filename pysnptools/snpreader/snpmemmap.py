@@ -1,4 +1,3 @@
-from __future__ import print_function
 
 import logging
 import os
@@ -6,11 +5,13 @@ import shutil
 import numpy as np
 import unittest
 import doctest
+from pathlib import Path
 import pysnptools.util as pstutil
 from pysnptools.pstreader import PstData
 from pysnptools.pstreader import PstMemMap
 from pysnptools.snpreader import SnpReader, SnpData
-
+from pysnptools.standardizer import Identity
+from pysnptools.util import log_in_place
 
 class SnpMemMap(PstMemMap,SnpData):
     '''
@@ -25,7 +26,6 @@ class SnpMemMap(PstMemMap,SnpData):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import SnpMemMap
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> mem_map_file = example_file('pysnptools/examples/tiny.snp.memmap')
@@ -142,35 +142,52 @@ class SnpMemMap(PstMemMap,SnpData):
 
 
     @staticmethod
-    def write(filename, snpdata):
-        """Writes a :class:`SnpData` to :class:`SnpMemMap` format.
+    def write(filename, snpreader, standardizer=Identity(), order='A', dtype=None, block_size=None, num_threads=None):
+        """Writes a :class:`SnpReader` to :class:`SnpMemMap` format.
 
         :param filename: the name of the file to create
         :type filename: string
-        :param snpdata: The in-memory data that should be written to disk.
-        :type snpdata: :class:`SnpData`
+        :param snpreader: The data that should be written to disk.
+        :type snpreader: :class:`SnpReader`
         :rtype: :class:`.SnpMemMap`
 
         >>> import pysnptools.util as pstutil
-        >>> from pysnptools.snpreader import SnpData, SnpMemMap
-        >>> data1 = SnpData(iid=[['fam0','iid0'],['fam0','iid1']], sid=['snp334','snp349','snp921'],val= [[0.,2.,0.],[0.,1.,2.]])
-        >>> pstutil.create_directory_if_necessary("tempdir/tiny.snp.memmap") #LATER should we just promise to create directories?
-        >>> SnpMemMap.write("tempdir/tiny.snp.memmap",data1)      # Write data1 in SnpMemMap format
-        SnpMemMap('tempdir/tiny.snp.memmap')
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> from pysnptools.snpreader import Bed, SnpMemMap
+        >>> bed_file = example_file("pysnptools/examples/toydata.5chrom.*","*.bed")
+        >>> bed = Bed(bed_file)
+        >>> pstutil.create_directory_if_necessary("tempdir/toydata.5chrom.snp.memmap") #LATER should we just promise to create directories?
+        >>> SnpMemMap.write("tempdir/toydata.5chrom.snp.memmap",bed)      # Write bed in SnpMemMap format
+        SnpMemMap('tempdir/toydata.5chrom.snp.memmap')
         """
+        block_size = block_size or max((100_000)//max(1,snpreader.row_count),1)
 
-        #We write iid and sid in ascii for compatibility between Python 2 and Python 3 formats.
-        row_ascii = np.array(snpdata.row,dtype='S') #!!!avoid this copy when not needed
-        col_ascii = np.array(snpdata.col,dtype='S') #!!!avoid this copy when not needed
-        self = PstMemMap.empty(row_ascii, col_ascii, filename+'.temp', row_property=snpdata.row_property, col_property=snpdata.col_property,order=PstMemMap._order(snpdata),dtype=snpdata.val.dtype)
-        self.val[:,:] = snpdata.val
-        self.flush()
+        if hasattr(snpreader,'val'):
+            order = PstMemMap._order(snpreader) if order=='A' else order
+            dtype = dtype or snpreader.val.dtype
+        else:
+            order = 'F' if order=='A' else order
+            dtype = dtype or np.float64
+        dtype = np.dtype(dtype)
+
+        snpmemmap = SnpMemMap.empty(iid=snpreader.iid, sid=snpreader.sid, filename=filename+'.temp', pos=snpreader.col_property,order=order,dtype=dtype)
+        if hasattr(snpreader,'val'):
+            standardizer.standardize(snpreader,num_threads=num_threads)
+            snpmemmap.val[:,:] = snpreader.val
+        else:
+            with log_in_place("SnpMemMap write sid_index ", logging.INFO) as updater:
+                for start in range(0,snpreader.sid_count,block_size):
+                    updater('{0} of {1}'.format(start,snpreader.sid_count))
+                    snpdata = snpreader[:,start:start+block_size].read(order=order,dtype=dtype,num_threads=num_threads)
+                    standardizer.standardize(snpdata,num_threads=num_threads)
+                    snpmemmap.val[:,start:start+snpdata.sid_count] = snpdata.val
+
+        snpmemmap.flush()
         if os.path.exists(filename):
            os.remove(filename) 
         shutil.move(filename+'.temp',filename)
         logging.debug("Done writing " + filename)
         return SnpMemMap(filename)
-
 
 
     def _run_once(self):
@@ -185,6 +202,9 @@ class SnpMemMap(PstMemMap,SnpData):
 class TestSnpMemMap(unittest.TestCase):     
 
     def test1(self):
+        from pysnptools.snpreader import Bed, SnpMemMap
+        from pysnptools.util import example_file # Download and return local file name
+
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
@@ -204,13 +224,20 @@ class TestSnpMemMap(unittest.TestCase):
         assert isinstance(snpreader3.val,np.memmap)
 
         logging.info("in TestSnpMemMap test1")
-        snpreader = SnpMemMap('../examples/tiny.snp.memmap')
+        snpreader = SnpMemMap('tempdir/tiny.snp.memmap')
         assert snpreader.iid_count == 2
         assert snpreader.sid_count == 3
         assert isinstance(snpreader.val,np.memmap)
 
         snpdata = snpreader.read(view_ok=True)
         assert isinstance(snpdata.val,np.memmap)
+
+        bed_file = example_file("pysnptools/examples/toydata.5chrom.*","*.bed")
+        bed = Bed(bed_file)
+        pstutil.create_directory_if_necessary("tempdir/toydata.5chrom.snp.memmap") #LATER should we just promise to create directories?
+        SnpMemMap.write("tempdir/toydata.5chrom.snp.memmap",bed)      # Write bed in SnpMemMap format
+        SnpMemMap.write("tempdir/toydata.5chromsnpdata.snp.memmap",bed[:,::2].read())  # Write snpdata in SnpMemMap format
+
         os.chdir(old_dir)
 
 
@@ -225,7 +252,48 @@ def getTestSuite():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARN)
+
+    if False:
+        from pysnptools.snpreader import Bed, _MergeSIDs, SnpMemMap
+
+        # Data will appear in the memory mapped file in the order given.
+        # The *.fam and *.bim files must be in the same order as the bed files.
+        bed_file_list = []
+        fam_file_list = []
+        bim_file_list = []
+        for piece in range(25):
+             bed_file_list += [r"M:\deldir\testsnps_1_10_250000_10000\chrom10.piece{0}of25.bed".format(piece)]
+             fam_file_list += [r"M:\deldir\testsnps_1_10_250000_10000\chrom10.piece{0}of25.fam".format(piece)]
+             bim_file_list += [r"M:\deldir\testsnps_1_10_250000_10000\chrom10.piece{0}of25.bim".format(piece)]
+        #for chrom in range(21,23):
+        #    bed_file_list += [r"d:\deldir\genbgen\merged_487400x220000.{0}.bed".format(chrom)]
+        #    fam_file_list += [r"m:\deldir\genbgen\merged_487400x220000.{0}.fam".format(chrom)]
+        #    bim_file_list += [r"m:\deldir\genbgen\merged_487400x220000.{0}.bim".format(chrom)]
+
+        memmap_file = r"D:\deldir\memmap1.snp.memmap"
+
+        #######
+        # For this demo, erase the memmap output file
+        ######
+
+        if Path(memmap_file).exists():
+            Path(memmap_file).unlink()
+
+    
+        #######
+        # Merge the input files
+        ######
+        merge = _MergeSIDs(
+            [Bed(bed_file,fam_filename=fam_file,bim_filename=bim_file,count_A1=True,skip_format_check=True)
+             for bed_file, fam_file, bim_file in zip(bed_file_list,fam_file_list,bim_file_list)]
+            )
+
+
+        # memmap = _bed_to_memmap2(merge,memmap_file=memmap_file,dtype='float32',step=10)
+        from pysnptools.standardizer import Unit
+        memmap = SnpMemMap.write(memmap_file, merge, standardizer=Unit(),dtype='float32')
+        memmap
 
     suites = getTestSuite()
     r = unittest.TextTestRunner(failfast=True)

@@ -9,7 +9,6 @@ import numpy as np
 from pysnptools.pstreader import PstReader
 from pysnptools.pstreader.pstdata import PstData
 import warnings
-from six.moves import range
 
 class PstHdf5(PstReader):
     '''
@@ -25,7 +24,6 @@ class PstHdf5(PstReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.pstreader import PstHdf5
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> 
@@ -47,6 +45,12 @@ class PstHdf5(PstReader):
 
         self.filename=filename
 
+    def __getstate__(self):
+        return self.filename, self._block_size
+
+    def __setstate__(self,state):
+        filename, block_size = state
+        self.__init__(filename, block_size=block_size)
 
     def __repr__(self): 
         return "{0}('{1}')".format(self.__class__.__name__,self.filename) #!!LATER print non-default values, too
@@ -183,7 +187,7 @@ class PstHdf5(PstReader):
             else:
                 return np.empty([len(self._row),block_size, self._val_shape,], dtype=dtype, order=opposite_order), opposite_order
 
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         self._run_once()
         dtype = np.dtype(dtype)
 

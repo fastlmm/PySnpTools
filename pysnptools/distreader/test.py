@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import numpy as np
 import scipy as sp
 import logging
@@ -8,7 +6,6 @@ import shutil
 import unittest
 import os.path
 import time
-from six.moves import range
 
 from pysnptools.distreader.distmemmap import TestDistMemMap
 from pysnptools.distreader.bgen import TestBgen

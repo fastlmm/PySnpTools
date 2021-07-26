@@ -10,7 +10,6 @@ from pysnptools.pstreader import PstReader
 from pysnptools.snpreader import SnpData
 import warnings
 import pysnptools.standardizer as stdizer
-from six.moves import range
 from pysnptools.snpreader._dist2snp import _Dist2Snp
 
 #!!why do the examples use ../tests/datasets instead of "examples"?
@@ -19,7 +18,6 @@ class DistReader(PstReader):
 
     * A class such as :class:`.Bgen` for you to specify a file with data. For example,
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.distreader import Bgen
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> bgen_file = example_file("pysnptools/examples/2500x100.bgen")
@@ -134,7 +132,6 @@ class DistReader(PstReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.distreader import Bgen
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> bgen_file = example_file("pysnptools/examples/2500x100.bgen")
@@ -219,11 +216,11 @@ class DistReader(PstReader):
         return self._row_property
 
 
-    def _read(self, iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         raise NotImplementedError
     
     #!!check that views always return contiguous memory by default
-    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False):
+    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False, num_threads=None):
         """Reads the SNP values and returns a :class:`.DistData` (with :attr:`DistData.val` property containing a new 3D ndarray of the SNP distribution values).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
@@ -249,6 +246,11 @@ class DistReader(PstReader):
             share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
         :type view_ok: bool
 
+        :param num_threads: optional -- The number of threads with which to read data. Defaults to all available
+            processors. Can also be set with these environment variables (listed in priority order):
+            'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
+        :type num_threads: None or int
+
         :rtype: :class:`.DistData`
 
         Calling the method again causes the SNP distribution values to be re-read and creates a new in-memory :class:`.DistData` with a new ndarray of SNP values.
@@ -272,7 +274,7 @@ class DistReader(PstReader):
         >>> # print np.may_share_memory(subset_distdata.val, subsub_distdata.val) # Do the two ndarray's share memory? They could. Currently they won't.       
         """
         dtype = np.dtype(dtype)
-        val = self._read(None, None, order, dtype, force_python_only, view_ok)
+        val = self._read(None, None, order, dtype, force_python_only, view_ok, num_threads)
         from pysnptools.distreader import DistData
         ret = DistData(self.iid,self.sid,val,pos=self.pos,name=str(self))
         return ret
@@ -362,7 +364,7 @@ class DistReader(PstReader):
         return _DistSubset(self, iid_indexer, snp_indexer)
 
     @staticmethod
-    def _as_distdata(distreader, force_python_only, order, dtype):
+    def _as_distdata(distreader, force_python_only, order, dtype, num_threads):
         '''
         Like 'read' except won't read if already a DistData
         '''
@@ -372,7 +374,7 @@ class DistReader(PstReader):
         if hasattr(distreader,'val') and distreader.val.dtype==dtype and (order=="A" or (order=="C" and distreader.val.flags["C_CONTIGUOUS"]) or (order=="F" and distreader.val.flags["F_CONTIGUOUS"])):
             return distreader
         else:
-            return distreader.read(order=order,dtype=dtype,view_ok=True)
+            return distreader.read(order=order,dtype=dtype,view_ok=True, num_threads=num_threads)
     
     def copyinputs(self, copier):
         raise NotImplementedError

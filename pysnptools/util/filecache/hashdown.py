@@ -3,10 +3,7 @@ import shutil
 import hashlib
 import fnmatch
 
-try:
-    from urllib.request import urlopen, HTTPError  # Python 3
-except ImportError:
-    from urllib2 import urlopen, HTTPError  # Python 2
+from urllib.request import urlopen, HTTPError
 import logging
 from contextlib import contextmanager
 from pysnptools.util.filecache import FileCache

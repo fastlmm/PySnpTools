@@ -3,7 +3,6 @@ import logging
 from pysnptools.util.mapreduce1.runner import _run_all_in_memory, Local
 from contextlib import contextmanager
 import threading
-from six.moves import range
 
 def _identity(x):
     return x
@@ -166,7 +165,6 @@ def map_reduce(input_seq, mapper=_identity, reducer=list, input_files=None, outp
     Square the numbers 0 to 99 and report their sum, locally:
 
         >>> from pysnptools.util.mapreduce1 import map_reduce
-        >>> from six.moves import range #Python 2 & 3 compatibility
         >>> map_reduce(range(100), 
         ...        mapper=lambda x: x*x,
         ...        reducer=sum)
@@ -175,7 +173,6 @@ def map_reduce(input_seq, mapper=_identity, reducer=list, input_files=None, outp
     Compute it again, this time run on four processors:
 
         >>> from pysnptools.util.mapreduce1.runner import LocalMultiProc
-        >>> from six.moves import range #Python 2 & 3 compatibility
         >>> map_reduce(range(100),
         ...        mapper=lambda x: x*x,
         ...        reducer=sum,

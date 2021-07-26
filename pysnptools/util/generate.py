@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import numpy as np
 import scipy as sp
 import unittest
@@ -7,7 +5,6 @@ import logging
 import sys
 import os
 import doctest
-from six.moves import range
 #from pysnptools.snpreader import SnpData, Bed, SnpNpz -- putting this here would cause a loop
 
 
@@ -50,7 +47,6 @@ def snp_gen(fst, dfr, iid_count, sid_count, maf_low=.05, maf_high=.5, seed=0, si
 
     :Example:
 
-    >>> from __future__ import print_function #Python 2 & 3 compatibility
     >>> snpdata = snp_gen(fst=.1,dfr=.5,iid_count=200,sid_count=20,maf_low=.05,seed=6)
     >>> print(int(snpdata.iid_count), int(snpdata.sid_count)) #because of rounding got 190 individuals
     190 20
@@ -293,10 +289,10 @@ class TestGenerate(unittest.TestCase):
 
     def test_doc_test(self):
         import sys
-        import pysnptools.util.generate
+        import pysnptools.util.generate as gen_mod
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__))+"/..")
-        result = doctest.testmod(pysnptools.util.generate,optionflags=doctest.ELLIPSIS)
+        result = doctest.testmod(gen_mod,optionflags=doctest.ELLIPSIS)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 

@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import logging
 import numpy as np
 import unittest
@@ -25,7 +23,6 @@ class PstMemMap(PstData):
         :Example:
 
         >>> from pysnptools.pstreader import PstMemMap
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> 
         >>> pst_mem_map_file = example_file('pysnptools/examples/tiny.pst.memmap')
@@ -46,6 +43,12 @@ class PstMemMap(PstData):
     def __repr__(self): 
         return "{0}('{1}')".format(self.__class__.__name__,self._filename)
 
+    def __getstate__(self):
+        return self.filename
+
+    def __setstate__(self,state):
+        filename = state
+        self.__init__(filename)
 
 
     @property
@@ -176,7 +179,7 @@ class PstMemMap(PstData):
         logging.info("About to start allocating memmap '{0}'".format(filename))
         shape = (len(row),len(col)) if val_shape is None else (len(row),len(col),val_shape)
         val = np.memmap(filename, offset=self._offset, dtype=dtype, mode="r+", order=order, shape=shape)
-        logging.info("Finished allocating memmap '{0}'. Size is {1}".format(filename,os.path.getsize(filename)))
+        logging.info("Finished allocating memmap '{0}'. Size is {1:,}".format(filename,os.path.getsize(filename)))
         PstData.__init__(self,row,col,val,row_property,col_property,name="np.memmap('{0}')".format(filename))
 
     def _run_once(self):
@@ -227,11 +230,10 @@ class PstMemMap(PstData):
 
     # Most _read's support only indexlists or None, but this one supports Slices, too.
     _read_accepts_slices = True
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         dtype = np.dtype(dtype)
-        val, shares_memory = self._apply_sparray_or_slice_to_val(self.val, row_index_or_none, col_index_or_none, order, dtype, force_python_only)
-        #if not shares_memory and view_ok:
-        #    logging.warn("Read from {0} required copy".format(self)) #LATER keep this warning?
+        force_python_only = True # Memmap arrays may not be aligned to Rust's standards, so process via Python
+        val, shares_memory = self._apply_sparray_or_slice_to_val(self.val, row_index_or_none, col_index_or_none, order, dtype, force_python_only, num_threads)
         if shares_memory and not view_ok:
             val = val.copy(order='K')
         return val

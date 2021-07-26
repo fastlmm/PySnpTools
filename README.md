@@ -7,8 +7,8 @@ Main Features:
 
 * [SnpReader](http://fastlmm.github.io/PySnpTools): Efficiently read genetic PLINK formats including \*.bed/bim/fam files.
           Also, efficiently read parts of files, read kernel data, and standardize data. 
-          New features include on-the-fly SNP generation, larger in-memory data, and
-          cluster-ready BED data.
+          New features include multi-threaded BED reading, cluster-ready BED data, on-the-fly SNP generation,
+          and larger in-memory data.
 
 * [DistReader](https://fastlmm.github.io/PySnpTools/#module-pysnptools.distreader): Efficiently work with
          unphased BGEN format and other diploid, biallelic distribution data.
@@ -26,7 +26,7 @@ Main Features:
 Documentation
 =================================
 
-* [API Documentation](http://fastlmm.github.io/PySnpTools/) with examples. It includes links to tutorial slides, notebooks, and video.
+* [Main Documentation](http://fastlmm.github.io/PySnpTools/) with examples. It includes links to tutorial slides, notebooks, and video.
 * [Project Home and Full Annotated Bibliography](https://fastlmm.github.io/)
 
 Code

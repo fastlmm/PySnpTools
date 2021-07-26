@@ -8,6 +8,7 @@ from pysnptools.standardizer import Identity
 from pysnptools.pstreader import PstData
 import warnings
 import time
+import pysnptools.util as pstutil
 
 class SnpData(PstData,SnpReader):
     """A :class:`.SnpReader` for holding SNP values (or similar values) in-memory, along with related iid and sid information.
@@ -22,10 +23,12 @@ class SnpData(PstData,SnpReader):
                      * **pos** (optional, an array of strings) -- The :attr:`SnpReader.pos` information
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **copyinputs_function** (optional, function) -- *Used internally by optional clustering code*
+                     * **xp** (optional, a Python module or string) -- The array module that controls **val**,
+                               for example, 'numpy' or 'cupy'. Defaults to numpy. Can also be set with the
+                               'ARRAY_MODULE' environment variable.
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import SnpData
         >>> snpdata = SnpData(iid=[['fam0','iid0'],['fam0','iid1']], sid=['snp334','snp349','snp921'], val=[[0.,2.,0.],[0.,1.,2.]])
         >>> print((snpdata.val[0,1], snpdata.iid_count, snpdata.sid_count))
@@ -61,10 +64,9 @@ class SnpData(PstData,SnpReader):
 
     **Methods beyond** :class:`.SnpReader`
     """
-    def __init__(self, iid, sid, val, pos=None, name=None, parent_string=None, copyinputs_function=None, _require_float32_64=True):
-
+    def __init__(self, iid, sid, val, pos=None, name=None, parent_string=None, copyinputs_function=None, xp = None, _require_float32_64=True):
         #We don't have a 'super(SnpData, self).__init__()' here because SnpData takes full responsibility for initializing both its superclasses
-
+        xp = pstutil.array_module(xp)
         self._val = None
 
         if parent_string is not None:
@@ -73,10 +75,15 @@ class SnpData(PstData,SnpReader):
         self._col = PstData._fixup_input(sid,empty_creator=lambda ignore:np.empty([0],dtype='str'),dtype='str')
         self._row_property = PstData._fixup_input(None,count=len(self._row),empty_creator=lambda count:np.empty([count,0],dtype='str'),dtype='str')
         self._col_property = PstData._fixup_input(pos,count=len(self._col),empty_creator=lambda count:np.full([count, 3], np.nan))
-        self._val = PstData._fixup_input_val(val,row_count=len(self._row),col_count=len(self._col),empty_creator=lambda row_count,col_count:np.empty([row_count,col_count],dtype=np.float64),_require_float32_64=_require_float32_64)
+        self._val = PstData._fixup_input_val(val,row_count=len(self._row),col_count=len(self._col),
+                                                empty_creator=lambda row_count,col_count:np.empty([row_count,col_count],dtype=np.float64),
+                                                _require_float32_64=_require_float32_64,
+                                                xp = xp
+                                                )
         self._assert_iid_sid_pos(check_val=True)
         self._name = name or parent_string or ""
         self._std_string_list = []
+        self._xp = xp
 
     @property
     def val(self):
@@ -93,7 +100,8 @@ class SnpData(PstData,SnpReader):
 
     @val.setter
     def val(self, new_value):
-        self._val = PstData._fixup_input_val(new_value,row_count=len(self._row),col_count=len(self._col),empty_creator=lambda row_count,col_count:np.empty([row_count,col_count],dtype=np.float64))
+        self._val = PstData._fixup_input_val(new_value,row_count=len(self._row),col_count=len(self._col),empty_creator=lambda row_count,col_count:np.empty([row_count,col_count],dtype=np.float64),
+                                             xp=self._xp)
         self._assert_iid_sid_pos(check_val=True)
 
 
@@ -115,7 +123,7 @@ class SnpData(PstData,SnpReader):
         '''
         return PstData.allclose(self,value,equal_nan=equal_nan)
 
-    def train_standardizer(self, apply_in_place, standardizer=Unit(), force_python_only=False):
+    def train_standardizer(self, apply_in_place, standardizer=Unit(), force_python_only=False,num_thread=None):
         """
         .. deprecated:: 0.2.23
            Use :meth:`standardize` with return_trained=True instead.
@@ -123,11 +131,11 @@ class SnpData(PstData,SnpReader):
         warnings.warn("train_standardizer is deprecated. standardize(...,return_trained=True,...) instead", DeprecationWarning)
         assert apply_in_place, "code assumes apply_in_place"
         self._std_string_list.append(str(standardizer))
-        _, trained_standardizer = standardizer.standardize(self, return_trained=True, force_python_only=force_python_only)
+        _, trained_standardizer = standardizer.standardize(self, return_trained=True, force_python_only=force_python_only,num_threads=num_threads)
         return trained_standardizer
 
     #LATER should there be a single warning if Unit() finds and imputes NaNs?
-    def standardize(self, standardizer=Unit(), block_size=None, return_trained=False, force_python_only=False):
+    def standardize(self, standardizer=Unit(), block_size=None, return_trained=False, force_python_only=False, num_threads=None):
         """Does in-place standardization of the in-memory
         SNP data. By default, it applies 'Unit' standardization, that is: the values for each SNP will have mean zero and standard deviation 1.0.
         NaN values are then filled with zero, the mean (consequently, if there are NaN values, the final standard deviation will not be zero.
@@ -147,6 +155,11 @@ class SnpData(PstData,SnpReader):
 
         :param force_python_only: optional -- If true, will use pure Python instead of faster C++ libraries.
         :type force_python_only: bool
+
+        :param num_threads: optional -- The number of threads with which to standardize data. Defaults to all available
+            processors. Can also be set with these environment variables (listed in priority order):
+            'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
+        :type num_threads: None or int
 
         :rtype: :class:`.SnpData` (standardizes in place, but for convenience, returns 'self')
 
@@ -168,13 +181,13 @@ class SnpData(PstData,SnpReader):
         0.229416
         """
         self._std_string_list.append(str(standardizer))
-        _, trained = standardizer.standardize(self, return_trained=True, force_python_only=force_python_only)
+        _, trained = standardizer.standardize(self, return_trained=True, force_python_only=force_python_only, num_threads=num_threads)
         if return_trained:
             return self, trained
         else:
             return self
 
-    def _read_kernel(train, standardizer, block_size=None, order='A', dtype=np.float64, force_python_only=False, view_ok=False, return_trained=False):
+    def _read_kernel(train, standardizer, block_size=None, order='A', dtype=np.float64, force_python_only=False, view_ok=False, return_trained=False, num_threads=None):
         '''
         The method creates a kernel for the in-memory SNP data. It handles these cases
                 * No standardization is needed & everything is in memory  OR uses the FROM-DISK method
@@ -198,7 +211,7 @@ class SnpData(PstData,SnpReader):
             else:
                 return K
         else: #Do things the more general SnpReader way.
-            return SnpReader._read_kernel(train, standardizer, block_size=block_size, order=order, dtype=dtype, force_python_only=force_python_only,view_ok=view_ok, return_trained=return_trained)
+            return SnpReader._read_kernel(train, standardizer, block_size=block_size, order=order, dtype=dtype, force_python_only=force_python_only,view_ok=view_ok, return_trained=return_trained, num_threads=num_threads)
 
     def __repr__(self):
         if self._name == "":

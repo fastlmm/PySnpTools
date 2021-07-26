@@ -18,7 +18,6 @@ class SnpNpz(PstNpz,SnpReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import SnpNpz
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> npz_file = example_file('pysnptools/examples/toydata10.snp.npz')

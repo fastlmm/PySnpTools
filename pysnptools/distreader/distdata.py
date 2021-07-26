@@ -27,7 +27,6 @@ class DistData(PstData,DistReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.distreader import DistData
         >>> distdata = DistData(iid=[['fam0','iid0'],['fam0','iid1']], sid=['snp334','snp349','snp921'],
         ...                     val=[[[.5,.5,0],[0,0,1],[.5,.5,0]],

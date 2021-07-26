@@ -14,7 +14,6 @@ class Beta(Standardizer):
         :Parameters: * **a** (*float*) -- The *a* parameter of the beta distribution
                      * **b** (*float*) -- The *b* parameter of the beta distribution
 
-    >>> from __future__ import print_function #Python 2 & 3 compatibility
     >>> from pysnptools.standardizer import Beta
     >>> from pysnptools.snpreader import Bed
     >>> from pysnptools.util import example_file # Download and return local file name
@@ -31,7 +30,7 @@ class Beta(Standardizer):
     def __repr__(self): 
         return "{0}(a={1},b={2})".format(self.__class__.__name__,self.a,self.b)
 
-    def standardize(self, snpdata, block_size=None, return_trained=False, force_python_only=False): #!!!later why is the 2nd argument called 'snpdata' here, but 'snps' in unit.py?
+    def standardize(self, snpdata, block_size=None, return_trained=False, force_python_only=False, num_threads=None): #!!!later why is the 2nd argument called 'snpdata' here, but 'snps' in unit.py?
         if block_size is not None:
             warnings.warn("block_size is deprecated (and not needed, since standardization is in-place", DeprecationWarning)
 
@@ -41,7 +40,8 @@ class Beta(Standardizer):
             warnings.warn("standardizing an nparray instead of a SnpData is deprecated", DeprecationWarning)
             val = snpdata
 
-        stats = self._standardize_unit_and_beta(val, is_beta=True, a=self.a, b=self.b, apply_in_place=True, use_stats=False,stats=None,force_python_only=force_python_only)
+        stats = self._standardize_unit_and_beta(val, is_beta=True, a=self.a, b=self.b, apply_in_place=True, use_stats=False,
+                                                stats=None,num_threads=num_threads,force_python_only=force_python_only)
         if return_trained:
             from pysnptools.standardizer import BetaTrained
             assert hasattr(snpdata,"val"), "return_trained=True must be used with SnpData"

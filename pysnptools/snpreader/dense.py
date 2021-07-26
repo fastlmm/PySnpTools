@@ -5,7 +5,6 @@ from pysnptools.snpreader import SnpData
 import warnings
 from pysnptools.pstreader import PstData
 from pysnptools.pstreader import _OneShot
-from six.moves import range
 
 def zero_family(s):
     '''Given an input id from the file, returns 0 as the family id and that input id as the individual id.
@@ -52,7 +51,6 @@ class Dense(_OneShot,SnpReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import Dense
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> dense_file = example_file("pysnptools/examples/toydata100.dense.txt")

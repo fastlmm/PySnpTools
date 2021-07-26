@@ -8,12 +8,12 @@ from pysnptools.snpreader import SnpData
 import warnings
 from pysnptools.pstreader import _OneShot
 
+#LATER say that this is also called dosage or bimbam
+#LATER work when the extension is \*.dosage or anything else
+#LATER make so fam can be called bam and map can be called bim
 class Dat(_OneShot,SnpReader):
     '''
-    A :class:`.SnpReader` for reading Dat/Fam/Map-formated files from disk. #LATER say that this is also called dosage or bimbam
-    #LATER work when the extension is \*.dosage or anything else
-    #LATER make so fam can be called bam and map can be called bim
-
+    A :class:`.SnpReader` for reading Dat/Fam/Map-formated files from disk.
 
     See :class:`.SnpReader` for general examples of using SnpReaders.
 
@@ -28,10 +28,10 @@ class Dat(_OneShot,SnpReader):
 
     **Constructor:**
         :Parameters: * **filename** (*string*) -- The Dat file to read.
+                     * **skiprows** (*int*) -- Number of lines to skip before reading. Defaults to 0.
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.snpreader import Dat
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> dat_file = example_file("pysnptools/examples/toydata.*","*.dat")
@@ -42,19 +42,20 @@ class Dat(_OneShot,SnpReader):
     **Methods beyond** :class:`.SnpReader`
     '''
 
-    def __init__(self, filename):
+    def __init__(self, filename, skiprows=0):
         '''
         filename    : string of the name of the Dat file.
         '''
         super(Dat, self).__init__()
         self.filename = SnpReader._name_of_other_file(filename,remove_suffix="dat", add_suffix="dat")
+        self.skiprows = skiprows
 
     def _read_pstdata(self):
         row = SnpReader._read_fam(self.filename,remove_suffix="dat")
         col, col_property = SnpReader._read_map_or_bim(self.filename,remove_suffix="dat", add_suffix="map")
         if len(row)==0 or len(col)==0:
             return SnpData(iid=row,sid=col,pos=col_property,val=np.empty([len(row),len(col)]))
-        datfields = pd.read_csv(self.filename,delimiter = '\t',header=None,index_col=False)
+        datfields = pd.read_csv(self.filename,delimiter = '\t',header=None,index_col=False,skiprows=self.skiprows)
         if not np.array_equal(datfields[0], col) : raise Exception("Expect snp list in map file to exactly match snp list in dat file")
         del datfields[0]
         del datfields[1]

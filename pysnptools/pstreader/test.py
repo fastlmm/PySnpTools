@@ -10,7 +10,6 @@ import tempfile
 from pysnptools.pstreader import PstData, PstNpz, PstHdf5, PstMemMap
 from pysnptools.util import create_directory_if_necessary
 from pysnptools.kernelreader.test import _fortesting_JustCheckExists
-from six.moves import range
 
 
 class TestPstReader(unittest.TestCase):     

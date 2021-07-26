@@ -2,12 +2,11 @@ from __future__ import absolute_import
 from pysnptools.util.mapreduce1.runner import Runner,_JustCheckExists, _run_all_in_memory, _shape_to_desired_workcount, _work_sequence_for_one_index
 import os
 import logging
-from six.moves import range
 try:
     import dill as pickle
 except:
     logging.warning("Can't import dill, so won't be able to clusterize lambda expressions. If you try, you'll get this error 'Can't pickle <type 'function'>: attribute lookup __builtin__.function failed'")
-    import six.moves.cPickle as pickle
+    import pickle
 import subprocess, sys, os.path
 import threading
 import pysnptools.util as util
@@ -29,7 +28,6 @@ class LocalMultiThread(Runner):
 
         >>> from pysnptools.util.mapreduce1 import map_reduce
         >>> from pysnptools.util.mapreduce1.runner import LocalMultiThread
-        >>> from six.moves import range #Python 2 & 3 compatibility
         >>> def holder1(n,runner):
         ...     def mapper1(x):
         ...         return x*x

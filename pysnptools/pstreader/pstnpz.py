@@ -21,7 +21,6 @@ class PstNpz(PstReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.pstreader import PstNpz
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> 
@@ -95,7 +94,7 @@ class PstNpz(PstReader):
 
     # Most _read's support only indexlists or None, but this one supports Slices, too.
     _read_accepts_slices = True
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         dtype = np.dtype(dtype)
         # 'view_ok' doesn't mean anything here because we are always ready fresh from disk.
         #!! could use mmap so only rows of interest are loaded.
@@ -108,7 +107,7 @@ class PstNpz(PstReader):
             else:
                val = data['val']
 
-        val, _ = self._apply_sparray_or_slice_to_val(val, row_index_or_none, col_index_or_none, order, dtype, force_python_only)
+        val, _ = self._apply_sparray_or_slice_to_val(val, row_index_or_none, col_index_or_none, order, dtype, force_python_only, num_threads)
         return val
 
     @staticmethod

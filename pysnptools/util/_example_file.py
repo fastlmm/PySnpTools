@@ -54,10 +54,10 @@ def example_file(pattern, endswith=None):
 
 class TestExampleFile(unittest.TestCase):
     def test_doc_test(self):
-        import pysnptools.util._example_file
+        import pysnptools.util._example_file as example_mod
 
         result = doctest.testmod(
-            pysnptools.util._example_file, optionflags=doctest.ELLIPSIS
+            example_mod, optionflags=doctest.ELLIPSIS
         )
         assert result.failed == 0, "failed doc test: " + __file__
 

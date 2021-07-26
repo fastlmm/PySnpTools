@@ -4,8 +4,7 @@ Runs a distributable job locally in one process. Returns the value of the job.
 See SamplePi.py for examples.
 '''
 
-from __future__ import absolute_import
-from __future__ import print_function
+from unittest.mock import patch
 from pysnptools.util.mapreduce1.runner import Runner, _run_all_in_memory
 import os, sys
 import logging
@@ -20,7 +19,6 @@ class Local(Runner):
         
         :Example:
 
-        >>> from six.moves import range #Python 2 & 3 compatibility
         >>> from pysnptools.util.mapreduce1 import map_reduce
         >>> from pysnptools.util.mapreduce1.runner import Local
         >>> def holder1(n,runner):
@@ -42,13 +40,12 @@ class Local(Runner):
         logger.addHandler(logging_handler)
         if logger.level == logging.NOTSET:
             logger.setLevel(logging.INFO)
-        
-        if mkl_num_threads != None:
-            os.environ['MKL_NUM_THREADS'] = str(mkl_num_threads)
+        self.mkl_num_threads = mkl_num_threads
 
     def run(self, distributable):
         _JustCheckExists().input(distributable)
-        result = _run_all_in_memory(distributable)
+        with patch.dict('os.environ', {'MKL_NUM_THREADS': str(self.mkl_num_threads)} if self.mkl_num_threads is not None else {}) as _:
+            result = _run_all_in_memory(distributable)
         _JustCheckExists().output(distributable)
         return result
 

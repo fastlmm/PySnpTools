@@ -100,7 +100,6 @@ class PstReader(object):
 
         Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.pstreader import PstHdf5
         >>> from pysnptools.util import print2 #print bytes strings and Unicode strings the same
         >>> from pysnptools.util import example_file # Download and return local file name
@@ -397,8 +396,6 @@ class PstReader(object):
 
         :Example:
 
-        :Example:
-
         >>> from pysnptools.pstreader import PstNpz
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> pstnpz_file = example_file('tests/datasets/all_chr.maf0.001.N300.pst.npz')
@@ -411,13 +408,13 @@ class PstReader(object):
         raise NotImplementedError
 
 
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         raise NotImplementedError
 
 
 
     #!!check that views always return contiguous memory by default
-    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False):
+    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False, num_threads=None):
         """Reads the matrix values and returns a :class:`.PstData` (with :attr:`PstData.val` property containing a new ndarray of the matrix values).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
@@ -444,6 +441,12 @@ class PstReader(object):
             share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
         :type view_ok: bool
 
+        :param num_threads: optional -- The number of threads with which to read data. Defaults to all available
+            processors. Can also be set with these environment variables (listed in priority order):
+            'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
+        :type num_threads: None or int
+
+
         :rtype: :class:`.PstData`
 
         Calling the method again causes the matrix values to be re-read and creates a new in-memory :class:`.PstData` with a new ndarray of matrix values.
@@ -467,7 +470,7 @@ class PstReader(object):
         >>> # print(np.may_share_memory(subset_snpdata.val, subsub_snpdata.val)) # Do the two ndarray's share memory? They could. Currently they won't.       
         """
         dtype = np.dtype(dtype)
-        val = self._read(None, None, order, dtype, force_python_only, view_ok)
+        val = self._read(None, None, order, dtype, force_python_only, view_ok, num_threads)
         from pysnptools.pstreader import PstData
         ret = PstData(self.row, self.col, val, row_property=self.row_property, col_property=self.col_property, name=str(self))
         return ret
@@ -598,10 +601,9 @@ class PstReader(object):
     @staticmethod
     def _make_sparray_from_sparray_or_slice(count, indexer):
         if isinstance(indexer,slice):
-            return np.arange(*indexer.indices(count))
-        if isinstance(indexer,np.ndarray) and np.issubdtype(indexer.dtype, np.integer) and np.any(indexer<0):
-            return np.arange(count)[indexer]
-        return indexer
+            return np.arange(*indexer.indices(count),dtype="uintp")
+        result = np.ascontiguousarray((np.arange(count,dtype="uintp")[indexer]).reshape(-1),dtype="uintp")
+        return result
 
     @staticmethod
     def _array_properties_are_ok(val, order, dtype):
@@ -616,7 +618,7 @@ class PstReader(object):
 
         return True
 
-    def _apply_sparray_or_slice_to_val(self, val, row_indexer_or_none, col_indexer_or_none, order, dtype, force_python_only):
+    def _apply_sparray_or_slice_to_val(self, val, row_indexer_or_none, col_indexer_or_none, order, dtype, force_python_only, num_threads):
         dtype = np.dtype(dtype)
 
         if (PstReader._is_all_slice(row_indexer_or_none) and PstReader._is_all_slice(col_indexer_or_none) and 
@@ -629,7 +631,7 @@ class PstReader(object):
         if not force_python_only:
             row_index = PstReader._make_sparray_from_sparray_or_slice(self.row_count, row_indexer)
             col_index = PstReader._make_sparray_from_sparray_or_slice(self.col_count, col_indexer)
-            sub_val = pstutil.sub_matrix(val, row_index, col_index, order=order, dtype=dtype)
+            sub_val = pstutil.sub_matrix(val, row_index, col_index, order=order, dtype=dtype, num_threads=num_threads)
             return sub_val, False
 
         if PstReader._is_all_slice(row_indexer) or PstReader._is_all_slice(col_indexer):

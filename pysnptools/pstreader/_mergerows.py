@@ -92,7 +92,7 @@ class _MergeRows(PstReader): #!!!why does this start with _
             start = stop
         return result
 
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         #!!!tests to do: no row's
         #!!!tests to do: no col's
         #!!!test to do: from file 1, file2, and then file1 again
@@ -102,11 +102,11 @@ class _MergeRows(PstReader): #!!!why does this start with _
         reader_and_row_index_list = self._create_reader_and_row_index_list(row_index)
 
         if len(reader_and_row_index_list) == 0:
-            return self.reader_list[0]._read(row_index,col_index_or_none,order,dtype,force_python_only, view_ok)
+            return self.reader_list[0]._read(row_index,col_index_or_none,order,dtype,force_python_only, view_ok, num_threads)
         elif len(reader_and_row_index_list) == 1:
             reader_index,row_index_in,row_index_rel = reader_and_row_index_list[0]
             reader = self.reader_list[reader_index]
-            return reader._read(row_index_rel,col_index_or_none,order,dtype,force_python_only, view_ok)
+            return reader._read(row_index_rel,col_index_or_none,order,dtype,force_python_only, view_ok, num_threads)
         else:
             logging.info("Starting read from {0} subreaders".format(len(reader_and_row_index_list)))
             if order == 'A' or order is None:
@@ -115,7 +115,7 @@ class _MergeRows(PstReader): #!!!why does this start with _
             for reader_index,is_here,row_index_rel in reader_and_row_index_list:
                 reader = self.reader_list[reader_index]
                 if reader_index % 1 == 0: logging.info("Reading from #{0}: {1}".format(reader_index,reader))
-                val[is_here,:] = reader._read(row_index_rel,col_index_or_none,order,dtype,force_python_only, view_ok=True)
+                val[is_here,:] = reader._read(row_index_rel,col_index_or_none,order,dtype,force_python_only, view_ok=True, num_threads=num_threads)
             logging.info("Ended read from {0} subreaders".format(len(reader_and_row_index_list)))
             return val
 

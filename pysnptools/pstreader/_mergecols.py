@@ -1,12 +1,10 @@
-from __future__ import absolute_import
 import logging
 import os
 import numpy as np
 from pysnptools.pstreader import PstReader
-from six.moves import range
 
 
-#!!! would be be better to make a Transpose class that could term _mergerows into mergecols? Be sure special Bed code is still there.
+#!!! would be better to make a Transpose class that could term _mergerows into mergecols? Be sure special Bed code is still there.
 class _MergeCols(PstReader):
     def __init__(self,reader_list,cache_file=None,skip_check=False):
         super(_MergeCols, self).__init__()
@@ -116,7 +114,7 @@ class _MergeCols(PstReader):
             start = stop
         return result
 
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         #!!!tests to do: no row's
         #!!!tests to do: no col's
         #!!!test to do: from file 1, file2, and then file1 again
@@ -128,11 +126,11 @@ class _MergeCols(PstReader):
         #Create a list of (reader,col_index)
         reader_and_col_index_list = self._create_reader_and_col_index_list(col_index)
         if len(reader_and_col_index_list) == 0:
-            return self.reader_list[0]._read(row_index_or_none,col_index,order,dtype,force_python_only, view_ok)
+            return self.reader_list[0]._read(row_index_or_none,col_index,order,dtype,force_python_only, view_ok, num_threads)
         elif len(reader_and_col_index_list) == 1:
             reader_index,col_index_in,col_index_rel = reader_and_col_index_list[0]
             reader = self.reader_list[reader_index]
-            return reader._read(row_index_or_none,col_index_rel,order,dtype,force_python_only, view_ok)
+            return reader._read(row_index_or_none,col_index_rel,order,dtype,force_python_only, view_ok, num_threads)
         else:
             logging.info("Starting read from {0} subreaders".format(len(reader_and_col_index_list)))
             if order == 'A' or order is None:#LATER does every _read( need code like this?
@@ -142,7 +140,7 @@ class _MergeCols(PstReader):
             for reader_index,is_here,col_index_rel in reader_and_col_index_list:
                 reader = self.reader_list[reader_index]
                 if reader_index % 1 == 0: logging.info("Reading from #{0}: {1}".format(reader_index,reader))
-                piece = reader._read(row_index_or_none,col_index_rel,order,dtype,force_python_only, view_ok=True)
+                piece = reader._read(row_index_or_none,col_index_rel,order,dtype,force_python_only, view_ok=True, num_threads=num_threads)
                 if val is None:
                     if len(piece.shape) == 2:
                         val = np.empty([row_index_or_none_count, col_index_or_none_count], dtype=dtype, order=order)

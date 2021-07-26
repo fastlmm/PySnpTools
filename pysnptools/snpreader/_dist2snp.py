@@ -37,7 +37,7 @@ class _Dist2Snp(SnpReader):
         #Doesn't need run_once
         copier.input(self.distreader)
 
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         from pysnptools.distreader import DistReader
         dtype = np.dtype(dtype)
 
@@ -48,7 +48,7 @@ class _Dist2Snp(SnpReader):
 
         #Do all-at-once (not in blocks) if 1. No block size is given or 2. The #ofSNPs < Min(block_size,iid_count)
         if self.block_size is None or (self.sid_count <= self.block_size or self.sid_count <= self.iid_count):
-            distdata = DistReader._as_distdata(self.distreader,dtype=dtype,order=order,force_python_only=force_python_only)
+            distdata = DistReader._as_distdata(self.distreader,dtype=dtype,order=order,force_python_only=force_python_only,num_threads=num_threads)
             val = (distdata.val*weights).sum(axis=-1)
             has_right_order = order="A" or (order=="C" and val.flags["C_CONTIGUOUS"]) or (order=="F" and val.flags["F_CONTIGUOUS"])
             assert has_right_order
@@ -65,11 +65,12 @@ class _Dist2Snp(SnpReader):
 
             for start in range(0, self.sid_count, self.block_size):
                 ct += self.block_size
-                distdata = self.distreader[:,start:start+self.block_size].read(order=order,dtype=dtype,force_python_only=force_python_only,view_ok=True) # a view is always OK, because we'll allocate memory in the next step
+                distdata = self.distreader[:,start:start+self.block_size].read(order=order,dtype=dtype,force_python_only=force_python_only,view_ok=True,num_threads=num_threads) # a view is always OK, because we'll allocate memory in the next step
                 val[:,start:start+self.block_size] = (distdata.val*weights).sum(axis=-1)
                 if ct % self.block_size==0:
                     diff = time.time()-ts
-                    if diff > 1: logging.info("read %s SNPs in %.2f seconds" % (ct, diff))
+                    if diff > 5:
+                        logging.info("read %s SNPs in %.2f seconds" % (ct, diff))
 
             t1 = time.time()
             logging.info("%.2f seconds elapsed" % (t1-t0))

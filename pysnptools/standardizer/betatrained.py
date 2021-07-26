@@ -13,7 +13,6 @@ class BetaTrained(Standardizer):
                      * **b** (*float*) -- The *b* parameter of the beta distribution
                      * **stats** (*ndarray of float*) -- The mean and stddev of each sid
 
-    >>> from __future__ import print_function #Python 2 & 3 compatibility
     >>> from pysnptools.standardizer import Beta
     >>> from pysnptools.snpreader import Bed
     >>> from pysnptools.util import example_file # Download and return local file name
@@ -31,7 +30,6 @@ class BetaTrained(Standardizer):
     >>> print('{0:.6f}'.format(test.val[0,0]))
     0.681674
     """
-
     def __init__(self, a,b,sid,stats):
         super(BetaTrained, self).__init__()
         self.a=a
@@ -46,7 +44,7 @@ class BetaTrained(Standardizer):
     def is_constant(self):
         return True        
 
-    def standardize(self, snps, block_size=None, return_trained=False, force_python_only=False):
+    def standardize(self, snps, block_size=None, return_trained=False, force_python_only=False, num_threads=None):
         if block_size is not None:
             warnings.warn("block_size is deprecated (and not needed, since standardization is in-place", DeprecationWarning)
 
@@ -54,10 +52,11 @@ class BetaTrained(Standardizer):
             val = snps.val
             assert np.array_equal(self.sid,snps.sid), "sid in training and use must be the same and in the same order"
         else:
-            warnings.warn("standardizing an nparray instead of a SnpData is deprecated", DeprecationWarning)#LATER test coverge
+            warnings.warn("standardizing an nparray instead of a SnpData is deprecated", DeprecationWarning) #LATER test coverage
             val = snps
 
-        self._standardize_unit_and_beta(val, is_beta=True, a=self.a, b=self.b, apply_in_place=True,use_stats=True,stats=self.stats,force_python_only=force_python_only)
+        self._standardize_unit_and_beta(val, is_beta=True, a=self.a, b=self.b, apply_in_place=True,use_stats=True,stats=self.stats, num_threads=num_threads,
+                                       force_python_only=force_python_only)
         if return_trained:
             return snps, self
         else:

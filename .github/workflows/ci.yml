@@ -1,0 +1,49 @@
+name: CI
+on:
+  push:
+  schedule:
+    - cron: '0 0 1 * *'   
+
+jobs:
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        python-version: [3.7, 3.8 ,3.9]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Miniconda ${{ matrix.python-version }}
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+
+    - name: Install Prerequisites
+      shell: bash -l {0}
+      run: |
+        pip install -r requirements.txt
+
+    - name: Install Project
+      shell: bash -l {0}
+      run: |
+        python --version
+        pip install .
+        python setup.py sdist
+
+    - name: Test
+      shell: bash -l {0}
+      run: |
+        pip uninstall pysnptools --yes
+        export PYTHONPATH=${GITHUB_WORKSPACE}
+        python tests/test.py
+
+    - name: Save SDist
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
+      uses: actions/upload-artifact@v2
+      with:
+        name: wheels
+        path: dist/*.tar.gz

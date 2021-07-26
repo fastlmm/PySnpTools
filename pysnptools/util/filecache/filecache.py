@@ -43,7 +43,6 @@ class FileCache(object):
 
         Copy back from remote storage (if needed) and then read SNP data from local file.
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> with file_cache.open_read('r123.100x500.dense.txt') as local_filename:
         ...     dense2 = Dense(local_filename)
         ...     print(dense2[:3,:3].read().val) #Read 1st 3 individuals and SNPs

@@ -1,12 +1,9 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import numpy as np
 import logging
 import os
 import unittest
 import doctest
 from pysnptools.distreader import DistReader
-from six.moves import range
 
 class DistGen(DistReader):
     '''
@@ -26,7 +23,6 @@ class DistGen(DistReader):
         
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.distreader import DistGen
         >>> #Prepare to generate data for 1000 individuals and 1,000,000 SNPs
         >>> dist_gen = DistGen(seed=332,iid_count=1000,sid_count=1000*1000)
@@ -111,7 +107,7 @@ class DistGen(DistReader):
         copier.input(self._cache_file)
 
     # Most _read's support only indexlists or None, but this one supports Slices, too.
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok):
+    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         self._run_once()
         import pysnptools.util as pstutil
 
@@ -125,13 +121,14 @@ class DistGen(DistReader):
         val = np.empty((row_index_count,len(col_index),3),order=order, dtype=dtype) #allocate memory for result
         list_batch_index = list(set(batch_index))
         for ii,i in enumerate(list_batch_index):  #for each distinct batch index, generate dists #!!!fix up snpgen this way, too with ii
+            i = int(i) # convert np.uint64 to python int to avoid uint*int->float
             #LATER logging.info("working on distgen batch {0} of {1}".format(ii,len(list_batch_index))) #!!!why does this produce messages like 'working on distgen batch 8 of 2'?
             start = i*self._block_size  #e.g. 0 (then 2000)
             stop = start + self._block_size #e.g. 1000, then 3000
             batch_val = self._get_val(start,stop,dtype) # generate whole batch
             a = (batch_index==i) #e.g. [True,True,True,False,True], then [False,False,False,True,False]
             b = col_index[a]-start #e.g.  0,1,200,10, then 200
-            val[:,a,:] = batch_val[:,b,:] if row_index_or_none is None else pstutil.sub_matrix(batch_val, row_index_or_none, b)
+            val[:,a,:] = batch_val[:,b,:] if row_index_or_none is None else pstutil.sub_matrix(batch_val, row_index_or_none, b, num_threads=num_threads)
 
         return val
 
@@ -192,10 +189,10 @@ class TestDistGen(unittest.TestCase):
         assert(distdata4.allclose(distdata2[::10,:].read()))
 
     def test_doctest(self):
-        import pysnptools.distreader.distgen
+        import pysnptools.distreader.distgen as gen_mod
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.distreader.distgen)
+        result = doctest.testmod(gen_mod)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 

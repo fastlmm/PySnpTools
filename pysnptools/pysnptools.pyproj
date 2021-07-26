@@ -24,6 +24,7 @@
     <CommandLineArguments>sdist bdist_wininst upload</CommandLineArguments>
     <InterpreterId>CondaEnv|CondaEnv|gtg</InterpreterId>
     <TestFramework>unittest</TestFramework>
+    <Environment>path=D:\OneDrive\programs\pysnptools</Environment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -90,9 +91,6 @@
     <Compile Include="pstreader\pstmemmap.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="snpreader\wrap_plink_parser.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="snpreader\_dist2snp.py" />
     <Compile Include="snpreader\snpmemmap.py">
       <SubType>Code</SubType>
@@ -131,6 +129,7 @@
     <Compile Include="standardizer\__init__.py" />
     <Compile Include="snpreader\distributedbed.py" />
     <Compile Include="test.py" />
+    <Compile Include="util\pairs.py" />
     <Compile Include="util\_example_file.py">
       <SubType>Code</SubType>
     </Compile>

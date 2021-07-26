@@ -18,7 +18,6 @@ class DistHdf5(PstHdf5,DistReader):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.distreader import DistHdf5
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> hdf5_file = example_file("pysnptools/examples/toydata.snpmajor.dist.hdf5")

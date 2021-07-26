@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import logging
 import os
 import shutil
@@ -26,7 +24,6 @@ class DistMemMap(PstMemMap,DistData):
 
         :Example:
 
-        >>> from __future__ import print_function #Python 2 & 3 compatibility
         >>> from pysnptools.distreader import DistMemMap
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> mem_map_file = example_file("pysnptools/examples/tiny.dist.memmap")
@@ -146,7 +143,7 @@ class DistMemMap(PstMemMap,DistData):
 
 
     @staticmethod
-    def write(filename, distreader, order='A', dtype=None, block_size=None):
+    def write(filename, distreader, order='A', dtype=None, block_size=None, num_threads=None):
         """Writes a :class:`DistReader` to :class:`DistMemMap` format.
 
         :param filename: the name of the file to create
@@ -161,6 +158,10 @@ class DistMemMap(PstMemMap,DistData):
         :type dtype: data-type
         :param block_size: The number of SNPs to read in a batch from *distreader*. Defaults to a *block_size* such that *block_size* \* *iid_count* is about 100,000.
         :type block_size: number
+        :param num_threads: optional -- The number of threads with which to write data. Defaults to all available
+            processors. Can also be set with these environment variables (listed in priority order):
+            'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
+        :type num_threads: None or int
         :rtype: :class:`.DistMemMap`
 
         >>> import pysnptools.util as pstutil
@@ -173,12 +174,7 @@ class DistMemMap(PstMemMap,DistData):
         DistMemMap('tempdir/tiny.dist.memmap')
 
         """
-
-        #We write iid and sid in ascii for compatibility between Python 2 and Python 3 formats.
-        row_ascii = np.array(distreader.row,dtype='S') #!!!avoid this copy when not needed
-        col_ascii = np.array(distreader.col,dtype='S') #!!!avoid this copy when not needed
-
-        block_size = block_size or max((100*1000)//max(1,distreader.row_count),1)
+        block_size = block_size or max((100_000)//max(1,distreader.row_count),1)
 
         if hasattr(distreader,'val'):
             order = PstMemMap._order(distreader) if order=='A' else order
@@ -188,15 +184,15 @@ class DistMemMap(PstMemMap,DistData):
             dtype = dtype or np.float64
         dtype = np.dtype(dtype)
 
-        self = PstMemMap.empty(row_ascii, col_ascii, filename+'.temp', row_property=distreader.row_property, col_property=distreader.col_property,order=order,dtype=dtype, val_shape=3)
+        self = PstMemMap.empty(distreader.row, distreader.col, filename+'.temp', row_property=distreader.row_property, col_property=distreader.col_property,order=order,dtype=dtype, val_shape=3)
         if hasattr(distreader,'val'):
             self.val[:,:,:] = distreader.val
         else:
             start = 0
-            with log_in_place("sid_index ", logging.INFO) as updater:
+            with log_in_place("DistMemMap writing sid_index ", logging.INFO) as updater:
                 while start < distreader.sid_count:
                     updater('{0} of {1}'.format(start,distreader.sid_count))
-                    distdata = distreader[:,start:start+block_size].read(order=order,dtype=dtype)
+                    distdata = distreader[:,start:start+block_size].read(order=order,dtype=dtype,num_threads=num_threads)
                     self.val[:,start:start+distdata.sid_count,:] = distdata.val
                     start += distdata.sid_count
 
@@ -261,12 +257,12 @@ class TestDistMemMap(unittest.TestCase):
         os.chdir(old_dir)
 
     def test_doctest(self):
-        import pysnptools.distreader.distmemmap
+        import pysnptools.distreader.distmemmap as mod_mm
         import doctest
 
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        result = doctest.testmod(pysnptools.distreader.distmemmap)
+        result = doctest.testmod(mod_mm)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
