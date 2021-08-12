@@ -329,9 +329,9 @@ class EigenReader(PstReader):
 
 
     def __getitem__(self, iid_indexer_and_snp_indexer):
-        from pysnptools.eigenreader._subset import _eigenSubset
+        from pysnptools.eigenreader._subset import _EigenSubset
         iid_indexer, snp_indexer = iid_indexer_and_snp_indexer
-        return _eigenSubset(self, iid_indexer, snp_indexer)
+        return _EigenSubset(self, iid_indexer, snp_indexer)
 
     @staticmethod
     def _as_eigendata(eigenreader, force_python_only, order, dtype, num_threads):
