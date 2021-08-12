@@ -131,11 +131,31 @@ class Pheno(_OneShot, SnpReader):
         return Pheno(filename,missing=missing)
 
 def cmktest():
-    from pysnptools.snpreader import Pheno, SnpData
+    import os
     os.chdir(r"D:\OneDrive\Projects\Science\userhelp\koa")
 
+    import logging
+    from pysnptools.snpreader import SnpData
+    def pheno_read_2(filename, missing = '-9'):
+        if missing == '-9':
+            logging.warning("pheno_reader_2 is using default missing value of '-9'.")
+
+        data = np.loadtxt(filename, dtype='str', comments=None)
+        data = data.reshape(-1,data.shape[-1]) #Turns 1-d row into 2-d
+        header = data[0,2::].tolist()
+        iid = data[1:,0:2]
+        valsStr = data[1:,2:]
+    
+        if missing is not None:
+            valsStr[valsStr==missing] = "NaN"
+        vals = np.array(valsStr,dtype = 'float')
+
+        snpdata = SnpData(iid=iid,sid=header,val=vals)
+        return snpdata
+
     pheno_file_1 = "double_pheno.txt"
-    pheno1 = Pheno(pheno_file_1).read()
+    pheno1 = pheno_read_2(pheno_file_1,missing=None)
+    print(pheno1)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

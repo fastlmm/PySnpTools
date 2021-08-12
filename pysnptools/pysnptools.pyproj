@@ -54,6 +54,9 @@
     <Compile Include="distreader\test.py" />
     <Compile Include="distreader\_subset.py" />
     <Compile Include="distreader\__init__.py" />
+    <Compile Include="eigenreader\eigendata.py" />
+    <Compile Include="eigenreader\eigenreader.py" />
+    <Compile Include="eigenreader\__init__.py" />
     <Compile Include="kernelreader\identity.py" />
     <Compile Include="kernelreader\kerneldata.py" />
     <Compile Include="kernelreader\kernelreader.py" />
@@ -183,6 +186,7 @@
     <Folder Include="kernelreader\" />
     <Folder Include="kernelstandardizer\" />
     <Folder Include="distreader\" />
+    <Folder Include="eigenreader\" />
     <Folder Include="pstreader\" />
     <Folder Include="setup\" />
     <Folder Include="util\" />
