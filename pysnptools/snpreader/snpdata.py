@@ -20,7 +20,7 @@ class SnpData(PstData,SnpReader):
         :Parameters: * **iid** (an array of string pair) -- The :attr:`SnpReader.iid` information.
                      * **sid** (an array of strings) -- The :attr:`SnpReader.sid` information.
                      * **val** (a 2-D array of floats) -- The SNP values
-                     * **pos** (optional, an array of strings) -- The :attr:`SnpReader.pos` information
+                     * **pos** (optional, an array of floats) -- The :attr:`SnpReader.pos` information
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **copyinputs_function** (optional, function) -- *Used internally by optional clustering code*
                      * **xp** (optional, a Python module or string) -- The array module that controls **val**,

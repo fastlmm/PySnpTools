@@ -21,7 +21,7 @@ class DistData(PstData,DistReader):
         :Parameters: * **iid** (an array of string pair) -- The :attr:`DistReader.iid` information.
                      * **sid** (an array of strings) -- The :attr:`DistReader.sid` information.
                      * **val** (a 3-D array of floats) -- The SNP value distribution
-                     * **pos** (optional, an array of strings) -- The :attr:`DistReader.pos` information
+                     * **pos** (optional, an array of floats) -- The :attr:`DistReader.pos` information
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **copyinputs_function** (optional, function) -- *Used internally by optional clustering code*
 

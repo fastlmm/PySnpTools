@@ -1,12 +1,12 @@
-#import numpy as np
+import numpy as np
 #import os
 #import os.path
 #from itertools import *
 #import pandas as pd
-#import logging
+import logging
 #import time
 #import pysnptools.util as pstutil
-#from pysnptools.pstreader import PstReader
+from pysnptools.pstreader import PstReader
 #from pysnptools.snpreader import SnpData
 #import warnings
 #import pysnptools.standardizer as stdizer
@@ -25,44 +25,44 @@ class EigenReader(PstReader):
         >>> eigen_on_disk = Bgen(bgen_file)
         >>> print(eigen_on_disk) # prints the name of the file reader
         Bgen('...pysnptools/examples/2500x100.bgen')
-        >>> eigen_on_disk.eid_count # prints the number of SNPS (but doesn't read any SNP eigenribution values)
+        >>> eigen_on_disk.eid_count # prints the number of SNPS (but doesn't read any column eigenvectors)
         100
 
-    * A :class:`.eigenData` class that holds SNP eigenribution data in memory, typically after reading it from disk:
+    * A :class:`.EigenData` class that holds SNP eigenribution data in memory, typically after reading it from disk:
 
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> bgen_file = example_file("pysnptools/examples/2500x100.bgen")
         >>> eigen_on_disk = Bgen(bgen_file)
-        >>> eigendata1 = eigen_on_disk.read() #reads the SNP eigenribution values
-        >>> print(type(eigendata1.val)) # The val property is an 3-D ndarray of SNP eigenribution values
+        >>> eigendata1 = eigen_on_disk.read() #reads the column eigenvectors
+        >>> print(type(eigendata1.vectors)) # The vectors property is an 2-D ndarray of column eigenvectors
         <class 'numpy.ndarray'>
         >>> print(eigendata1) # prints the name in-memory SNP eigenribution reader.
-        eigenData(Bgen('...pysnptools/examples/2500x100.bgen'))
+        EigenData(Bgen('...pysnptools/examples/2500x100.bgen'))
         >>> eigendata1.iid_count #prints the number of iids (number of individuals) in this in-memory data
         2500
 
-    * A subset of any eigenReader, specified with "[ *iid_index* , *eid_index* ]", to read only some SNP eigenribution values. It can
+    * A subset of any eigenReader, specified with "[ *iid_index* , *eid_index* ]", to read only some column eigenvectors. It can
       also be used to re-order the values.
 
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> bgen_file = example_file("pysnptools/examples/2500x100.bgen")
         >>> eigen_on_disk = Bgen(bgen_file)
-        >>> subset_on_disk = eigen_on_disk[[3,4],::2] # specification for a subset of the data on disk. No SNP eigenriubtion values are read yet.
-        >>> print(subset_on_disk.eid_count) # prints the number of eids in this subset (but still doesn't read any SNP eigenribution values)
+        >>> subset_on_disk = eigen_on_disk[[3,4],::2] # specification for a subset of the data on disk. No eigenvectors are read yet.
+        >>> print(subset_on_disk.eid_count) # prints the number of eids in this subset (but still doesn't read any column eigenvectors)
         50
         >>> print(subset_on_disk) #prints a specification of 'subset_on_disk'
         Bgen('...pysnptools/examples/2500x100.bgen')[[3,4],::2]
         >>> eigendata_subset = subset_on_disk.read() # efficiently reads the specified subset of values from the disk
         >>> print(eigendata_subset) # prints the specification of the in-memory SNP eigenribution information
-        eigenData(Bgen('...pysnptools/examples/2500x100.bgen')[[3,4],::2])
-        >>> print((int(eigendata_subset.val.shape[0]), int(eigendata_subset.val.shape[1]))) # The dimensions of the ndarray of SNP eigenriubtion values
+        EigenData(Bgen('...pysnptools/examples/2500x100.bgen')[[3,4],::2])
+        >>> print((int(eigendata_subset.vectors.shape[0]), int(eigendata_subset.vectors.shape[1]))) # The dimensions of the ndarray of column eigenvectors
         (2, 50)
 
     The eigenReaders Classes
 
         ========================= =================== ====================== ================== ======================
         *Class*                   *Format*            *Random Access*        *Suffixes*         *Write* method?
-        :class:`.eigenData`        in-memory floats    Yes                    *n/a*              *n/a*              
+        :class:`.EigenData`        in-memory floats    Yes                    *n/a*              *n/a*              
         :class:`.Bgen`            binary, floats      Yes (by eid)           \*.bgen            Yes              
         :class:`.eigenNpz`         binary, floats      No                     .eigen.npz          Yes
         :class:`.eigenHdf5`        binary, floats      Yes (by eid or iid)    .eigen.hdf5         Yes
@@ -72,14 +72,14 @@ class EigenReader(PstReader):
   
     Methods & Properties:
 
-        Every eigenReader, such as :class:`.Bgen` and :class:`.eigenData`, has these properties: :attr:`iid`, :attr:`iid_count`, :attr:`eid`, :attr:`eid_count`,
+        Every eigenReader, such as :class:`.Bgen` and :class:`.EigenData`, has these properties: :attr:`iid`, :attr:`iid_count`, :attr:`eid`, :attr:`eid_count`,
         :attr:`pos` and these methods: :meth:`read`, :meth:`iid_to_index`, :meth:`eid_to_index`, :meth:`as_snp`. See below for details.
 
-        :class:`.eigenData` is a eigenReader so it supports the above properties and methods. In addition, it supports property :attr:`eigenData.val`.
+        :class:`.EigenData` is a eigenReader so it supports the above properties and methods. In addition, it supports property :attr:`EigenData.vectors`.
 
         See below for details.
 
-        Many of the classes, such as :class:`.Bgen`, also provide a static :meth:`Bgen.write` method for writing :class:`.eigenReader` or :class:`.eigenData` to disk.
+        Many of the classes, such as :class:`.Bgen`, also provide a static :meth:`Bgen.write` method for writing :class:`.eigenReader` or :class:`.EigenData` to disk.
 
         >>> from pysnptools.eigenreader import eigenHdf5, Bgen
         >>> import pysnptools.util as pstutil
@@ -220,25 +220,25 @@ class EigenReader(PstReader):
     
     #!!check that views always return contiguous memory by default
     def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False, num_threads=None):
-        """Reads the SNP values and returns a :class:`.eigenData` (with :attr:`eigenData.val` property containing a new 3D ndarray of the SNP eigenribution values).
+        """Reads the SNP values and returns a :class:`.EigenData` (with :attr:`EigenData.vectors` property containing a new 2D ndarray of the column eigenvectors).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
             then the array will be in F-contiguous order (iid-index varies the fastest).
             If order is 'C', then the returned array will be in C-contiguous order (eid-index varies the fastest).
-            If order is 'A', then the :attr:`eigenData.val`
+            If order is 'A', then the :attr:`EigenData.vectors`
             ndarray may be in any order (either C-, Fortran-contiguous).
         :type order: string or None
 
-        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`eigenData.val` ndarray.
+        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`EigenData.vectors` ndarray.
         :type dtype: data-type
 
         :param force_python_only: optional -- If False (default), may use outeide library code. If True, requests that the read
             be done without outeide library code.
         :type force_python_only: bool
 
-        :param view_ok: optional -- If False (default), allocates new memory for the :attr:`eigenData.val`'s ndarray. If True,
-            if practical and reading from a :class:`eigenData`, will return a new 
-            :class:`eigenData` with a ndarray shares memory with the original :class:`eigenData`.
+        :param view_ok: optional -- If False (default), allocates new memory for the :attr:`EigenData.vectors`'s ndarray. If True,
+            if practical and reading from a :class:`EigenData`, will return a new 
+            :class:`EigenData` with a ndarray shares memory with the original :class:`EigenData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
             Use these parameters with care because any change to either ndarraywill effect
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
@@ -250,9 +250,9 @@ class EigenReader(PstReader):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
 
-        :rtype: :class:`.eigenData`
+        :rtype: :class:`.EigenData`
 
-        Calling the method again causes the SNP eigenribution values to be re-read and creates a new in-memory :class:`.eigenData` with a new ndarray of SNP values.
+        Calling the method again causes the column eigenvectors to be re-read and creates a new in-memory :class:`.EigenData` with a new ndarray of SNP values.
 
         If you request the values for only a subset of the eids or iids, (to the degree practical) only that subset will be read from disk.
 
@@ -262,20 +262,20 @@ class EigenReader(PstReader):
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> bgen_file = example_file("pysnptools/examples/2500x100.bgen")
         >>> eigen_on_disk = Bgen(bgen_file) # Specify SNP data on disk
-        >>> eigendata1 = eigen_on_disk.read() # Read all the SNP data returning a eigenData instance
-        >>> print(type(eigendata1.val).__name__) # The eigenData instance contains a ndarray of the data.
+        >>> eigendata1 = eigen_on_disk.read() # Read all the SNP data returning a EigenData instance
+        >>> print(type(eigendata1.vectors).__name__) # The EigenData instance contains a ndarray of the data.
         ndarray
         >>> subset_eigendata = eigen_on_disk[:,::2].read() # From the disk, read SNP values for every other eid
-        >>> print(subset_eigendata.val[0,0]) # Print the first SNP value in the subset
+        >>> print(subset_eigendata.vectors[0,0]) # Print the first SNP value in the subset
         [0.466804   0.38812848 0.14506752]
         >>> subsub_eigendata = subset_eigendata[:10,:].read(order='A',view_ok=True) # Create an in-memory subset of the subset with SNP values for the first ten iids. Share memory if practical.
         >>> import numpy as np
-        >>> # print np.may_share_memory(subset_eigendata.val, subsub_eigendata.val) # Do the two ndarray's share memory? They could. Currently they won't.       
+        >>> # print np.may_share_memory(subset_eigendata.vectors, subsub_eigendata.vectors) # Do the two ndarray's share memory? They could. Currently they won't.       
         """
         dtype = np.dtype(dtype)
-        val = self._read(None, None, order, dtype, force_python_only, view_ok, num_threads)
+        vectors = self._read(None, None, order, dtype, force_python_only, view_ok, num_threads)
         from pysnptools.eigenreader import EigenData
-        ret = EigenData(self.iid,self.eid,val,values=self.values,name=str(self))
+        ret = EigenData(self.iid,self.eid,vectors,values=self.values,name=str(self))
         return ret
 
     def iid_to_index(self, list):
@@ -336,12 +336,12 @@ class EigenReader(PstReader):
     @staticmethod
     def _as_eigendata(eigenreader, force_python_only, order, dtype, num_threads):
         '''
-        Like 'read' except won't read if already a eigenData
+        Like 'read' except won't read if already a EigenData
         '''
-        from pysnptools.eigenreader import eigenData #must import here to avoid cycles
+        from pysnptools.eigenreader import EigenData #must import here to avoid cycles
         dtype = np.dtype(dtype)
 
-        if hasattr(eigenreader,'val') and eigenreader.val.dtype==dtype and (order=="A" or (order=="C" and eigenreader.val.flags["C_CONTIGUOUS"]) or (order=="F" and eigenreader.val.flags["F_CONTIGUOUS"])):
+        if hasattr(eigenreader,'vectors') and eigenreader.vectors.dtype==dtype and (order=="A" or (order=="C" and eigenreader.vectors.flags["C_CONTIGUOUS"]) or (order=="F" and eigenreader.vectors.flags["F_CONTIGUOUS"])):
             return eigenreader
         else:
             return eigenreader.read(order=order,dtype=dtype,view_ok=True, num_threads=num_threads)
@@ -349,10 +349,10 @@ class EigenReader(PstReader):
     def copyinputs(self, copier):
         raise NotImplementedError
 
-    def _assert_iid_eid_values(self,check_val):
-        if check_val:
-            assert len(self._val.shape)==2, "val should have 2 dimensions"
-            assert self._val.shape == (len(self._row),len(self._col), "val shape should match that of iid_count x eid_count"
+    def _assert_iid_eid_values(self,check_vectors):
+        if check_vectors:
+            assert len(self._val.shape)==2, "vectors should have 2 dimensions"
+            assert self._val.shape == (len(self._row),len(self._col)), "vectors shape should match that of iid_count x eid_count"
         assert self._row.dtype.type is np.str_ and len(self._row.shape)==2 and self._row.shape[1]==2, "iid should be dtype str, have two dimensions, and the second dimension should be size 2"
         assert self._col.dtype.type is np.str_ and len(self._col.shape)==1, "eid should be of dtype of str and one dimensional"
 
@@ -360,7 +360,7 @@ class EigenReader(PstReader):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    if False: cmk
+    if False: # cmk
         from pysnptools.eigenreader import cmk
         eigen_on_disk = Bgen('../examples/2500x100.bgen')
         print(eigen_on_disk.pos[:4,].astype('int')) # print position information for the first three eids: #The '...' is for possible space char

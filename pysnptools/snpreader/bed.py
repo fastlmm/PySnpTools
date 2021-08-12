@@ -30,7 +30,7 @@ class Bed(SnpReader):
 
                      * **iid** (an array of strings) -- The :attr:`SnpReader.iid` information. If not given, reads info from '.fam' file.
                      * **sid** (an array of strings) -- The :attr:`SnpReader.sid` information. If not given, reads info from '.bim' file.
-                     * **pos** (optional, an array of strings) -- The :attr:`SnpReader.pos` information.  If not given, reads info from '.bim' file.
+                     * **pos** (optional, an array of floats) -- The :attr:`SnpReader.pos` information.  If not given, reads info from '.bim' file.
                      * **num_threads** (optinal, int) -- The number of threads with which to read data. Defaults to all available processors.
                             Can also be set with these environment variables (listed in priority order):
                             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
