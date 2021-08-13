@@ -201,7 +201,7 @@ class PstReader(object):
         You may want a subset of matrix values from an in-memory :class:`PstData` and you may know that this subset and the original :class:`PstData`
         can safely share the memory of the ndarray of matrix values. For this case, the :meth:`read` has optional parameters called view_ok and order. If you override 
         the defaults of "view_ok=False,order='F'" with "view_ok=True,order='A', the :meth:`read` will, if practical, return a new 
-        :class:`PstData` with a ndarray shares memory with the original ndarray.
+        :class:`PstData` with an ndarray shares memory with the original ndarray.
         Use these parameters with care because any change to either ndarray will effect
         the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
         share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
@@ -282,7 +282,7 @@ class PstReader(object):
 
     The :meth:`read` Method
   
-        By default the :meth:`read` returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (row-index varies the fastest). You may, instead,
+        By default the :meth:`read` returns an ndarray of numpy.float64 laid out in memory in F-contiguous order (row-index varies the fastest). You may, instead,
         ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
 
     Details of Methods & Properties:
@@ -293,7 +293,7 @@ class PstReader(object):
 
     @property
     def row(self):
-        """A ndarray of the row ids. Each id can be anything, for example, a string, an array of two strings, a number, etc.
+        """An ndarray of the row ids. Each id can be anything, for example, a string, an array of two strings, a number, etc.
 
         :rtype: ndarray (length :attr:`.row_count`)
 
@@ -326,7 +326,7 @@ class PstReader(object):
 
     @property
     def col(self):
-        """A ndarray of the cols id. Each id can be anything, for example, a string, an array of two strings, a number, etc.
+        """An ndarray of the cols id. Each id can be anything, for example, a string, an array of two strings, a number, etc.
 
         :rtype: ndarray (length :attr:`.col_count`)
 
@@ -370,7 +370,7 @@ class PstReader(object):
 
     @property
     def row_property(self):
-        """A ndarray of the additional information for each row. Each element is a ndarray.
+        """An ndarray of the additional information for each row. Each element is an ndarray.
 
         :rtype: 1- or 2-dimensional ndarray (length :attr:`.row_count`)
 
@@ -388,7 +388,7 @@ class PstReader(object):
 
     @property
     def col_property(self):
-        """A ndarray of the additional information for each col. Each element is a ndarray.
+        """An ndarray of the additional information for each col. Each element is an ndarray.
 
         :rtype: 1- or 2-dimensional ndarray (length :attr:`.col_count`)
 
@@ -434,7 +434,7 @@ class PstReader(object):
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`PstData.val`'s ndarray. If True,
             if practical and reading from a :class:`PstData`, will return a new 
-            :class:`PstData` with a ndarray shares memory with the original :class:`PstData`.
+            :class:`PstData` with an ndarray shares memory with the original :class:`PstData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
             Use these parameters with care because any change to either ndarray will effect
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
@@ -460,7 +460,7 @@ class PstReader(object):
         >>> hdf5_file = example_file('pysnptools/examples/toydata.iidmajor.snp.hdf5')
         >>> on_disk = PstHdf5(hdf5_file) # Specify matrix data on disk
         >>> pstdata1 = on_disk.read() # Read all the matrix data returning a PstData instance
-        >>> print(type(pstdata1.val).__name__) # The PstData instance contains a ndarray of the data.
+        >>> print(type(pstdata1.val).__name__) # The PstData instance contains an ndarray of the data.
         ndarray
         >>> subset_pstdata = on_disk[:,::2].read() # From the disk, read matrix values for every other sid
         >>> print(subset_pstdata.val[0,0]) # Print the first matrix value in the subset

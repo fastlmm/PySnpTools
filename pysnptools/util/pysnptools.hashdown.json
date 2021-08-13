@@ -1,5 +1,5 @@
 {
-  "url": "https://github.com/fastlmm/PySnpTools/raw/734fd1133471a987358f4ec3ff2200545435ca3a",
+  "url": "https://github.com/fastlmm/PySnpTools/raw/0f77cb6a020a1ed5e24e52027b17db168d639b0a",
   "file_to_hash": {
     "pysnptools/examples/tiny.pst.memmap": "45b01d183fb0fd623c1430422bfa3eb8",
     "pysnptools/examples/tiny.snp.memmap": "f9b055ad10a4dc10c380d32066c3a8f4",
@@ -17,6 +17,7 @@
     "pysnptools/examples/toydata.map": "0dc2e88ab5c282e1f6c87bfa08b310ee",
     "pysnptools/examples/toydata.ped": "3c82c825d52c724c2464ba5045d07439",
     "pysnptools/examples/toydata.phe": "4393ca1871bfe63064373784dc2f93e2",
+    "pysnptools/examples/toydata.eigen.npz": "bdfb9d6c7ff5ec4585eb344965bb5cf1",
     "pysnptools/examples/toydata.shufflePlus.phe": "a83dd66e60b39f3210b7cb1094b7aa73",
     "pysnptools/examples/toydata.sim": "3149222f52acc77d171f5a47a52ebfe9",
     "pysnptools/examples/toydata.snpmajor.snp.hdf5": "bb9a36e49c6a8643e19c315dc7acf453",

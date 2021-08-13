@@ -169,7 +169,7 @@ class SnpKernel(KernelReader):
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`SnpData.val`'s ndarray. If True,
             if practical and reading from a :class:`SnpData`, will return a new 
-            :class:`SnpData` with a ndarray shares memory with the original :class:`SnpData`.
+            :class:`SnpData` with an ndarray shares memory with the original :class:`SnpData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
             Use these parameters with care because any change to either ndarray (for example, via :meth:`.SnpData.standardize`) will effect
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually

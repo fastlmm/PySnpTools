@@ -18,13 +18,12 @@ class EigenNpz(PstNpz,EigenReader):
 
         :Example:
 
-        #!!!cmk
-        #>>> from pysnptools.eigenreader import EigenNpz
-        #>>> from pysnptools.util import example_file # Download and return local file name
-        #>>> npz_file = example_file("pysnptools/examples/toydata10.eigen.npz")
-        #>>> data_on_disk = EigenNpz(npz_file)
-        #>>> print((data_on_disk.iid_count, data_on_disk.sid_count))
-        #(25, 10)
+        >>> from pysnptools.eigenreader import EigenNpz
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
+        >>> data_on_disk = EigenNpz(npz_file)
+        >>> print((data_on_disk.iid_count, data_on_disk.eid_count))
+        (500, 500)
 
     **Methods beyond** :class:`.EigenReader`
 
@@ -79,18 +78,6 @@ class EigenNpz(PstNpz,EigenReader):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-
-    if False: # !!!cmk
-        from pysnptools.eigenreader import EigenNpz, EigenData
-        from pysnptools.kernelreader import KernelNpz
-        import pysnptools.util as pstutil
-        from pysnptools.util import example_file # Download and return local file name
-        kernel_npz_file = example_file('pysnptools/examples/toydata.kernel.npz')
-        kernel_data = KernelNpz(kernel_npz_file).read()
-        values, vectors = np.linalg.eigh(kernel_data.read().val)
-        eigendata = EigenData(values=values,vectors=vectors,iid=kernel_data.iid)
-        pstutil.create_directory_if_necessary("tempdir/toydata.eigen.npz")
-        EigenNpz.write("tempdir/toydata.eigen.npz",eigendata)          # Write data in EigenNpz format
 
     import doctest
     doctest.testmod()

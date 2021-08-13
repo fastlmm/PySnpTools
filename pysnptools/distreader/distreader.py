@@ -124,7 +124,7 @@ class DistReader(PstReader):
 
     @property
     def iid(self):
-        """A ndarray of the iids. Each iid is a ndarray of two strings (a family ID and a individual ID) that identifies an individual.
+        """An ndarray of the iids. Each iid is an ndarray of two strings (a family ID and a individual ID) that identifies an individual.
 
         :rtype: ndarray of strings with shape [:attr:`.iid_count`,2]
 
@@ -155,7 +155,7 @@ class DistReader(PstReader):
 
     @property
     def sid(self):
-        """A ndarray of the sids. Each sid is a string that identifies a SNP.
+        """An ndarray of the sids. Each sid is a string that identifies a SNP.
 
         :rtype: ndarray (length :attr:`.sid_count`) of strings
 
@@ -187,7 +187,7 @@ class DistReader(PstReader):
     #!!Also what about telling the ref and alt allele? Also, what about tri and quad alleles, etc?
     @property
     def pos(self):
-        """A ndarray of the position information for each sid. Each element is a ndarray of three numpy.numbers (chromosome, genetic distance, basepair distance).
+        """An ndarray of the position information for each sid. Each element is an ndarray of three numpy.numbers (chromosome, genetic distance, basepair distance).
 
         :rtype: ndarray of float64 with shape [:attr:`.sid_count`, 3]
 
@@ -239,7 +239,7 @@ class DistReader(PstReader):
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`DistData.val`'s ndarray. If True,
             if practical and reading from a :class:`DistData`, will return a new 
-            :class:`DistData` with a ndarray shares memory with the original :class:`DistData`.
+            :class:`DistData` with an ndarray shares memory with the original :class:`DistData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
             Use these parameters with care because any change to either ndarraywill effect
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
@@ -264,7 +264,7 @@ class DistReader(PstReader):
         >>> bgen_file = example_file("pysnptools/examples/2500x100.bgen")
         >>> dist_on_disk = Bgen(bgen_file) # Specify SNP data on disk
         >>> distdata1 = dist_on_disk.read() # Read all the SNP data returning a DistData instance
-        >>> print(type(distdata1.val).__name__) # The DistData instance contains a ndarray of the data.
+        >>> print(type(distdata1.val).__name__) # The DistData instance contains an ndarray of the data.
         ndarray
         >>> subset_distdata = dist_on_disk[:,::2].read() # From the disk, read SNP values for every other sid
         >>> print(subset_distdata.val[0,0]) # Print the first SNP value in the subset

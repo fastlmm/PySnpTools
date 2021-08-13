@@ -110,7 +110,7 @@ class KernelReader(PstReader):
 
     iids:
 
-        Individual are identified with an iid, which is a ndarray of two strings: a family ID and an individual ID. For example:
+        Individual are identified with an iid, which is an ndarray of two strings: a family ID and an individual ID. For example:
 
         >>> kernel_on_disk = KernelNpz(kernel_file)
         >>> print(kernel_on_disk.iid[:3]) # print the first three iids
@@ -129,7 +129,7 @@ class KernelReader(PstReader):
 
     The :meth:`read` Method
   
-        By default the :meth:`read` returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (iid0-index varies the fastest). You may, instead,
+        By default the :meth:`read` returns an ndarray of numpy.float64 laid out in memory in F-contiguous order (iid0-index varies the fastest). You may, instead,
         ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
 
     The :meth:`.KernelData.standardize` Method
@@ -156,7 +156,7 @@ class KernelReader(PstReader):
 
     @property
     def iid(self):
-        """A ndarray of the iids. Each iid is a ndarray of two strings (a family ID and a individual ID) that identifies an individual.
+        """An ndarray of the iids. Each iid is an ndarray of two strings (a family ID and a individual ID) that identifies an individual.
         Assumes the kernel is square, so will throw an exception if the row iids are different from the column iids.
 
         :rtype: ndarray (length :attr:`.iid_count`) of ndarray (length 2) of strings
@@ -181,14 +181,14 @@ class KernelReader(PstReader):
     @property
     def iid0(self):
         """
-        A ndarray of the row iids. See :attr:`.iid`
+        An ndarray of the row iids. See :attr:`.iid`
         """
         return self.row
 
     @property
     def iid1(self):
         """
-        A ndarray of the column iids. See :attr:`.iid`
+        An ndarray of the column iids. See :attr:`.iid`
         """
         return self.col
 
@@ -261,7 +261,7 @@ class KernelReader(PstReader):
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`KernelData.val`'s ndarray. If True,
             if practical and reading from a :class:`KernelData`, will return a new 
-            :class:`KernelData` with a ndarray shares memory with the original :class:`KernelData`.
+            :class:`KernelData` with an ndarray shares memory with the original :class:`KernelData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
             Use these parameters with care because any change to either ndarray (for example, via :meth:`.KernelData.standardize`) will effect
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
@@ -286,7 +286,7 @@ class KernelReader(PstReader):
         >>> npz_file = example_file('pysnptools/examples/toydata.kernel.npz')
         >>> kernel_on_disk = KernelNpz(npz_file)
         >>> kerneldata1 = kernel_on_disk.read() # Read all the kernel data returning a KernelData instance
-        >>> print(type(kerneldata1.val).__name__) # The KernelData instance contains a ndarray of the data.
+        >>> print(type(kerneldata1.val).__name__) # The KernelData instance contains an ndarray of the data.
         ndarray
         >>> subset_kerneldata = kernel_on_disk[::2].read() # From the disk, read kernel values for every other iid
         >>> print('{0:.6f}'.format(subset_kerneldata.val[0,0])) # Print the first kernel value in the subset

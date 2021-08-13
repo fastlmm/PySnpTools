@@ -92,8 +92,8 @@ class SnpReader(PstReader):
 
     iids and sids:
 
-        Individuals are identified with an iid, which is a ndarray of two strings: a family ID and a individual ID.
-        SNP locations are identified with an sid string in a ndarray. For example:
+        Individuals are identified with an iid, which is an ndarray of two strings: a family ID and a individual ID.
+        SNP locations are identified with an sid string in an ndarray. For example:
 
         >>> snp_on_disk = Bed(bedfile,count_A1=False)
         >>> print(snp_on_disk.iid[:3]) # print the first three iids
@@ -256,7 +256,7 @@ class SnpReader(PstReader):
         You may want a subset of SNPs values from an in-memory :class:`SnpData` and you may know that this subset and the original :class:`SnpData`
         can safely share the memory of the ndarray of SNP values. For this case, the :meth:`read` has optional parameters called view_ok and order. If you override 
         the defaults of "view_ok=False,order='F'" with "view_ok=True,order='A', the :meth:`read` will, if practical, return a new 
-        :class:`SnpData` with a ndarray shares memory with the original ndarray.
+        :class:`SnpData` with an ndarray shares memory with the original ndarray.
         Use these parameters with care because any change to either ndarray (for example, via :meth:`.SnpData.standardize`) will effect
         the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
         share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
@@ -272,7 +272,7 @@ snp_on_disk = Bed(bedfile,count_A1=False) # Construct a Bed SnpReader. No data i
 
     The :meth:`read` Method
   
-        By default the :meth:`read` returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (iid-index varies the fastest). You may, instead,
+        By default the :meth:`read` returns an ndarray of numpy.float64 laid out in memory in F-contiguous order (iid-index varies the fastest). You may, instead,
         ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
 
     The :meth:`.SnpData.standardize` Method
@@ -320,7 +320,7 @@ snp_on_disk = Bed(bedfile,count_A1=False) # Construct a Bed SnpReader. No data i
 
     @property
     def iid(self):
-        """A ndarray of the iids. Each iid is a ndarray of two strings (a family ID and a individual ID) that identifies an individual.
+        """An ndarray of the iids. Each iid is an ndarray of two strings (a family ID and a individual ID) that identifies an individual.
 
         :rtype: ndarray of strings with shape [:attr:`.iid_count`,2]
 
@@ -351,7 +351,7 @@ snp_on_disk = Bed(bedfile,count_A1=False) # Construct a Bed SnpReader. No data i
 
     @property
     def sid(self):
-        """A ndarray of the sids. Each sid is a string that identifies a SNP.
+        """An ndarray of the sids. Each sid is a string that identifies a SNP.
 
         :rtype: ndarray (length :attr:`.sid_count`) of strings
 
@@ -384,7 +384,7 @@ snp_on_disk = Bed(bedfile,count_A1=False) # Construct a Bed SnpReader. No data i
     #!!Also what about telling the ref and alt allele? Also, what about tri and quad alleles, etc?
     @property
     def pos(self):
-        """A ndarray of the position information for each sid. Each element is a ndarray of three numpy.numbers (chromosome, genetic distance, basepair distance).
+        """An ndarray of the position information for each sid. Each element is an ndarray of three numpy.numbers (chromosome, genetic distance, basepair distance).
 
         :rtype: ndarray of float64 with shape [:attr:`.sid_count`, 3]
 
@@ -437,7 +437,7 @@ snp_on_disk = Bed(bedfile,count_A1=False) # Construct a Bed SnpReader. No data i
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`SnpData.val`'s ndarray. If True,
             if practical and reading from a :class:`SnpData`, will return a new 
-            :class:`SnpData` with a ndarray shares memory with the original :class:`SnpData`.
+            :class:`SnpData` with an ndarray shares memory with the original :class:`SnpData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
             Use these parameters with care because any change to either ndarray (for example, via :meth:`.SnpData.standardize`) will effect
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
@@ -462,7 +462,7 @@ snp_on_disk = Bed(bedfile,count_A1=False) # Construct a Bed SnpReader. No data i
         >>> bedfile = example_file("tests/datasets/all_chr.maf0.001.N300.*","*.bed")
         >>> snp_on_disk = Bed(bedfile, count_A1=False) # Specify SNP data on disk
         >>> snpdata1 = snp_on_disk.read() # Read all the SNP data returning a SnpData instance
-        >>> print(type(snpdata1.val).__name__) # The SnpData instance contains a ndarray of the data.
+        >>> print(type(snpdata1.val).__name__) # The SnpData instance contains an ndarray of the data.
         ndarray
         >>> subset_snpdata = snp_on_disk[:,::2].read() # From the disk, read SNP values for every other sid
         >>> print(subset_snpdata.val[0,0]) # Print the first SNP value in the subset
@@ -526,7 +526,7 @@ snp_on_disk = Bed(bedfile,count_A1=False) # Construct a Bed SnpReader. No data i
         return _SnpSubset(self, iid_indexer, snp_indexer)
 
     def read_kernel(self, standardizer=None, block_size=None, order='A', dtype=np.float64, force_python_only=False, view_ok=False, num_threads=None):
-        """Returns a :class:`KernelData` such that the :meth:`KernelData.val` property will be a ndarray of the standardized SNP values multiplied with their transposed selves.
+        """Returns a :class:`KernelData` such that the :meth:`KernelData.val` property will be an ndarray of the standardized SNP values multiplied with their transposed selves.
 
         :param standardizer: -- (required) Specify standardization to be applied before the matrix multiply. Any :class:`.Standardizer` may be used. Some choices include :class:`Standardizer.Identity` 
             (do nothing), :class:`.Unit` (make values for each SNP have mean zero and standard deviation 1.0) and :class:`Beta`.
@@ -563,7 +563,7 @@ snp_on_disk = Bed(bedfile,count_A1=False) # Construct a Bed SnpReader. No data i
     def kernel(self, standardizer, allowlowrank=False, block_size=10000, blocksize=None, num_threads=None):
         """ .. Warning:: Deprecated. Use :meth:`read_kernel` instead.
 
-        Returns a ndarray of size iid_count x iid_count. The returned array has the value of the standardized SNP values multiplied with their transposed selves.
+        Returns an ndarray of size iid_count x iid_count. The returned array has the value of the standardized SNP values multiplied with their transposed selves.
 
         :param standardizer: -- Specify standardization to be applied before the matrix multiply. Any :class:`.Standardizer` may be used. Some choices include :class:`Standardizer.Identity` 
             (do nothing), :class:`.Unit` (make values for each SNP have mean zero and standard deviation 1.0), :class:`Beta`.

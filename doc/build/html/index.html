@@ -258,8 +258,8 @@ See below for details.</p>
 </div></blockquote>
 <p>iids and sids:</p>
 <blockquote>
-<div><p>Individuals are identified with an iid, which is a ndarray of two strings: a family ID and a individual ID.
-SNP locations are identified with an sid string in a ndarray. For example:</p>
+<div><p>Individuals are identified with an iid, which is an ndarray of two strings: a family ID and a individual ID.
+SNP locations are identified with an sid string in an ndarray. For example:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">snp_on_disk</span> <span class="o">=</span> <span class="n">Bed</span><span class="p">(</span><span class="n">bedfile</span><span class="p">,</span><span class="n">count_A1</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">snp_on_disk</span><span class="o">.</span><span class="n">iid</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span> <span class="c1"># print the first three iids</span>
 <span class="go">[[&#39;POP1&#39; &#39;0&#39;]</span>
@@ -427,7 +427,7 @@ Doing so create a new <a class="reference internal" href="#pysnptools.snpreader.
 <div><p>You may want a subset of SNPs values from an in-memory <a class="reference internal" href="#pysnptools.snpreader.SnpData" title="pysnptools.snpreader.SnpData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code></a> and you may know that this subset and the original <a class="reference internal" href="#pysnptools.snpreader.SnpData" title="pysnptools.snpreader.SnpData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code></a>
 can safely share the memory of the ndarray of SNP values. For this case, the <a class="reference internal" href="#pysnptools.snpreader.SnpReader.read" title="pysnptools.snpreader.SnpReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> has optional parameters called view_ok and order. If you override 
 the defaults of “view_ok=False,order=’F’” with “view_ok=True,order=’A’, the <a class="reference internal" href="#pysnptools.snpreader.SnpReader.read" title="pysnptools.snpreader.SnpReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> will, if practical, return a new 
-<a class="reference internal" href="#pysnptools.snpreader.SnpData" title="pysnptools.snpreader.SnpData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code></a> with a ndarray shares memory with the original ndarray.
+<a class="reference internal" href="#pysnptools.snpreader.SnpData" title="pysnptools.snpreader.SnpData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code></a> with an ndarray shares memory with the original ndarray.
 Use these parameters with care because any change to either ndarray (for example, via <a class="reference internal" href="#pysnptools.snpreader.SnpData.standardize" title="pysnptools.snpreader.SnpData.standardize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SnpData.standardize()</span></code></a>) will effect
 the others. Also keep in mind that <a class="reference internal" href="#pysnptools.snpreader.SnpReader.read" title="pysnptools.snpreader.SnpReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> relies on ndarray’s mechanisms to decide whether to actually
 share memory and so it may ignore your suggestion and allocate a new ndarray anyway.</p>
@@ -445,7 +445,7 @@ share memory and so it may ignore your suggestion and allocate a new ndarray any
 </div>
 <p>The <a class="reference internal" href="#pysnptools.snpreader.SnpReader.read" title="pysnptools.snpreader.SnpReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> Method</p>
 <blockquote>
-<div><p>By default the <a class="reference internal" href="#pysnptools.snpreader.SnpReader.read" title="pysnptools.snpreader.SnpReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (iid-index varies the fastest). You may, instead,
+<div><p>By default the <a class="reference internal" href="#pysnptools.snpreader.SnpReader.read" title="pysnptools.snpreader.SnpReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> returns an ndarray of numpy.float64 laid out in memory in F-contiguous order (iid-index varies the fastest). You may, instead,
 ask for numpy.float32 or for C-contiguous order or any order. See <a class="reference internal" href="#pysnptools.snpreader.SnpReader.read" title="pysnptools.snpreader.SnpReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> for details.</p>
 </div></blockquote>
 <dl>
@@ -524,7 +524,7 @@ the method can save memory by reading (and standardizing) the data in blocks. Se
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.snpreader.SnpReader.iid">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">iid</span></span><a class="headerlink" href="#pysnptools.snpreader.SnpReader.iid" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the iids. Each iid is a ndarray of two strings (a family ID and a individual ID) that identifies an individual.</p>
+<dd><p>An ndarray of the iids. Each iid is an ndarray of two strings (a family ID and a individual ID) that identifies an individual.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>ndarray of strings with shape [<a class="reference internal" href="#pysnptools.snpreader.SnpReader.iid_count" title="pysnptools.snpreader.SnpReader.iid_count"><code class="xref py py-attr docutils literal notranslate"><span class="pre">iid_count</span></code></a>,2]</p>
@@ -593,7 +593,7 @@ the method can save memory by reading (and standardizing) the data in blocks. Se
 <p class="admonition-title">Warning</p>
 <p>Deprecated. Use <a class="reference internal" href="#pysnptools.snpreader.SnpReader.read_kernel" title="pysnptools.snpreader.SnpReader.read_kernel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_kernel()</span></code></a> instead.</p>
 </div>
-<p>Returns a ndarray of size iid_count x iid_count. The returned array has the value of the standardized SNP values multiplied with their transposed selves.</p>
+<p>Returns an ndarray of size iid_count x iid_count. The returned array has the value of the standardized SNP values multiplied with their transposed selves.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -631,7 +631,7 @@ processors. Can also be set with these environment variables (listed in priority
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.snpreader.SnpReader.pos">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">pos</span></span><a class="headerlink" href="#pysnptools.snpreader.SnpReader.pos" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the position information for each sid. Each element is a ndarray of three numpy.numbers (chromosome, genetic distance, basepair distance).</p>
+<dd><p>An ndarray of the position information for each sid. Each element is an ndarray of three numpy.numbers (chromosome, genetic distance, basepair distance).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>ndarray of float64 with shape [<a class="reference internal" href="#pysnptools.snpreader.SnpReader.sid_count" title="pysnptools.snpreader.SnpReader.sid_count"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sid_count</span></code></a>, 3]</p>
@@ -673,7 +673,7 @@ to False. See <a class="reference internal" href="#pysnptools.snpreader.Bed" tit
 be done without outside library code.</p></li>
 <li><p><strong>view_ok</strong> (<em>bool</em>) – optional – If False (default), allocates new memory for the <a class="reference internal" href="#pysnptools.snpreader.SnpData.val" title="pysnptools.snpreader.SnpData.val"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SnpData.val</span></code></a>’s ndarray. If True,
 if practical and reading from a <a class="reference internal" href="#pysnptools.snpreader.SnpData" title="pysnptools.snpreader.SnpData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code></a>, will return a new 
-<a class="reference internal" href="#pysnptools.snpreader.SnpData" title="pysnptools.snpreader.SnpData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code></a> with a ndarray shares memory with the original <a class="reference internal" href="#pysnptools.snpreader.SnpData" title="pysnptools.snpreader.SnpData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code></a>.
+<a class="reference internal" href="#pysnptools.snpreader.SnpData" title="pysnptools.snpreader.SnpData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code></a> with an ndarray shares memory with the original <a class="reference internal" href="#pysnptools.snpreader.SnpData" title="pysnptools.snpreader.SnpData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code></a>.
 Typically, you’ll also wish to use “order=’A’” to increase the chance that sharing will be possible.
 Use these parameters with care because any change to either ndarray (for example, via <a class="reference internal" href="#pysnptools.snpreader.SnpData.standardize" title="pysnptools.snpreader.SnpData.standardize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SnpData.standardize()</span></code></a>) will effect
 the others. Also keep in mind that <a class="reference internal" href="#pysnptools.snpreader.SnpReader.read" title="pysnptools.snpreader.SnpReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> relies on ndarray’s mechanisms to decide whether to actually
@@ -698,7 +698,7 @@ processors. Can also be set with these environment variables (listed in priority
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bedfile</span> <span class="o">=</span> <span class="n">example_file</span><span class="p">(</span><span class="s2">&quot;tests/datasets/all_chr.maf0.001.N300.*&quot;</span><span class="p">,</span><span class="s2">&quot;*.bed&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">snp_on_disk</span> <span class="o">=</span> <span class="n">Bed</span><span class="p">(</span><span class="n">bedfile</span><span class="p">,</span> <span class="n">count_A1</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Specify SNP data on disk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">snpdata1</span> <span class="o">=</span> <span class="n">snp_on_disk</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># Read all the SNP data returning a SnpData instance</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">snpdata1</span><span class="o">.</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="c1"># The SnpData instance contains a ndarray of the data.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">snpdata1</span><span class="o">.</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="c1"># The SnpData instance contains an ndarray of the data.</span>
 <span class="go">ndarray</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subset_snpdata</span> <span class="o">=</span> <span class="n">snp_on_disk</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># From the disk, read SNP values for every other sid</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">subset_snpdata</span><span class="o">.</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># Print the first SNP value in the subset</span>
@@ -713,7 +713,7 @@ processors. Can also be set with these environment variables (listed in priority
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnptools.snpreader.SnpReader.read_kernel">
 <span class="sig-name descname"><span class="pre">read_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">standardizer=None</span></em>, <em class="sig-param"><span class="pre">block_size=None</span></em>, <em class="sig-param"><span class="pre">order='A'</span></em>, <em class="sig-param"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></em>, <em class="sig-param"><span class="pre">force_python_only=False</span></em>, <em class="sig-param"><span class="pre">view_ok=False</span></em>, <em class="sig-param"><span class="pre">num_threads=None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysnptools.snpreader.SnpReader.read_kernel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">KernelData</span></code> such that the <code class="xref py py-meth docutils literal notranslate"><span class="pre">KernelData.val()</span></code> property will be a ndarray of the standardized SNP values multiplied with their transposed selves.</p>
+<dd><p>Returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">KernelData</span></code> such that the <code class="xref py py-meth docutils literal notranslate"><span class="pre">KernelData.val()</span></code> property will be an ndarray of the standardized SNP values multiplied with their transposed selves.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -753,7 +753,7 @@ processors. Can also be set with these environment variables (listed in priority
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.snpreader.SnpReader.sid">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">sid</span></span><a class="headerlink" href="#pysnptools.snpreader.SnpReader.sid" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the sids. Each sid is a string that identifies a SNP.</p>
+<dd><p>An ndarray of the sids. Each sid is a string that identifies a SNP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>ndarray (length <a class="reference internal" href="#pysnptools.snpreader.SnpReader.sid_count" title="pysnptools.snpreader.SnpReader.sid_count"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sid_count</span></code></a>) of strings</p>
@@ -1936,7 +1936,7 @@ and these methods: <a class="reference internal" href="#pysnptools.kernelreader.
 </div></blockquote>
 <p>iids:</p>
 <blockquote>
-<div><p>Individual are identified with an iid, which is a ndarray of two strings: a family ID and an individual ID. For example:</p>
+<div><p>Individual are identified with an iid, which is an ndarray of two strings: a family ID and an individual ID. For example:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kernel_on_disk</span> <span class="o">=</span> <span class="n">KernelNpz</span><span class="p">(</span><span class="n">kernel_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">kernel_on_disk</span><span class="o">.</span><span class="n">iid</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span> <span class="c1"># print the first three iids</span>
 <span class="go">[[&#39;per0&#39; &#39;per0&#39;]</span>
@@ -1958,7 +1958,7 @@ and these methods: <a class="reference internal" href="#pysnptools.kernelreader.
 </div></blockquote>
 <p>The <a class="reference internal" href="#pysnptools.kernelreader.KernelReader.read" title="pysnptools.kernelreader.KernelReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> Method</p>
 <blockquote>
-<div><p>By default the <a class="reference internal" href="#pysnptools.kernelreader.KernelReader.read" title="pysnptools.kernelreader.KernelReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (iid0-index varies the fastest). You may, instead,
+<div><p>By default the <a class="reference internal" href="#pysnptools.kernelreader.KernelReader.read" title="pysnptools.kernelreader.KernelReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> returns an ndarray of numpy.float64 laid out in memory in F-contiguous order (iid0-index varies the fastest). You may, instead,
 ask for numpy.float32 or for C-contiguous order or any order. See <a class="reference internal" href="#pysnptools.kernelreader.KernelReader.read" title="pysnptools.kernelreader.KernelReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> for details.</p>
 </div></blockquote>
 <dl>
@@ -1984,7 +1984,7 @@ it also returns itself. See <a class="reference internal" href="#pysnptools.kern
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.kernelreader.KernelReader.iid">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">iid</span></span><a class="headerlink" href="#pysnptools.kernelreader.KernelReader.iid" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the iids. Each iid is a ndarray of two strings (a family ID and a individual ID) that identifies an individual.
+<dd><p>An ndarray of the iids. Each iid is an ndarray of two strings (a family ID and a individual ID) that identifies an individual.
 Assumes the kernel is square, so will throw an exception if the row iids are different from the column iids.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
@@ -2012,7 +2012,7 @@ Assumes the kernel is square, so will throw an exception if the row iids are dif
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.kernelreader.KernelReader.iid0">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">iid0</span></span><a class="headerlink" href="#pysnptools.kernelreader.KernelReader.iid0" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the row iids. See <a class="reference internal" href="#pysnptools.kernelreader.KernelReader.iid" title="pysnptools.kernelreader.KernelReader.iid"><code class="xref py py-attr docutils literal notranslate"><span class="pre">iid</span></code></a></p>
+<dd><p>An ndarray of the row iids. See <a class="reference internal" href="#pysnptools.kernelreader.KernelReader.iid" title="pysnptools.kernelreader.KernelReader.iid"><code class="xref py py-attr docutils literal notranslate"><span class="pre">iid</span></code></a></p>
 </dd></dl>
 
 <dl class="py property">
@@ -2035,7 +2035,7 @@ Assumes the kernel is square, so will throw an exception if the row iids are dif
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.kernelreader.KernelReader.iid1">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">iid1</span></span><a class="headerlink" href="#pysnptools.kernelreader.KernelReader.iid1" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the column iids. See <a class="reference internal" href="#pysnptools.kernelreader.KernelReader.iid" title="pysnptools.kernelreader.KernelReader.iid"><code class="xref py py-attr docutils literal notranslate"><span class="pre">iid</span></code></a></p>
+<dd><p>An ndarray of the column iids. See <a class="reference internal" href="#pysnptools.kernelreader.KernelReader.iid" title="pysnptools.kernelreader.KernelReader.iid"><code class="xref py py-attr docutils literal notranslate"><span class="pre">iid</span></code></a></p>
 </dd></dl>
 
 <dl class="py property">
@@ -2113,7 +2113,7 @@ ndarray may be in any order (either C-, Fortran-contiguous, or even discontiguou
 be done without outside library code.</p></li>
 <li><p><strong>view_ok</strong> (<em>bool</em>) – optional – If False (default), allocates new memory for the <a class="reference internal" href="#pysnptools.kernelreader.KernelData.val" title="pysnptools.kernelreader.KernelData.val"><code class="xref py py-attr docutils literal notranslate"><span class="pre">KernelData.val</span></code></a>’s ndarray. If True,
 if practical and reading from a <a class="reference internal" href="#pysnptools.kernelreader.KernelData" title="pysnptools.kernelreader.KernelData"><code class="xref py py-class docutils literal notranslate"><span class="pre">KernelData</span></code></a>, will return a new 
-<a class="reference internal" href="#pysnptools.kernelreader.KernelData" title="pysnptools.kernelreader.KernelData"><code class="xref py py-class docutils literal notranslate"><span class="pre">KernelData</span></code></a> with a ndarray shares memory with the original <a class="reference internal" href="#pysnptools.kernelreader.KernelData" title="pysnptools.kernelreader.KernelData"><code class="xref py py-class docutils literal notranslate"><span class="pre">KernelData</span></code></a>.
+<a class="reference internal" href="#pysnptools.kernelreader.KernelData" title="pysnptools.kernelreader.KernelData"><code class="xref py py-class docutils literal notranslate"><span class="pre">KernelData</span></code></a> with an ndarray shares memory with the original <a class="reference internal" href="#pysnptools.kernelreader.KernelData" title="pysnptools.kernelreader.KernelData"><code class="xref py py-class docutils literal notranslate"><span class="pre">KernelData</span></code></a>.
 Typically, you’ll also wish to use “order=’A’” to increase the chance that sharing will be possible.
 Use these parameters with care because any change to either ndarray (for example, via <a class="reference internal" href="#pysnptools.kernelreader.KernelData.standardize" title="pysnptools.kernelreader.KernelData.standardize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">KernelData.standardize()</span></code></a>) will effect
 the others. Also keep in mind that <a class="reference internal" href="#pysnptools.kernelreader.KernelReader.read" title="pysnptools.kernelreader.KernelReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> relies on ndarray’s mechanisms to decide whether to actually
@@ -2138,7 +2138,7 @@ processors. Can also be set with these environment variables (listed in priority
 <span class="gp">&gt;&gt;&gt; </span><span class="n">npz_file</span> <span class="o">=</span> <span class="n">example_file</span><span class="p">(</span><span class="s1">&#39;pysnptools/examples/toydata.kernel.npz&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kernel_on_disk</span> <span class="o">=</span> <span class="n">KernelNpz</span><span class="p">(</span><span class="n">npz_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kerneldata1</span> <span class="o">=</span> <span class="n">kernel_on_disk</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># Read all the kernel data returning a KernelData instance</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">kerneldata1</span><span class="o">.</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="c1"># The KernelData instance contains a ndarray of the data.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">kerneldata1</span><span class="o">.</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="c1"># The KernelData instance contains an ndarray of the data.</span>
 <span class="go">ndarray</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subset_kerneldata</span> <span class="o">=</span> <span class="n">kernel_on_disk</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># From the disk, read kernel values for every other iid</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0:.6f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subset_kerneldata</span><span class="o">.</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]))</span> <span class="c1"># Print the first kernel value in the subset</span>
@@ -2527,7 +2527,7 @@ ndarray may be in any order (either C-, Fortran-contiguous).</p></li>
 be done without outside library code.</p></li>
 <li><p><strong>view_ok</strong> (<em>bool</em>) – optional – If False (default), allocates new memory for the <code class="xref py py-attr docutils literal notranslate"><span class="pre">SnpData.val</span></code>’s ndarray. If True,
 if practical and reading from a <code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code>, will return a new 
-<code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code> with a ndarray shares memory with the original <code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code>.
+<code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code> with an ndarray shares memory with the original <code class="xref py py-class docutils literal notranslate"><span class="pre">SnpData</span></code>.
 Typically, you’ll also wish to use “order=’A’” to increase the chance that sharing will be possible.
 Use these parameters with care because any change to either ndarray (for example, via <a class="reference internal" href="#pysnptools.snpreader.SnpData.standardize" title="pysnptools.snpreader.SnpData.standardize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SnpData.standardize()</span></code></a>) will effect
 the others. Also keep in mind that <code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code> relies on ndarray’s mechanisms to decide whether to actually
@@ -3176,7 +3176,7 @@ value will be (0.466804*0+0.38812848*.5+0.14506752*1)*2, 0.67826352 .</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.distreader.DistReader.iid">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">iid</span></span><a class="headerlink" href="#pysnptools.distreader.DistReader.iid" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the iids. Each iid is a ndarray of two strings (a family ID and a individual ID) that identifies an individual.</p>
+<dd><p>An ndarray of the iids. Each iid is an ndarray of two strings (a family ID and a individual ID) that identifies an individual.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>ndarray of strings with shape [<a class="reference internal" href="#pysnptools.distreader.DistReader.iid_count" title="pysnptools.distreader.DistReader.iid_count"><code class="xref py py-attr docutils literal notranslate"><span class="pre">iid_count</span></code></a>,2]</p>
@@ -3241,7 +3241,7 @@ value will be (0.466804*0+0.38812848*.5+0.14506752*1)*2, 0.67826352 .</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.distreader.DistReader.pos">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">pos</span></span><a class="headerlink" href="#pysnptools.distreader.DistReader.pos" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the position information for each sid. Each element is a ndarray of three numpy.numbers (chromosome, genetic distance, basepair distance).</p>
+<dd><p>An ndarray of the position information for each sid. Each element is an ndarray of three numpy.numbers (chromosome, genetic distance, basepair distance).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>ndarray of float64 with shape [<a class="reference internal" href="#pysnptools.distreader.DistReader.sid_count" title="pysnptools.distreader.DistReader.sid_count"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sid_count</span></code></a>, 3]</p>
@@ -3282,7 +3282,7 @@ ndarray may be in any order (either C-, Fortran-contiguous).</p></li>
 be done without outside library code.</p></li>
 <li><p><strong>view_ok</strong> (<em>bool</em>) – optional – If False (default), allocates new memory for the <a class="reference internal" href="#pysnptools.distreader.DistData.val" title="pysnptools.distreader.DistData.val"><code class="xref py py-attr docutils literal notranslate"><span class="pre">DistData.val</span></code></a>’s ndarray. If True,
 if practical and reading from a <a class="reference internal" href="#pysnptools.distreader.DistData" title="pysnptools.distreader.DistData"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistData</span></code></a>, will return a new 
-<a class="reference internal" href="#pysnptools.distreader.DistData" title="pysnptools.distreader.DistData"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistData</span></code></a> with a ndarray shares memory with the original <a class="reference internal" href="#pysnptools.distreader.DistData" title="pysnptools.distreader.DistData"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistData</span></code></a>.
+<a class="reference internal" href="#pysnptools.distreader.DistData" title="pysnptools.distreader.DistData"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistData</span></code></a> with an ndarray shares memory with the original <a class="reference internal" href="#pysnptools.distreader.DistData" title="pysnptools.distreader.DistData"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistData</span></code></a>.
 Typically, you’ll also wish to use “order=’A’” to increase the chance that sharing will be possible.
 Use these parameters with care because any change to either ndarraywill effect
 the others. Also keep in mind that <a class="reference internal" href="#pysnptools.distreader.DistReader.read" title="pysnptools.distreader.DistReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> relies on ndarray’s mechanisms to decide whether to actually
@@ -3307,7 +3307,7 @@ processors. Can also be set with these environment variables (listed in priority
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bgen_file</span> <span class="o">=</span> <span class="n">example_file</span><span class="p">(</span><span class="s2">&quot;pysnptools/examples/2500x100.bgen&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dist_on_disk</span> <span class="o">=</span> <span class="n">Bgen</span><span class="p">(</span><span class="n">bgen_file</span><span class="p">)</span> <span class="c1"># Specify SNP data on disk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">distdata1</span> <span class="o">=</span> <span class="n">dist_on_disk</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># Read all the SNP data returning a DistData instance</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">distdata1</span><span class="o">.</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="c1"># The DistData instance contains a ndarray of the data.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">distdata1</span><span class="o">.</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="c1"># The DistData instance contains an ndarray of the data.</span>
 <span class="go">ndarray</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subset_distdata</span> <span class="o">=</span> <span class="n">dist_on_disk</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># From the disk, read SNP values for every other sid</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">subset_distdata</span><span class="o">.</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># Print the first SNP value in the subset</span>
@@ -3328,7 +3328,7 @@ processors. Can also be set with these environment variables (listed in priority
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.distreader.DistReader.sid">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">sid</span></span><a class="headerlink" href="#pysnptools.distreader.DistReader.sid" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the sids. Each sid is a string that identifies a SNP.</p>
+<dd><p>An ndarray of the sids. Each sid is a string that identifies a SNP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>ndarray (length <a class="reference internal" href="#pysnptools.distreader.DistReader.sid_count" title="pysnptools.distreader.DistReader.sid_count"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sid_count</span></code></a>) of strings</p>
@@ -4332,7 +4332,7 @@ Doing so create a new <a class="reference internal" href="#pysnptools.pstreader.
 <div><p>You may want a subset of matrix values from an in-memory <a class="reference internal" href="#pysnptools.pstreader.PstData" title="pysnptools.pstreader.PstData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PstData</span></code></a> and you may know that this subset and the original <a class="reference internal" href="#pysnptools.pstreader.PstData" title="pysnptools.pstreader.PstData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PstData</span></code></a>
 can safely share the memory of the ndarray of matrix values. For this case, the <a class="reference internal" href="#pysnptools.pstreader.PstReader.read" title="pysnptools.pstreader.PstReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> has optional parameters called view_ok and order. If you override 
 the defaults of “view_ok=False,order=’F’” with “view_ok=True,order=’A’, the <a class="reference internal" href="#pysnptools.pstreader.PstReader.read" title="pysnptools.pstreader.PstReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> will, if practical, return a new 
-<a class="reference internal" href="#pysnptools.pstreader.PstData" title="pysnptools.pstreader.PstData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PstData</span></code></a> with a ndarray shares memory with the original ndarray.
+<a class="reference internal" href="#pysnptools.pstreader.PstData" title="pysnptools.pstreader.PstData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PstData</span></code></a> with an ndarray shares memory with the original ndarray.
 Use these parameters with care because any change to either ndarray will effect
 the others. Also keep in mind that <a class="reference internal" href="#pysnptools.pstreader.PstReader.read" title="pysnptools.pstreader.PstReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> relies on ndarray’s mechanisms to decide whether to actually
 share memory and so it may ignore your suggestion and allocate a new ndarray anyway.</p>
@@ -4414,14 +4414,14 @@ only the column values for every 16th col is actually read from the disk.</p>
 </div></blockquote>
 <p>The <a class="reference internal" href="#pysnptools.pstreader.PstReader.read" title="pysnptools.pstreader.PstReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> Method</p>
 <blockquote>
-<div><p>By default the <a class="reference internal" href="#pysnptools.pstreader.PstReader.read" title="pysnptools.pstreader.PstReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (row-index varies the fastest). You may, instead,
+<div><p>By default the <a class="reference internal" href="#pysnptools.pstreader.PstReader.read" title="pysnptools.pstreader.PstReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> returns an ndarray of numpy.float64 laid out in memory in F-contiguous order (row-index varies the fastest). You may, instead,
 ask for numpy.float32 or for C-contiguous order or any order. See <a class="reference internal" href="#pysnptools.pstreader.PstReader.read" title="pysnptools.pstreader.PstReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> for details.</p>
 </div></blockquote>
 <p>Details of Methods &amp; Properties:</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.pstreader.PstReader.col">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">col</span></span><a class="headerlink" href="#pysnptools.pstreader.PstReader.col" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the cols id. Each id can be anything, for example, a string, an array of two strings, a number, etc.</p>
+<dd><p>An ndarray of the cols id. Each id can be anything, for example, a string, an array of two strings, a number, etc.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>ndarray (length <a class="reference internal" href="#pysnptools.pstreader.PstReader.col_count" title="pysnptools.pstreader.PstReader.col_count"><code class="xref py py-attr docutils literal notranslate"><span class="pre">col_count</span></code></a>)</p>
@@ -4460,7 +4460,7 @@ Moreover, the row and col data is read from file only once.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.pstreader.PstReader.col_property">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">col_property</span></span><a class="headerlink" href="#pysnptools.pstreader.PstReader.col_property" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the additional information for each col. Each element is a ndarray.</p>
+<dd><p>An ndarray of the additional information for each col. Each element is an ndarray.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>1- or 2-dimensional ndarray (length <a class="reference internal" href="#pysnptools.pstreader.PstReader.col_count" title="pysnptools.pstreader.PstReader.col_count"><code class="xref py py-attr docutils literal notranslate"><span class="pre">col_count</span></code></a>)</p>
@@ -4527,7 +4527,7 @@ ndarray may be in any order (either C-, Fortran-contiguous).</p></li>
 be done without outside library code.</p></li>
 <li><p><strong>view_ok</strong> (<em>bool</em>) – optional – If False (default), allocates new memory for the <a class="reference internal" href="#pysnptools.pstreader.PstData.val" title="pysnptools.pstreader.PstData.val"><code class="xref py py-attr docutils literal notranslate"><span class="pre">PstData.val</span></code></a>’s ndarray. If True,
 if practical and reading from a <a class="reference internal" href="#pysnptools.pstreader.PstData" title="pysnptools.pstreader.PstData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PstData</span></code></a>, will return a new 
-<a class="reference internal" href="#pysnptools.pstreader.PstData" title="pysnptools.pstreader.PstData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PstData</span></code></a> with a ndarray shares memory with the original <a class="reference internal" href="#pysnptools.pstreader.PstData" title="pysnptools.pstreader.PstData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PstData</span></code></a>.
+<a class="reference internal" href="#pysnptools.pstreader.PstData" title="pysnptools.pstreader.PstData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PstData</span></code></a> with an ndarray shares memory with the original <a class="reference internal" href="#pysnptools.pstreader.PstData" title="pysnptools.pstreader.PstData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PstData</span></code></a>.
 Typically, you’ll also wish to use “order=’A’” to increase the chance that sharing will be possible.
 Use these parameters with care because any change to either ndarray will effect
 the others. Also keep in mind that <a class="reference internal" href="#pysnptools.pstreader.PstReader.read" title="pysnptools.pstreader.PstReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> relies on ndarray’s mechanisms to decide whether to actually
@@ -4552,7 +4552,7 @@ processors. Can also be set with these environment variables (listed in priority
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hdf5_file</span> <span class="o">=</span> <span class="n">example_file</span><span class="p">(</span><span class="s1">&#39;pysnptools/examples/toydata.iidmajor.snp.hdf5&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">on_disk</span> <span class="o">=</span> <span class="n">PstHdf5</span><span class="p">(</span><span class="n">hdf5_file</span><span class="p">)</span> <span class="c1"># Specify matrix data on disk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pstdata1</span> <span class="o">=</span> <span class="n">on_disk</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># Read all the matrix data returning a PstData instance</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">pstdata1</span><span class="o">.</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="c1"># The PstData instance contains a ndarray of the data.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">pstdata1</span><span class="o">.</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="c1"># The PstData instance contains an ndarray of the data.</span>
 <span class="go">ndarray</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subset_pstdata</span> <span class="o">=</span> <span class="n">on_disk</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># From the disk, read matrix values for every other sid</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">subset_pstdata</span><span class="o">.</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># Print the first matrix value in the subset</span>
@@ -4567,7 +4567,7 @@ processors. Can also be set with these environment variables (listed in priority
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.pstreader.PstReader.row">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">row</span></span><a class="headerlink" href="#pysnptools.pstreader.PstReader.row" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the row ids. Each id can be anything, for example, a string, an array of two strings, a number, etc.</p>
+<dd><p>An ndarray of the row ids. Each id can be anything, for example, a string, an array of two strings, a number, etc.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>ndarray (length <a class="reference internal" href="#pysnptools.pstreader.PstReader.row_count" title="pysnptools.pstreader.PstReader.row_count"><code class="xref py py-attr docutils literal notranslate"><span class="pre">row_count</span></code></a>)</p>
@@ -4607,7 +4607,7 @@ Moreover, the row and col data is read from file only once.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnptools.pstreader.PstReader.row_property">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">row_property</span></span><a class="headerlink" href="#pysnptools.pstreader.PstReader.row_property" title="Permalink to this definition">¶</a></dt>
-<dd><p>A ndarray of the additional information for each row. Each element is a ndarray.</p>
+<dd><p>An ndarray of the additional information for each row. Each element is an ndarray.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>1- or 2-dimensional ndarray (length <a class="reference internal" href="#pysnptools.pstreader.PstReader.row_count" title="pysnptools.pstreader.PstReader.row_count"><code class="xref py py-attr docutils literal notranslate"><span class="pre">row_count</span></code></a>)</p>
