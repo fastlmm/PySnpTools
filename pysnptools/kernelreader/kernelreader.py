@@ -117,7 +117,7 @@ class KernelReader(PstReader):
         [['per0' 'per0']
          ['per1' 'per1']
          ['per2' 'per2']]
-        >>> print(kernel_on_disk.iid_to_index([['per2','per2'],['per1','per1']])) #Find the indexes for two iids.
+        >>> print(kernel_on_disk.iid_to_index([['per2','per2'],['per1','per1']])) # Find the row indexes for two iids.
         [2 1]
 
     :class:`.KernelReader` is a kind of :class:`.PstReader`. See the documentation for :class:`.PstReader` to learn about:
@@ -302,7 +302,7 @@ class KernelReader(PstReader):
         return ret
 
     def iid_to_index(self, list):
-        """Takes a list of iids and returns a list of index numbers.
+        """Takes a list of iids and returns a list of row index numbers.
         Assumes the kernel is square, so will throw an exception if the row iids are different from the column iids.
 
         :param list: list of iids
@@ -318,14 +318,14 @@ class KernelReader(PstReader):
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> npz_file = example_file('pysnptools/examples/toydata.kernel.npz')
         >>> kernel_on_disk = KernelNpz(npz_file)
-        >>> print(kernel_on_disk.iid_to_index([['per2','per2'],['per1','per1']])) #Find the indexes for two iids.
+        >>> print(kernel_on_disk.iid_to_index([['per2','per2'],['per1','per1']])) # Find the row indexes for two iids.
         [2 1]
         """
         assert self.iid0 is self.iid1, "When 'iid_to_index' is used, iid0 must be the same as iid1"
         return self.iid0_to_index(list)
 
     def iid0_to_index(self, list):
-        """Takes a list of row iids and returns a list of index numbers. See :attr:`iid_to_index`
+        """Takes a list of row iids and returns a list of row index numbers. See :attr:`iid_to_index`
         """
         return self.row_to_index(list)
 
@@ -335,7 +335,7 @@ class KernelReader(PstReader):
 
 
     def iid1_to_index(self, list):
-        """Takes a list of column iids and returns a list of index numbers. See :attr:`iid_to_index`
+        """Takes a list of column iids and returns a list of column index numbers. See :attr:`iid_to_index`
         """
         return self.col_to_index(list)
 

@@ -476,7 +476,7 @@ class PstReader(object):
         return ret
 
     def row_to_index(self, list):
-        """Takes a list of row ids and returns a list of index numbers
+        """Takes a list of row ids and returns a list of row index numbers
 
         :param list: list of rows
         :type order: list
@@ -485,13 +485,13 @@ class PstReader(object):
         
         This method (to the degree practical) reads only row and col data from the disk, not matrix value data. Moreover, the row and col data is read from file only once.
 
-        :Example:
+        :Example: #!!!cmk look for all b' and b"
 
         >>> from pysnptools.pstreader import PstNpz
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> pstnpz_file = example_file('tests/datasets/all_chr.maf0.001.N300.pst.npz')
         >>> on_disk = PstNpz(pstnpz_file) # Specify matrix data on disk
-        >>> print(on_disk.row_to_index([[b'POP1',b'44'],[b'POP1',b'12']])) #Find the indexes for two rows.
+        >>> print(on_disk.row_to_index([['POP1','44'],['POP1','12']])) #Find the indexes for two rows.
         [2 1]
         """
         if not hasattr(self, "_row_to_index"):
@@ -505,7 +505,7 @@ class PstReader(object):
         return index
 
     def col_to_index(self, list):
-        """Takes a list of column ds and returns a list of index numbers
+        """Takes a list of column ds and returns a list of column index numbers
 
         :param list: list of cols
         :type list: list

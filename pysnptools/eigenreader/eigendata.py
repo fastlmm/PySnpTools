@@ -11,6 +11,8 @@ from pysnptools.pstreader import PstData
 #cmk
 
 class EigenData(PstData,EigenReader):
+    # !!!cmk should it default to eid_0 not eid0?
+    # !!!cmk tell what eid defaults to
     """cmk
     A :class:`.EigenReader` for holding SNP distributions (or similar values) in-memory, along with related *iid*, *eid*, and *values* information.
     It is usually created by calling the :meth:`.EigenReader.read` method on another :class:`.EigenReader`, for example, :class:`.Bgen`.

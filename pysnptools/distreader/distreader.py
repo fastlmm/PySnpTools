@@ -309,7 +309,7 @@ class DistReader(PstReader):
         return dist2snp
 
     def iid_to_index(self, list):
-        """Takes a list of iids and returns a list of index numbers
+        """Takes a list of iids and returns a row list of row index numbers
 
         :param list: list of iids
         :type order: list of list of strings
@@ -324,13 +324,13 @@ class DistReader(PstReader):
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> bgen_file = example_file("pysnptools/examples/2500x100.bgen")
         >>> dist_on_disk = Bgen(bgen_file) # Specify SNP data on disk
-        >>> print(dist_on_disk.iid_to_index([['0','iid_2'],['0','iid_1']])) #Find the indexes for two iids.
+        >>> print(dist_on_disk.iid_to_index([['0','iid_2'],['0','iid_1']])) # Find the row indexes for two iids.
         [2 1]
         """
         return self.row_to_index(list)
 
     def sid_to_index(self, list):
-        """Takes a list of sids and returns a list of index numbers
+        """Takes a list of sids and returns a column list of column index numbers
 
         :param list: list of sids
         :type list: list of strings

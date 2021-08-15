@@ -1,17 +1,6 @@
 import numpy as np
-#import os
-#import os.path
-#from itertools import *
-#import pandas as pd
 import logging
-#import time
-#import pysnptools.util as pstutil
 from pysnptools.pstreader import PstReader
-#from pysnptools.snpreader import SnpData
-#import warnings
-#import pysnptools.standardizer as stdizer
-#from pysnptools.snpreader._eigen2snp import _eigen2Snp
-#cmk
 
 #!!why do the examples use ../tests/datasets instead of "examples"?
 class EigenReader(PstReader):
@@ -102,12 +91,12 @@ class EigenReader(PstReader):
         >>> npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
         >>> eigen_on_disk = EigenNpz(npz_file)
         >>> print(eigen_on_disk.iid[:3]) # print the first three iids
-        [['POP1' '0']
-         ['POP1' '12']
-         ['POP1' '44']]
+        [['per0' 'per0']
+         ['per1' 'per1']
+         ['per2' 'per2']]
         >>> print(eigen_on_disk.eid[:4]) # print the first four eids
-        ['eid0', 'eid1', 'eid2', 'eid4']
-        >>> print(eigen_on_disk.iid_to_index([['POP1','44'],['POP1','12']])) #Find the indexes for two iids.
+        ['eid0' 'eid1' 'eid2' 'eid3']
+        >>> print(eigen_on_disk.iid_to_index([['per2','per2'],['per1','per1']])) # Find the row indexes for two iids.
         [2 1]
 
     Selecting and Reordering Individuals and Eigenvectors/Values
@@ -147,7 +136,7 @@ class EigenReader(PstReader):
 
         :rtype: ndarray of strings with shape [:attr:`.iid_count`,2]
 
-        This property (to the degree practical) reads only iid and eid data from the disk, not column eigenvectors. Moreover, the iid and eid data is read from file only once.
+        This property (to the degree practical) reads only iid, eid, and eigenvalue data from the disk, not column eigenvectors. Moreover, the iid, eid, and eigenvalue data is read from file only once.
 
         :Example:
 
@@ -156,9 +145,9 @@ class EigenReader(PstReader):
         >>> npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
         >>> eigen_on_disk = EigenNpz(npz_file)
         >>> print(eigen_on_disk.iid[:3]) # print the first three iids
-        [['0' 'iid_0']
-         ['0' 'iid_1']
-         ['0' 'iid_2']]
+        [['per0' 'per0']
+         ['per1' 'per1']
+         ['per2' 'per2']]
         """
         return self.row
 
@@ -168,7 +157,7 @@ class EigenReader(PstReader):
 
         :rtype: integer
 
-        This property (to the degree practical) reads only iid and eid data from the disk, not column eigenvectors. Moreover, the iid and eid data is read from file only once.
+        This property (to the degree practical) reads only iid, eid, and eigenvalue data from the disk, not column eigenvectors. Moreover, the iid, eid, and eigenvalue data is read from file only once.
         """
         return self.row_count
 
@@ -187,7 +176,7 @@ class EigenReader(PstReader):
         >>> npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
         >>> eigen_on_disk = EigenNpz(npz_file)
         >>> print(eigen_on_disk.eid[:4]) # print the first four eids
-        ['eid_0' 'eid_1' 'eid_2' 'eid_3']
+        ['eid0' 'eid1' 'eid2' 'eid3']
         """
         return self.col
 
@@ -204,11 +193,12 @@ class EigenReader(PstReader):
 
     @property
     def values(self):
-        """An ndarray of the position information for each eid. Each element is an ndarray of three numpy.numbers (chromosome, genetic eigenance, basepair eigenance).
+        """An ndarray of the eigenvalue information for each eid. Each element is an ndarray of floats.
 
-        :rtype: ndarray of float64 with shape [:attr:`.eid_count`, 3]
+        :rtype: ndarray of float64 with shape [:attr:`.eid_count`]
 
-        This property (to the degree practical) reads only iid and eid data from the disk, not column eigenvectors. Moreover, the iid and eid data is read from file only once.
+        This property (to the degree practical) reads only iid, eid, and eigenvalues data from the disk, not column eigenvectors.
+        Moreover, the iidm eid, and eigenvalues are read from file only once.
 
         :Example:
 
@@ -216,11 +206,9 @@ class EigenReader(PstReader):
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
         >>> eigen_on_disk = EigenNpz(npz_file)
-        >>> print(eigen_on_disk.pos[:4,].astype('int')) # print position information for the first four eids: #The '...' is for possible space char
-        [[        1         0   9270273]
-         [        1         0  39900273]
-         [        1         0  70530273]
-         [        1         0 101160273]]
+        >>> bigger_values = eigen_on_disk[:,eigen_on_disk.values>.0001] # Create a reader for eigenvectors with values greater than .0001
+        >>> print((eigen_on_disk.eid_count, bigger_values.eid_count))
+        (500, 499)
         """
         return self.col_property
 
@@ -279,32 +267,32 @@ class EigenReader(PstReader):
         >>> from pysnptools.eigenreader import EigenNpz
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
-        >>> eigen_on_disk = EigenNpz(npz_file) # Specify SNP data on disk
-        >>> eigendata1 = eigen_on_disk.read() # Read all the SNP data returning a EigenData instance
+        >>> eigen_on_disk = EigenNpz(npz_file) # Specify eigenvector and eigenvalue data
+        >>> eigendata1 = eigen_on_disk.read() # Read all the eigenvectors returning a EigenData instance
         >>> print(type(eigendata1.vectors).__name__) # The EigenData instance contains an ndarray of the data.
         ndarray
-        >>> subset_eigendata = eigen_on_disk[:,::2].read() # From the disk, read SNP values for every other eid
-        >>> print(subset_eigendata.vectors[0,0]) # Print the first SNP value in the subset
+        >>> subset_eigendata = eigen_on_disk[:,eigen_on_disk.values>.0001].read() # From the disk, read eigenvectors with larger eigenvalues
+        >>> print(subset_eigendata.vectors[0,0]) # Print the first number in the first eigenvector.
         [0.466804   0.38812848 0.14506752]
-        >>> subsub_eigendata = subset_eigendata[:10,:].read(order='A',view_ok=True) # Create an in-memory subset of the subset with SNP values for the first ten iids. Share memory if practical.
+        >>> subsub_eigendata = subset_eigendata[:10,:].read(order='A',view_ok=True) # Create an in-memory subset of the subset with eigenvectors for the first ten iids. Share memory if practical.
         >>> import numpy as np
         >>> # print np.may_share_memory(subset_eigendata.vectors, subsub_eigendata.vectors) # Do the two ndarray's share memory? They could. Currently they won't.       
         """
         dtype = np.dtype(dtype)
         vectors = self._read(None, None, order, dtype, force_python_only, view_ok, num_threads)
         from pysnptools.eigenreader import EigenData
-        ret = EigenData(self.iid,self.eid,vectors,values=self.values,name=str(self))
+        ret = EigenData(iid=self.iid,eid=self.eid,values=self.values,vectors=vectors,name=str(self))
         return ret
 
     def iid_to_index(self, list):
-        """Takes a list of iids and returns a list of index numbers
+        """Takes a list of iids and returns a row list of row index numbers
 
         :param list: list of iids
         :type order: list of list of strings
 
         :rtype: ndarray of int
         
-        This method (to the degree practical) reads only iid and eid data from the disk, not SNP value data. Moreover, the iid and eid data is read from file only once.
+        This method (to the degree practical) reads only iid, eid, and eigenvalue data from the disk, not eigvenvectors. Moreover, the iid, eid, and eigenvalues are read from file only once.
 
         :Example:
 
@@ -312,20 +300,20 @@ class EigenReader(PstReader):
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
         >>> eigen_on_disk = EigenNpz(npz_file) # Specify SNP data on disk
-        >>> print(eigen_on_disk.iid_to_index([['0','iid_2'],['0','iid_1']])) #Find the indexes for two iids.
+        >>> print(eigen_on_disk.iid_to_index([['0','iid_2'],['0','iid_1']])) # Find the row indexes for two iids.
         [2 1]
         """
         return self.row_to_index(list)
 
     def eid_to_index(self, list):
-        """cmkTakes a list of eids and returns a list of index numbers
+        """Takes a list of eids and returns a list of column index numbers
 
         :param list: list of eids
         :type list: list of strings
 
         :rtype: ndarray of int
         
-        This method (to the degree practical) reads only iid and eid data from the disk, not SNP value data. Moreover, the iid and eid data is read from file only once.
+        This method (to the degree practical) reads only iid, eid, and eigenvalue data from the disk, not SNP value data. Moreover, the iid, eid, and eigenvalue data is read from file only once.
 
         :Example:
 
@@ -333,7 +321,7 @@ class EigenReader(PstReader):
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
         >>> eigen_on_disk = EigenNpz(npz_file) # Specify SNP data on disk
-        >>> print(eigen_on_disk.eid_to_index(['eid_2','eid_9'])) #Find the indexes for two eids.
+        >>> print(eigen_on_disk.eid_to_index(['eid2','eid9'])) #Find the indexes for two eids.
         [2 9]
         """
         return self.col_to_index(list)
@@ -379,9 +367,18 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     if False: # cmk
-        from pysnptools.eigenreader import cmk
-        eigen_on_disk = EigenNpz('../examples/toydata.eigen.npz')
-        print(eigen_on_disk.pos[:4,].astype('int')) # print position information for the first three eids: #The '...' is for possible space char
+        from pysnptools.eigenreader import EigenNpz
+        from pysnptools.util import example_file # Download and return local file name
+        npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
+        eigen_on_disk = EigenNpz(npz_file)
+        print(eigen_on_disk.iid[:3]) # print the first three iids
+        #[['POP1' '0']
+        #    ['POP1' '12']
+        #    ['POP1' '44']]
+        print(eigen_on_disk.eid[:4]) # print the first four eids
+        #['eid0', 'eid1', 'eid2', 'eid4']
+        print(eigen_on_disk.iid_to_index([['POP1','44'],['POP1','12']])) # Find the row indexes for two iids.
+        #[2 1]
 
     import doctest
     doctest.testmod(optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
