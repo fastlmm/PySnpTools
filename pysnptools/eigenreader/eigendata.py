@@ -1,13 +1,8 @@
 import numpy as np
-#from itertools import *
-#import pandas as pd
 import logging
 from pysnptools.eigenreader import EigenReader
-#from pysnptools.standardizer import Unit
-#from pysnptools.standardizer import Identity
+from pysnptools.snpreader import SnpData
 from pysnptools.pstreader import PstData
-#import warnings
-#import time
 #cmk
 
 class EigenData(PstData,EigenReader):
@@ -80,7 +75,7 @@ class EigenData(PstData,EigenReader):
 
         #We don't have a 'super(EigenData, self).__init__()' here because EigenData takes full responsibility for initializing both its superclasses
 
-        self._val = None
+        ##self._val = None
 
         self._row = PstData._fixup_input(iid,empty_creator=lambda ignore:np.empty([0,2],dtype='str'),dtype='str')
         self._row_property = PstData._fixup_input(None,count=len(self._row),empty_creator=lambda count:np.empty([count,0],dtype='str'),dtype='str')
@@ -139,6 +134,32 @@ class EigenData(PstData,EigenReader):
         '''
         return PstData.allclose(self,value,equal_nan=equal_nan)
 
+    # !!!cmk document
+    # !!!cmk should this take snpdata instead?
+    # !!!cmk how to understand the low rank bit?
+    #def rotate(self, snpdata):
+    #    rotated_val = self.vectors.T.dot(snpdata.val)
+    #    #!!!cmk make iid calc faster
+    #    rotated_snpdata = SnpData(iid=[("", id) for id in self.eid], sid=snpdata.sid, val=rotated_val, name=f"rotated({snpdata})")
+
+    #    if self.is_low_rank:
+    #        double_rotated_val = snpdata.val - self.vectors.dot(rotated_val)
+    #        double_rotated_snpdata = SnpData(iid=snpdata.iid, sid=snpdata.sid, val=double_rotated_val, name=f"double_rotated({snpdata})")
+    #    else:
+    #        double_rotated_snpdata = None
+    #    return Rotation(rotated_snpdata, double_rotated_snpdata)
+    #!!!cmkx
+    def rotate(self, data):
+        rotated_val = self.vectors.T.dot(data)
+        #!!!cmk make iid calc faster
+        #rotated_snpdata = SnpData(iid=[("", id) for id in self.eid], sid=snpdata.sid, val=rotated_val, name=f"rotated({snpdata})")
+
+        if self.is_low_rank:
+            double_rotated_val = data - self.vectors.dot(rotated_val)
+            #double_rotated_snpdata = SnpData(iid=snpdata.iid, sid=snpdata.sid, val=double_rotated_val, name=f"double_rotated({snpdata})")
+        else:
+            double_rotated_val = None
+        return Rotation(rotated_val, double_rotated_val)
 
     def __repr__(self):
         if self._name == "":
@@ -152,6 +173,22 @@ class EigenData(PstData,EigenReader):
             else:
                 s = "{0}({1})".format(self.__class__.__name__,self._name)
         return s
+
+    #!!!cmk document
+class Rotation:
+    def __init__(self, rotated, double_rotated):
+        self.rotated = rotated
+        self.double_rotated = double_rotated
+
+    def __getitem__(self, index):
+        rotated = self.rotated[:,index:index+1] #!!!cmkx .read(view_ok=True)
+        if self.double_rotated is not None:
+            double_rotated = self.double_rotated[:,index:index+1] #!!!cmkx .read(view_ok=True)
+        else:
+            double_rotated = None
+        return Rotation(rotated,double_rotated)
+
+
 
 
 if __name__ == "__main__":

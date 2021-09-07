@@ -151,6 +151,13 @@ class EigenReader(PstReader):
         """
         return self.row
 
+    # !!!cmk document
+    @property
+    def is_low_rank(self):
+        k = self.eid_count       # number of eigenvalues (and eigenvectors)
+        N = self.iid_count       # number of individuals
+        return k<N
+
     @property
     def iid_count(self):
         """number of iids
