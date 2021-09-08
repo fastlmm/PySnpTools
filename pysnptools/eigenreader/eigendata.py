@@ -19,7 +19,7 @@ class EigenData(PstData,EigenReader):
         :Parameters: * **iid** (an array of string pair) -- The :attr:`EigenReader.iid` information.
                      * **values** (optional, an array of strings) -- The :attr:`EigenReader.values` information
                      * **vectors** (a 2-D array of floats) -- The column eigenvectors
-                     * **eid** (optional, an array of strings) -- The :attr:`EigenReader.eid` information.
+                     * **eid** (optional, an array of string pairs) -- The :attr:`EigenReader.eid` information.
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **copyinputs_function** (optional, function) -- *Used internally by optional clustering code*
 
@@ -81,7 +81,7 @@ class EigenData(PstData,EigenReader):
         self._row_property = PstData._fixup_input(None,count=len(self._row),empty_creator=lambda count:np.empty([count,0],dtype='str'),dtype='str')
 
         self._col_property = PstData._fixup_input(values,dtype=np.float64) # !!!cmk need to raise error of values is None
-        self._col = PstData._fixup_input(eid,count=len(self._col_property),dtype='str',empty_creator=lambda count:np.array([f"eid{eid_index}" for eid_index in range(count)]))
+        self._col = PstData._fixup_input(eid,count=len(self._col_property),dtype='str',empty_creator=lambda count:np.array([["",f"eid{eid_index}"] for eid_index in range(count)]))
 
         self._val = PstData._fixup_input_val(vectors,row_count=len(self._row),col_count=len(self._col),
                                              empty_creator=lambda row_count,col_count:np.empty([row_count,col_count],
@@ -140,7 +140,7 @@ class EigenData(PstData,EigenReader):
     def rotate(self, snpdata):
         rotated_val = self.vectors.T.dot(snpdata.val)
         #!!!cmk make iid calc faster
-        rotated_snpdata = SnpData(iid=[("", id) for id in self.eid], sid=snpdata.sid, val=rotated_val, name=f"rotated({snpdata})")
+        rotated_snpdata = SnpData(iid=self.eid, sid=snpdata.sid, val=rotated_val, name=f"rotated({snpdata})")
 
         if self.is_low_rank:
             double_rotated_val = snpdata.val - self.vectors.dot(rotated_val)
@@ -148,18 +148,6 @@ class EigenData(PstData,EigenReader):
         else:
             double_rotated_snpdata = None
         return Rotation(rotated_snpdata, double_rotated_snpdata)
-    ###!!!cmkx
-    #def rotate(self, data):
-    #    rotated_val = self.vectors.T.dot(data)
-    #    #!!!cmk make iid calc faster
-    #    #rotated_snpdata = SnpData(iid=[("", id) for id in self.eid], sid=snpdata.sid, val=rotated_val, name=f"rotated({snpdata})")
-
-    #    if self.is_low_rank:
-    #        double_rotated_val = data - self.vectors.dot(rotated_val)
-    #        #double_rotated_snpdata = SnpData(iid=snpdata.iid, sid=snpdata.sid, val=double_rotated_val, name=f"double_rotated({snpdata})")
-    #    else:
-    #        double_rotated_val = None
-    #    return Rotation(rotated_val, double_rotated_val)
 
     def __repr__(self):
         if self._name == "":
