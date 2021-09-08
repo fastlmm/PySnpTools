@@ -134,32 +134,32 @@ class EigenData(PstData,EigenReader):
         '''
         return PstData.allclose(self,value,equal_nan=equal_nan)
 
-    # !!!cmk document
-    # !!!cmk should this take snpdata instead?
-    # !!!cmk how to understand the low rank bit?
-    #def rotate(self, snpdata):
-    #    rotated_val = self.vectors.T.dot(snpdata.val)
-    #    #!!!cmk make iid calc faster
-    #    rotated_snpdata = SnpData(iid=[("", id) for id in self.eid], sid=snpdata.sid, val=rotated_val, name=f"rotated({snpdata})")
-
-    #    if self.is_low_rank:
-    #        double_rotated_val = snpdata.val - self.vectors.dot(rotated_val)
-    #        double_rotated_snpdata = SnpData(iid=snpdata.iid, sid=snpdata.sid, val=double_rotated_val, name=f"double_rotated({snpdata})")
-    #    else:
-    #        double_rotated_snpdata = None
-    #    return Rotation(rotated_snpdata, double_rotated_snpdata)
-    #!!!cmkx
-    def rotate(self, data):
-        rotated_val = self.vectors.T.dot(data)
+    #!!!cmk document
+    #!!!cmk should this take snpdata instead?
+    #!!!cmk how to understand the low rank bit?
+    def rotate(self, snpdata):
+        rotated_val = self.vectors.T.dot(snpdata.val)
         #!!!cmk make iid calc faster
-        #rotated_snpdata = SnpData(iid=[("", id) for id in self.eid], sid=snpdata.sid, val=rotated_val, name=f"rotated({snpdata})")
+        rotated_snpdata = SnpData(iid=[("", id) for id in self.eid], sid=snpdata.sid, val=rotated_val, name=f"rotated({snpdata})")
 
         if self.is_low_rank:
-            double_rotated_val = data - self.vectors.dot(rotated_val)
-            #double_rotated_snpdata = SnpData(iid=snpdata.iid, sid=snpdata.sid, val=double_rotated_val, name=f"double_rotated({snpdata})")
+            double_rotated_val = snpdata.val - self.vectors.dot(rotated_val)
+            double_rotated_snpdata = SnpData(iid=snpdata.iid, sid=snpdata.sid, val=double_rotated_val, name=f"double_rotated({snpdata})")
         else:
-            double_rotated_val = None
-        return Rotation(rotated_val, double_rotated_val)
+            double_rotated_snpdata = None
+        return Rotation(rotated_snpdata, double_rotated_snpdata)
+    ###!!!cmkx
+    #def rotate(self, data):
+    #    rotated_val = self.vectors.T.dot(data)
+    #    #!!!cmk make iid calc faster
+    #    #rotated_snpdata = SnpData(iid=[("", id) for id in self.eid], sid=snpdata.sid, val=rotated_val, name=f"rotated({snpdata})")
+
+    #    if self.is_low_rank:
+    #        double_rotated_val = data - self.vectors.dot(rotated_val)
+    #        #double_rotated_snpdata = SnpData(iid=snpdata.iid, sid=snpdata.sid, val=double_rotated_val, name=f"double_rotated({snpdata})")
+    #    else:
+    #        double_rotated_val = None
+    #    return Rotation(rotated_val, double_rotated_val)
 
     def __repr__(self):
         if self._name == "":
@@ -181,9 +181,9 @@ class Rotation:
         self.double_rotated = double_rotated
 
     def __getitem__(self, index):
-        rotated = self.rotated[:,index:index+1] #!!!cmkx .read(view_ok=True)
+        rotated = self.rotated[:,index:index+1].read(view_ok=True)
         if self.double_rotated is not None:
-            double_rotated = self.double_rotated[:,index:index+1] #!!!cmkx .read(view_ok=True)
+            double_rotated = self.double_rotated[:,index:index+1].read(view_ok=True)
         else:
             double_rotated = None
         return Rotation(rotated,double_rotated)

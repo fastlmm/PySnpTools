@@ -331,7 +331,7 @@ def sub_matrix(val, row_index_list, col_index_list, order="A", dtype=np.float64,
         order=effective_order
         )   
 
-    logging.debug("About to call Rust matrixSubset")
+    logging.trace("About to call Rust matrixSubset")
     num_threads = get_num_threads(num_threads)
     if val.flags["F_CONTIGUOUS"] or val.flags["C_CONTIGUOUS"]:
         row_index_list = np.asarray(row_index_list,dtype=np.uintp)
@@ -389,7 +389,7 @@ def sub_matrix(val, row_index_list, col_index_list, order="A", dtype=np.float64,
     if original_dimensions == 2:
         assert sub_val.shape[2] == 1, "real assert"
         sub_val = sub_val.reshape(sub_val.shape[0], sub_val.shape[1])
-    logging.debug("Back from Rust matrixSubset")
+    logging.trace("Back from Rust matrixSubset")
     return sub_val
 
 
