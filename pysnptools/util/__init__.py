@@ -121,7 +121,7 @@ def intersect_apply(
                     reindex = lambda data, iididx: data[:, iididx]
                 else:
                     try:
-                        iid = data.iid
+                        iid = data.row
                         try:
                             if (
                                 iid is data.col
