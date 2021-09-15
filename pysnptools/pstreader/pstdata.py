@@ -83,6 +83,7 @@ class PstData(PstReader):
         if parent_string is not None:
             warnings.warn("'parent_string' is deprecated. Use 'name'", DeprecationWarning)
         self._name = name
+        self.copyinputs_function = copyinputs_function
 
     def _assert_row_col_and_properties(self,check_val):
         if check_val:
@@ -221,6 +222,29 @@ class PstData(PstReader):
             val = val.copy(order='K')
         return val
 
+    #!!!cmk needs doc
+    @property
+    def T(self):
+        return PstData(val=self.val.T, row=self.col, col=self.row, row_property=self.col_property, col_property=self.row_property, name=f"{self}.T")
+
+    def dot(self,b):
+        return PstData(val=self.val.dot(b.val), row=self.row, col=b.col, row_property=self.row_property, col_property=b.col_property, name=f"{self}.dot({b})")
+
+    def dot(self,b):
+        return PstData(val=self.val.dot(b.val), row=self.row, col=b.col, row_property=self.row_property, col_property=b.col_property, name=f"{self}.dot({b})")
+
+    @staticmethod
+    def _trucate_string(item, len):
+        item_str = str(item)
+        item_str = item_str[:len] + (item_str[len:] and '..')
+        return item_str
+
+    def __truediv__(self,b):
+        return PstData(val=self.val/b, row=self.row, col=self.col, row_property=self.row_property, col_property=self.col_property, name=f"{self}/{PstData._trucate_string(b, 20)}")
+
+    def __sub__(self,b):
+        # !!!cmk could check that same row and col
+        return PstData(val=self.val-b.val, row=self.row, col=self.col, row_property=self.row_property, col_property=self.col_property, name=f"{self}-{b}")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

@@ -134,6 +134,19 @@ class EigenData(PstData,EigenReader):
         '''
         return PstData.allclose(self,value,equal_nan=equal_nan)
 
+    def logdet(self, delta=None):
+        # !!!cmk could have path for delta=0
+        # "reshape" lets it broadcast
+        if delta is None:
+            Sd = self.values.reshape(-1,1)
+        else:
+            Sd = (self.values + delta.val).reshape(-1, 1)
+        logdet = np.log(Sd).sum()
+        if self.is_low_rank:  # !!!cmk test this
+            logdet += (self.row_count - self.eid_count) * np.log(delta.val)
+        return logdet, Sd
+
+
     #!!!cmk document
     #!!!cmk should this take snpdata instead?
     #!!!cmk how to understand the low rank bit?
@@ -148,6 +161,19 @@ class EigenData(PstData,EigenReader):
         else:
             double_pstdata = None
         return Rotation(rotated_pstdata, double_pstdata)
+
+    #!!!cmk document
+    #!!!cmk should this take snpdata instead?
+    #!!!cmk how to understand the low rank bit?
+    def t_rotate(self, pstdata):
+        t_rotated_val = self.vectors.dot(pstdata.val)
+        #!!!cmk make row calc faster
+        rotated_pstdata = PstData(row=self.row, col=pstdata.col, val=t_rotated_val, name=f"t_rotated({pstdata})")
+
+        assert(not self.is_low_rank) # !!!cmk need code or better error message
+        double_pstdata = None
+        return Rotation(rotated_pstdata, double_pstdata)
+
 
     def __repr__(self):
         if self._name == "":
@@ -177,9 +203,28 @@ class Rotation:
         return Rotation(rotated,double)
 
     @property
-    def sid_count(self):
-        return self.rotated.shape[1]
+    def row_count(self):
+        return self.rotated.row_count
 
+    @property
+    def col_count(self):
+        return self.rotated.col_count
+
+    @property
+    def row(self):
+        return self.rotated.row
+
+    @property
+    def col(self):
+        return self.rotated.col
+
+    @property
+    def val(self):
+        return self.rotated.val
+
+    @property
+    def shape(self):
+        return self.rotated.shape
 
 
 if __name__ == "__main__":

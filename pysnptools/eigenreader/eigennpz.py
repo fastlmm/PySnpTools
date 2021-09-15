@@ -4,6 +4,7 @@ from pysnptools.eigenreader import EigenReader
 import logging
 import warnings
 
+#!!!cmk update
 class EigenNpz(PstNpz,EigenReader):
     '''
     A :class:`.EigenReader` for reading \*.eigen.npz files from disk.
