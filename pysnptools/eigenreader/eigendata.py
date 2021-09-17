@@ -140,10 +140,12 @@ class EigenData(PstData,EigenReader):
         if delta is None:
             Sd = self.values.reshape(-1,1)
         else:
-            Sd = (self.values + delta.val).reshape(-1, 1)
-        logdet = np.log(Sd).sum()
+            Sd = self.clone(val=self.values.reshape(-1, 1) + delta.val,
+                           row=self.col, row_property=self.col_property, col=delta.col, col_property=delta.col_property)
+        logdet = Sd.clone(val=np.log(Sd.val).sum(axis=0).reshape(1,-1),
+                          row=["logdet"],row_property=[None])
         if self.is_low_rank:  # !!!cmk test this
-            logdet += (self.row_count - self.eid_count) * np.log(delta.val)
+            logdet.val += (self.row_count - self.eid_count) * np.log(delta.val)
         return logdet, Sd
 
 

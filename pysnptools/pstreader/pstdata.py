@@ -230,21 +230,40 @@ class PstData(PstReader):
     def dot(self,b):
         return PstData(val=self.val.dot(b.val), row=self.row, col=b.col, row_property=self.row_property, col_property=b.col_property, name=f"{self}.dot({b})")
 
-    def dot(self,b):
-        return PstData(val=self.val.dot(b.val), row=self.row, col=b.col, row_property=self.row_property, col_property=b.col_property, name=f"{self}.dot({b})")
+    def clone(self, val=None, row=None, col=None, row_property=None, col_property=None, name=None):
+        return PstData(val=val if val is not None else self.val,
+                       row=row if row is not None else self.row,
+                       col=col if col is not None else self.col,
+                       row_property=row_property if row_property is not None else self.row_property,
+                       col_property=col_property if col_property is not None else self.col_property,
+                       name=name if name is not None else str(self)
+                       )
 
-    @staticmethod
-    def _trucate_string(item, len):
-        item_str = str(item)
-        item_str = item_str[:len] + (item_str[len:] and '..')
-        return item_str
 
-    def __truediv__(self,b):
-        return PstData(val=self.val/b, row=self.row, col=self.col, row_property=self.row_property, col_property=self.col_property, name=f"{self}/{PstData._trucate_string(b, 20)}")
+    #@staticmethod
+    #def _trucate_string(item, len):
+    #    item_str = str(item)
+    #    item_str = item_str[:len] + (item_str[len:] and '..')
+    #    return item_str
 
-    def __sub__(self,b):
-        # !!!cmk could check that same row and col
-        return PstData(val=self.val-b.val, row=self.row, col=self.col, row_property=self.row_property, col_property=self.col_property, name=f"{self}-{b}")
+    #def __truediv__(self,b):
+    #    return PstData(val=self.val/b, row=self.row, col=self.col, row_property=self.row_property, col_property=self.col_property, name=f"{self}/{PstData._trucate_string(b, 20)}")
+
+    #def __sub__(self,b):
+    #     !!!cmk could check that same row and col
+    #    return PstData(val=self.val-b.val, row=self.row, col=self.col, row_property=self.row_property, col_property=self.col_property, name=f"{self}-{b}")
+
+    #def __add__(self,b):
+    #     !!!cmk could check that same row and col
+    #    return PstData(val=self.val+b, row=self.row, col=self.col, row_property=self.row_property, col_property=self.col_property, name=f"{self}+{b}")
+
+    #def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+    #    if ufunc is np.exp:
+    #        return PstData(val=np.exp(self.val), row=self.row, col=self.col, row_property=self.row_property, col_property=self.col_property, name=f"exp({self})")
+    #    if ufunc is np.reciprocal:
+    #        return PstData(val=np.reciprocal(self.val), row=self.row, col=self.col, row_property=self.row_property, col_property=self.col_property, name=f"reciprical({self})")
+    #    else:
+    #        assert False, f"Don't know how to apply '{ufunc}' to PstData" #!!!cmk
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
