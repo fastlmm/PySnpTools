@@ -140,20 +140,21 @@ class EigenData(PstData,EigenReader):
         if delta is None:
             Sd = self.values.reshape(-1,1)
         else:
-            Sd = self.clone(val=self.values.reshape(-1, 1) + delta.val,
-                           row=self.col, row_property=self.col_property, col=delta.col, col_property=delta.col_property)
-        logdet = Sd.clone(val=np.log(Sd.val).sum(axis=0).reshape(1,-1),
-                          row=["logdet"],row_property=[None])
+            Sd = self.values.reshape(-1, 1) + delta
+        logdet = np.log(Sd).sum(axis=0).reshape(1,-1)
         if self.is_low_rank:  # !!!cmk test this
-            logdet.val += (self.row_count - self.eid_count) * np.log(delta.val)
-        return logdet, Sd
+            logdet += (self.row_count - self.eid_count) * np.log(delta)
+        return logdet, Sd # !!!cmk shape 1,3 50,3
 
 
     #!!!cmk document
     #!!!cmk should this take snpdata instead?
     #!!!cmk how to understand the low rank bit?
     def rotate(self, pstdata):
-        rotated_val = self.vectors.T.dot(pstdata.val)
+        val = pstdata.val
+        if len(val.shape)==3: #!!!cmk ugly
+            val = np.squeeze(val,-1)
+        rotated_val = self.vectors.T.dot(val)
         #!!!cmk make row calc faster
         rotated_pstdata = PstData(row=self.col, col=pstdata.col, val=rotated_val, name=f"rotated({pstdata})")
 
@@ -164,10 +165,9 @@ class EigenData(PstData,EigenReader):
             double_pstdata = None
         return Rotation(rotated_pstdata, double_pstdata)
 
-    #!!!cmk document
     #!!!cmk should this take snpdata instead?
     #!!!cmk how to understand the low rank bit?
-    def t_rotate(self, pstdata):
+    def t_rotate(self, pstdata): #!!!cmk not pstdata
         t_rotated_val = self.vectors.dot(pstdata.val)
         #!!!cmk make row calc faster
         rotated_pstdata = PstData(row=self.row, col=pstdata.col, val=t_rotated_val, name=f"t_rotated({pstdata})")
