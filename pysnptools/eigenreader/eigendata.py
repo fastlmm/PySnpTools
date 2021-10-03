@@ -150,7 +150,7 @@ class EigenData(PstData,EigenReader):
     #!!!cmk document
     #!!!cmk should this take snpdata instead?
     #!!!cmk how to understand the low rank bit?
-    def rotate(self, pstdata, is_diagonal):
+    def rotate(self, pstdata, is_diagonal=False):
         val = pstdata.val
         if len(val.shape)==3: #!!!cmk ugly
             val = np.squeeze(val,-1)
@@ -167,7 +167,7 @@ class EigenData(PstData,EigenReader):
 
     #!!!cmk should this take snpdata instead?
     #!!!cmk how to understand the low rank bit?
-    def t_rotate(self, pstdata, is_diagonal): #!!!cmk not pstdata
+    def t_rotate(self, pstdata, is_diagonal=False): #!!!cmk not pstdata
         t_rotated_val = self.vectors.dot(pstdata.val)
         #!!!cmk make row calc faster
         rotated_pstdata = PstData(row=self.row, col=pstdata.col, val=t_rotated_val, name=f"t_rotated({pstdata})")
@@ -192,7 +192,7 @@ class EigenData(PstData,EigenReader):
 
     #!!!cmk document
 class Rotation:
-    def __init__(self, rotated, double, is_diagonal):
+    def __init__(self, rotated, double, is_diagonal=False):
         self.rotated = rotated
         self.double = double
         self.is_diagonal = is_diagonal
