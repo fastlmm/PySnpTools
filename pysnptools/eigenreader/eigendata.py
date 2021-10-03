@@ -228,6 +228,42 @@ class Rotation:
         return self.rotated.col
 
     @property
+    def diagonal_or_col(self):
+        if self.is_diagonal:
+            return self.diagonal_name
+        else:
+            return self.rotated.col
+
+    def ein(self,s):
+        assert len(s)==1, "length of string must be 1"
+        assert s!="d", "string can not be 'd'"
+        if self.is_diagonal:
+            return "d"
+        else:
+            return s
+
+    @staticmethod
+    def ein_cat(*args):
+        result = ""
+        for i in range(len(args)-1,-1,-1):
+            arg = args[i]
+            assert len(arg)==1, "Expect inputs to be one letter"
+            if arg in result:
+                assert arg=="d", "if a letter appears twice it should be 'd' for diagonal"
+            else:
+                result = arg + result
+        return result
+
+    @staticmethod
+    def ein_d(a,b):
+        result = "d"
+        if b != "d":
+            result = b+result
+        if a != "d":
+            result = a+result
+        return result
+
+    @property
     def val(self):
         return self.rotated.val
 
