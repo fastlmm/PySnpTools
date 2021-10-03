@@ -150,7 +150,7 @@ class EigenData(PstData,EigenReader):
     #!!!cmk document
     #!!!cmk should this take snpdata instead?
     #!!!cmk how to understand the low rank bit?
-    def rotate(self, pstdata):
+    def rotate(self, pstdata, is_diagonal):
         val = pstdata.val
         if len(val.shape)==3: #!!!cmk ugly
             val = np.squeeze(val,-1)
@@ -163,18 +163,18 @@ class EigenData(PstData,EigenReader):
             double_pstdata = PstData(row=pstdata.row, col=pstdata.col, val=double_val, name=f"double({pstdata})")
         else:
             double_pstdata = None
-        return Rotation(rotated_pstdata, double_pstdata)
+        return Rotation(rotated_pstdata, double_pstdata, is_diagonal=is_diagonal)
 
     #!!!cmk should this take snpdata instead?
     #!!!cmk how to understand the low rank bit?
-    def t_rotate(self, pstdata): #!!!cmk not pstdata
+    def t_rotate(self, pstdata, is_diagonal): #!!!cmk not pstdata
         t_rotated_val = self.vectors.dot(pstdata.val)
         #!!!cmk make row calc faster
         rotated_pstdata = PstData(row=self.row, col=pstdata.col, val=t_rotated_val, name=f"t_rotated({pstdata})")
 
         assert(not self.is_low_rank) # !!!cmk need code or better error message
         double_pstdata = None
-        return Rotation(rotated_pstdata, double_pstdata)
+        return Rotation(rotated_pstdata, double_pstdata, is_diagonal=is_diagonal)
 
 
     def __repr__(self):
@@ -192,9 +192,10 @@ class EigenData(PstData,EigenReader):
 
     #!!!cmk document
 class Rotation:
-    def __init__(self, rotated, double):
+    def __init__(self, rotated, double, is_diagonal):
         self.rotated = rotated
         self.double = double
+        self.is_diagonal = is_diagonal
 
     def __getitem__(self, index):
         rotated = self.rotated[:,index:index+1].read(view_ok=True)
@@ -202,7 +203,7 @@ class Rotation:
             double = self.double[:,index:index+1].read(view_ok=True)
         else:
             double = None
-        return Rotation(rotated,double)
+        return Rotation(rotated,double,is_diagonal=self.is_diagonal)
 
     @property
     def row_count(self):
