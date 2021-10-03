@@ -192,13 +192,19 @@ class EigenData(PstData,EigenReader):
 
     #!!!cmk document
 class Rotation:
+    diagonal_name = np.array(["diagonal"])  #!!!cmk similar code
+
     def __init__(self, rotated, double, is_diagonal=False):
         self.rotated = rotated
         self.double = double
         self.is_diagonal = is_diagonal
 
+
     def __getitem__(self, index):
         rotated = self.rotated[:,index:index+1].read(view_ok=True)
+        if self.is_diagonal:
+            rotated = rotated.clone(col=self.diagonal_name)
+
         if self.double is not None:
             double = self.double[:,index:index+1].read(view_ok=True)
         else:
