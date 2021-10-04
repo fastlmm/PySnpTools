@@ -138,9 +138,9 @@ class EigenData(PstData,EigenReader):
         # !!!cmk could have path for delta=0
         # "reshape" lets it broadcast
         if delta is None:
-            Sd = self.values.reshape(-1,1)
+            Sd = self.values.reshape(-1,1)         #!!!cmk kludge
         else:
-            Sd = self.values.reshape(-1, 1) + delta
+            Sd = self.values.reshape(-1, 1) + delta #!!!cmk kludge
         logdet = np.log(Sd).sum(axis=0).reshape(1,-1)
         if self.is_low_rank:  # !!!cmk test this
             logdet += (self.row_count - self.eid_count) * np.log(delta)
@@ -148,33 +148,31 @@ class EigenData(PstData,EigenReader):
 
 
     #!!!cmk document
-    #!!!cmk should this take snpdata instead?
     #!!!cmk how to understand the low rank bit?
-    def rotate(self, pstdata, is_diagonal=False):
+    def rotate(self, pstdata, is_diagonal=False, transpose_input=False):
         val = pstdata.val
-        if len(val.shape)==3: #!!!cmk ugly
+        if len(val.shape)==3:
             val = np.squeeze(val,-1)
-        rotated_val = self.vectors.T.dot(val)
+        rotated_val = np.einsum("ae,ab->eb",self.vectors,val)
         #!!!cmk make row calc faster
         rotated_pstdata = PstData(row=self.col, col=pstdata.col, val=rotated_val, name=f"rotated({pstdata})")
 
         if self.is_low_rank:
-            double_val = pstdata.val - self.vectors.dot(rotated_val)
-            double_pstdata = PstData(row=pstdata.row, col=pstdata.col, val=double_val, name=f"double({pstdata})")
+            rotated_back_pstdata = self.rotate_back(rotated_pstdata)
+            double_pstdata = rotated_back_pstdata.clone(val = pstdata.val-rotated_back_pstdata.val, name=f"double({pstdata})")
         else:
             double_pstdata = None
         return Rotation(rotated_pstdata, double_pstdata, is_diagonal=is_diagonal)
 
     #!!!cmk should this take snpdata instead?
     #!!!cmk how to understand the low rank bit?
-    def t_rotate(self, pstdata, is_diagonal=False): #!!!cmk not pstdata
-        t_rotated_val = self.vectors.dot(pstdata.val)
-        #!!!cmk make row calc faster
-        rotated_pstdata = PstData(row=self.row, col=pstdata.col, val=t_rotated_val, name=f"t_rotated({pstdata})")
-
-        assert(not self.is_low_rank) # !!!cmk need code or better error message
-        double_pstdata = None
-        return Rotation(rotated_pstdata, double_pstdata, is_diagonal=is_diagonal)
+    def rotate_back(self, pstdata): #!!!cmk not pstdata
+        val = pstdata.val
+        if len(val.shape)==3:
+            val = np.squeeze(val,-1)
+        rotated_back_val = np.einsum("ae,eb->ab",self.vectors,val)
+        rotated_back_pstdata = PstData(row=self.row, col=pstdata.col, val=rotated_back_val, name=f"rotated_back({pstdata})")
+        return rotated_back_pstdata
 
 
     def __repr__(self):
