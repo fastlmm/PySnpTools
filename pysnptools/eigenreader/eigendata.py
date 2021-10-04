@@ -238,9 +238,9 @@ class Rotation:
         assert len(s)==1, "length of string must be 1"
         assert s!="d", "string can not be 'd'"
         if self.is_diagonal:
-            return "d"
+            return "d", np.newaxis
         else:
-            return s
+            return s, np.s_[:]
 
     @staticmethod
     def ein_cat(*args):
