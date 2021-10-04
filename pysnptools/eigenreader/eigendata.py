@@ -138,13 +138,13 @@ class EigenData(PstData,EigenReader):
         # !!!cmk could have path for delta=0
         # "reshape" lets it broadcast
         if delta is None:
-            Sd = self.values.reshape(-1,1)         #!!!cmk kludge
+            Sd = self.values
         else:
-            Sd = self.values.reshape(-1, 1) + delta #!!!cmk kludge
-        logdet = np.log(Sd).sum(axis=0).reshape(1,-1)
+            Sd = self.values + delta
+        logdet = np.log(Sd).sum()
         if self.is_low_rank:  # !!!cmk test this
             logdet += (self.row_count - self.eid_count) * np.log(delta)
-        return logdet, Sd # !!!cmk shape 1,3 50,3
+        return logdet, Sd
 
 
     #!!!cmk document
@@ -154,24 +154,36 @@ class EigenData(PstData,EigenReader):
         if len(val.shape)==3:
             val = np.squeeze(val,-1)
         rotated_val = np.einsum("ae,ab->eb",self.vectors,val)
-        #!!!cmk make row calc faster
         rotated_pstdata = PstData(row=self.col, col=pstdata.col, val=rotated_val, name=f"rotated({pstdata})")
 
-        if self.is_low_rank:
-            rotated_back_pstdata = self.rotate_back(rotated_pstdata)
-            double_pstdata = rotated_back_pstdata.clone(val = pstdata.val-rotated_back_pstdata.val, name=f"double({pstdata})")
-        else:
-            double_pstdata = None
-        return Rotation(rotated_pstdata, double_pstdata, is_diagonal=is_diagonal)
+        rotation = Rotation(rotated_pstdata, double=None, is_diagonal=is_diagonal)
 
-    #!!!cmk should this take snpdata instead?
+        if self.is_low_rank:
+            rotated_back_pstdata = self.rotate_back(rotation, check_low_rank=False)
+            double_pstdata = rotated_back_pstdata.clone(val = pstdata.val-rotated_back_pstdata.val, name=f"double({pstdata})")
+            rotation = Rotation(rotated_pstdata, double=double_pstdata, is_diagonal=is_diagonal)
+
+        # !!!cmk make a test of this kludge
+        if not np.allclose(val, self.rotate_back(rotation).val, rtol=0, atol=1e-9):
+            pstdata2 = self.rotate_back(rotation)
+            assert False
+
+        return rotation
+
     #!!!cmk how to understand the low rank bit?
-    def rotate_back(self, pstdata): #!!!cmk not pstdata
-        val = pstdata.val
+    def rotate_back(self, rotation, check_low_rank=True):
+        if check_low_rank:
+            assert (rotation.double is not None) == self.is_low_rank, "low rank eigens expect a non-empty rotation.double"
+
+        val = rotation.val
         if len(val.shape)==3:
             val = np.squeeze(val,-1)
         rotated_back_val = np.einsum("ae,eb->ab",self.vectors,val)
-        rotated_back_pstdata = PstData(row=self.row, col=pstdata.col, val=rotated_back_val, name=f"rotated_back({pstdata})")
+
+        if rotation.double is not None:
+            rotated_back_val += rotation.double.val
+
+        rotated_back_pstdata = PstData(row=self.row, col=rotation.col, val=rotated_back_val, name=f"rotated_back({rotation})")
         return rotated_back_pstdata
 
 
