@@ -3,9 +3,11 @@ import logging
 from pysnptools.eigenreader import EigenReader
 from pysnptools.snpreader import SnpData
 from pysnptools.pstreader import PstData
-#cmk
 
-class EigenData(PstData,EigenReader):
+# cmk
+
+
+class EigenData(PstData, EigenReader):
     # !!!cmk should it default to eid_0 not eid0?
     # !!!cmk tell what eid defaults to
     """cmk iid to row
@@ -71,21 +73,44 @@ class EigenData(PstData,EigenReader):
 
     """
 
-    def __init__(self, row, values, vectors, eid=None, name=None, copyinputs_function=None):
+    def __init__(
+        self, row, values, vectors, eid=None, name=None, copyinputs_function=None
+    ):
 
-        #We don't have a 'super(EigenData, self).__init__()' here because EigenData takes full responsibility for initializing both its superclasses
+        # We don't have a 'super(EigenData, self).__init__()' here because EigenData takes full responsibility for initializing both its superclasses
 
         ##self._val = None
 
-        self._row = PstData._fixup_input(row,empty_creator=lambda ignore:np.empty([0,2],dtype='str'),dtype='str')
-        self._row_property = PstData._fixup_input(None,count=len(self._row),empty_creator=lambda count:np.empty([count,0],dtype='str'),dtype='str')
+        self._row = PstData._fixup_input(
+            row, empty_creator=lambda ignore: np.empty([0, 2], dtype="str"), dtype="str"
+        )
+        self._row_property = PstData._fixup_input(
+            None,
+            count=len(self._row),
+            empty_creator=lambda count: np.empty([count, 0], dtype="str"),
+            dtype="str",
+        )
 
-        self._col_property = PstData._fixup_input(values,dtype=np.float64) # !!!cmk need to raise error of values is None
-        self._col = PstData._fixup_input(eid,count=len(self._col_property),dtype='str',empty_creator=lambda count:np.array([["",f"eid{eid_index}"] for eid_index in range(count)]))
+        self._col_property = PstData._fixup_input(
+            values, dtype=np.float64
+        )  # !!!cmk need to raise error of values is None
+        self._col = PstData._fixup_input(
+            eid,
+            count=len(self._col_property),
+            dtype="str",
+            empty_creator=lambda count: np.array(
+                [["", f"eid{eid_index}"] for eid_index in range(count)]
+            ),
+        )
 
-        self._val = PstData._fixup_input_val(vectors,row_count=len(self._row),col_count=len(self._col),
-                                             empty_creator=lambda row_count,col_count:np.empty([row_count,col_count],
-                                             dtype=np.float64))#!!!Replace empty with my FillNA method?
+        self._val = PstData._fixup_input_val(
+            vectors,
+            row_count=len(self._row),
+            col_count=len(self._col),
+            empty_creator=lambda row_count, col_count: np.empty(
+                [row_count, col_count], dtype=np.float64
+            ),
+        )  #!!!Replace empty with my FillNA method?
 
         self._assert_row_eid_values(check_vectors=True)
         self._name = name or ""
@@ -107,11 +132,18 @@ class EigenData(PstData,EigenReader):
 
     @vectors.setter
     def vectors(self, new_value):
-        self._val = PstData._fixup_input_val(new_value,row_count=len(self._row),col_count=len(self._col),empty_creator=lambda row_count,col_count:np.empty([row_count,col_count,2],dtype=np.float64))#!!!Replace empty with my FillNA method?
+        self._val = PstData._fixup_input_val(
+            new_value,
+            row_count=len(self._row),
+            col_count=len(self._col),
+            empty_creator=lambda row_count, col_count: np.empty(
+                [row_count, col_count, 2], dtype=np.float64
+            ),
+        )  #!!!Replace empty with my FillNA method?
         self._assert_row_eid_values(check_val=True)
 
-    def allclose(self,value,equal_nan=True):
-        '''
+    def allclose(self, value, equal_nan=True):
+        """
         :param value: Other object with which to compare.
         :type value: :class:`EigenData`
         :param equal_nan: (Default: True) Tells if NaN in :attr:`EigenData.vectors` should be treated as regular values when testing equality.
@@ -131,8 +163,8 @@ class EigenData(PstData,EigenReader):
         >>> print(eigendata5.allclose(eigendata6,equal_nan=False)) #False, if we consider the NaN as special values, all the arrays are not equal.
         False
 
-        '''
-        return PstData.allclose(self,value,equal_nan=equal_nan)
+        """
+        return PstData.allclose(self, value, equal_nan=equal_nan)
 
     def logdet(self, delta=None):
         # !!!cmk could have path for delta=0
@@ -146,22 +178,27 @@ class EigenData(PstData,EigenReader):
             logdet += (self.row_count - self.eid_count) * np.log(delta)
         return logdet, Sd
 
-
     #!!!cmk document
     #!!!cmk how to understand the low rank bit?
     def rotate(self, pstdata, is_diagonal=False, transpose_input=False):
         val = pstdata.val
-        if len(val.shape)==3:
-            val = np.squeeze(val,-1)
-        rotated_val = np.einsum("ae,ab->eb",self.vectors,val)
-        rotated_pstdata = PstData(row=self.col, col=pstdata.col, val=rotated_val, name=f"rotated({pstdata})")
+        if len(val.shape) == 3:
+            val = np.squeeze(val, -1)
+        rotated_val = np.einsum("ae,ab->eb", self.vectors, val)
+        rotated_pstdata = PstData(
+            row=self.col, col=pstdata.col, val=rotated_val, name=f"rotated({pstdata})"
+        )
 
         rotation = Rotation(rotated_pstdata, double=None, is_diagonal=is_diagonal)
 
         if self.is_low_rank:
             rotated_back_pstdata = self.rotate_back(rotation, check_low_rank=False)
-            double_pstdata = rotated_back_pstdata.clone(val = pstdata.val-rotated_back_pstdata.val, name=f"double({pstdata})")
-            rotation = Rotation(rotated_pstdata, double=double_pstdata, is_diagonal=is_diagonal)
+            double_pstdata = rotated_back_pstdata.clone(
+                val=pstdata.val - rotated_back_pstdata.val, name=f"double({pstdata})"
+            )
+            rotation = Rotation(
+                rotated_pstdata, double=double_pstdata, is_diagonal=is_diagonal
+            )
 
         # !!!cmk make a test of this kludge
         if not np.allclose(val, self.rotate_back(rotation).val, rtol=0, atol=1e-9):
@@ -173,34 +210,46 @@ class EigenData(PstData,EigenReader):
     #!!!cmk how to understand the low rank bit?
     def rotate_back(self, rotation, check_low_rank=True):
         if check_low_rank:
-            assert (rotation.double is not None) == self.is_low_rank, "low rank eigens expect a non-empty rotation.double"
+            assert (
+                rotation.double is not None
+            ) == self.is_low_rank, "low rank eigens expect a non-empty rotation.double"
 
         val = rotation.val
-        if len(val.shape)==3:
-            val = np.squeeze(val,-1)
-        rotated_back_val = np.einsum("ae,eb->ab",self.vectors,val)
+        if len(val.shape) == 3:
+            val = np.squeeze(val, -1)
+        rotated_back_val = np.einsum("ae,eb->ab", self.vectors, val)
 
         if rotation.double is not None:
             rotated_back_val += rotation.double.val
 
-        rotated_back_pstdata = PstData(row=self.row, col=rotation.col, val=rotated_back_val, name=f"rotated_back({rotation})")
+        rotated_back_pstdata = PstData(
+            row=self.row,
+            col=rotation.col,
+            val=rotated_back_val,
+            name=f"rotated_back({rotation})",
+        )
         return rotated_back_pstdata
-
 
     def __repr__(self):
         if self._name == "":
             if len(self._std_string_list) > 0:
-                s = "{0}({1})".format(self.__class__.__name__,",".join(self._std_string_list))
+                s = "{0}({1})".format(
+                    self.__class__.__name__, ",".join(self._std_string_list)
+                )
             else:
                 s = "{0}()".format(self.__class__.__name__)
         else:
             if len(self._std_string_list) > 0:
-                s = "{0}({1},{2})".format(self.__class__.__name__,self._name,",".join(self._std_string_list))
+                s = "{0}({1},{2})".format(
+                    self.__class__.__name__, self._name, ",".join(self._std_string_list)
+                )
             else:
-                s = "{0}({1})".format(self.__class__.__name__,self._name)
+                s = "{0}({1})".format(self.__class__.__name__, self._name)
         return s
 
     #!!!cmk document
+
+
 class Rotation:
     diagonal_name = np.array(["diagonal"])  #!!!cmk similar code
 
@@ -209,17 +258,16 @@ class Rotation:
         self.double = double
         self.is_diagonal = is_diagonal
 
-
     def __getitem__(self, index):
-        rotated = self.rotated[:,index:index+1].read(view_ok=True)
+        rotated = self.rotated[:, index : index + 1].read(view_ok=True)
         if self.is_diagonal:
             rotated = rotated.clone(col=self.diagonal_name)
 
         if self.double is not None:
-            double = self.double[:,index:index+1].read(view_ok=True)
+            double = self.double[:, index : index + 1].read(view_ok=True)
         else:
             double = None
-        return Rotation(rotated,double,is_diagonal=self.is_diagonal)
+        return Rotation(rotated, double, is_diagonal=self.is_diagonal)
 
     @property
     def row_count(self):
@@ -244,9 +292,9 @@ class Rotation:
         else:
             return self.rotated.col
 
-    def ein(self,s):
-        assert len(s)==1, "length of string must be 1"
-        assert s!="d", "string can not be 'd'"
+    def ein(self, s):
+        assert len(s) == 1, "length of string must be 1"
+        assert s != "d", "string can not be 'd'"
         if self.is_diagonal:
             return "d", np.newaxis
         else:
@@ -255,22 +303,24 @@ class Rotation:
     @staticmethod
     def ein_cat(*args):
         result = ""
-        for i in range(len(args)-1,-1,-1):
+        for i in range(len(args) - 1, -1, -1):
             arg = args[i]
-            assert len(arg)==1, "Expect inputs to be one letter"
+            assert len(arg) == 1, "Expect inputs to be one letter"
             if arg in result:
-                assert arg=="d", "if a letter appears twice it should be 'd' for diagonal"
+                assert (
+                    arg == "d"
+                ), "if a letter appears twice it should be 'd' for diagonal"
             else:
                 result = arg + result
         return result
 
     @staticmethod
-    def ein_d(a,b):
+    def ein_d(a, b):
         result = "d"
         if b != "d":
-            result = b+result
+            result = b + result
         if a != "d":
-            result = a+result
+            result = a + result
         return result
 
     @property
@@ -286,5 +336,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod()
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test
