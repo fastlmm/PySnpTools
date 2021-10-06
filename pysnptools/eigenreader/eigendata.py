@@ -129,7 +129,6 @@ class EigenData(PstData, EigenReader):
             eigen = eigen[:, eigen.values > keep_above].read(view_ok=True)
         return eigen
 
-
     @property
     def vectors(self):
         """The 2D NumPy array of floats that represents the column eigen vectors. You can get or set this property.
@@ -194,7 +193,14 @@ class EigenData(PstData, EigenReader):
 
     #!!!cmk document
     #!!!cmk how to understand the low rank bit?
-    def rotate(self, pstdata, is_diagonal=False, transpose_input=False):
+    def rotate_and_scale(self, pstdata, is_diagonal=False, ignore_low_rank=False):
+        rotation = self.rotate(
+            pstdata, is_diagonal=is_diagonal, ignore_low_rank=ignore_low_rank
+        )
+        rotation.val[:, :] = rotation.val / self.values.reshape(-1, 1)
+        return rotation
+
+    def rotate(self, pstdata, is_diagonal=False, ignore_low_rank=False):
         val = pstdata.val
         if len(val.shape) == 3:
             val = np.squeeze(val, -1)
@@ -205,7 +211,7 @@ class EigenData(PstData, EigenReader):
 
         rotation = Rotation(rotated_pstdata, double=None, is_diagonal=is_diagonal)
 
-        if self.is_low_rank:
+        if self.is_low_rank and not ignore_low_rank:
             rotated_back_pstdata = self.rotate_back(rotation, check_low_rank=False)
             double_pstdata = rotated_back_pstdata.clone(
                 val=pstdata.val - rotated_back_pstdata.val, name=f"double({pstdata})"
@@ -214,10 +220,10 @@ class EigenData(PstData, EigenReader):
                 rotated_pstdata, double=double_pstdata, is_diagonal=is_diagonal
             )
 
-        # !!!cmk make a test of this kludge
-        if not np.allclose(val, self.rotate_back(rotation).val, rtol=0, atol=1e-9):
-            pstdata2 = self.rotate_back(rotation)
-            assert False
+        ## !!!cmk make a test of this kludge
+        # if not np.allclose(val, self.rotate_back(rotation).val, rtol=0, atol=1e-9):
+        #    pstdata2 = self.rotate_back(rotation)
+        #    assert False
 
         return rotation
 
