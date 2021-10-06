@@ -116,6 +116,20 @@ class EigenData(PstData, EigenReader):
         self._name = name or ""
         self._std_string_list = []
 
+    @staticmethod
+    def from_aka(aka, keep_above=np.NINF):
+        # !!!cmk check that square aKa not just aKb???
+        val = aka.val
+        if len(val.shape) == 3:
+            assert val.shape[2] == 1, "Expect to run on just one phenotype"
+            val = np.squeeze(val, -1)
+        w, v = np.linalg.eigh(val)  # !!! cmk do SVD sometimes?
+        eigen = EigenData(values=w, vectors=v, row=aka.row)
+        if keep_above > np.NINF:
+            eigen = eigen[:, eigen.values > keep_above].read(view_ok=True)
+        return eigen
+
+
     @property
     def vectors(self):
         """The 2D NumPy array of floats that represents the column eigen vectors. You can get or set this property.
