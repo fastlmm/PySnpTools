@@ -193,14 +193,12 @@ class EigenData(PstData, EigenReader):
 
     #!!!cmk document
     #!!!cmk how to understand the low rank bit?
-    def rotate_and_scale(self, pstdata, is_diagonal=False, ignore_low_rank=False):
-        rotation = self.rotate(
-            pstdata, is_diagonal=is_diagonal, ignore_low_rank=ignore_low_rank
-        )
+    def rotate_and_scale(self, pstdata, ignore_low_rank=False):
+        rotation = self.rotate(pstdata, ignore_low_rank=ignore_low_rank)
         rotation.val[:, :] = rotation.val / self.values.reshape(-1, 1)
         return rotation
 
-    def rotate(self, pstdata, is_diagonal=False, ignore_low_rank=False):
+    def rotate(self, pstdata, ignore_low_rank=False):
         val = pstdata.val
         if len(val.shape) == 3:
             val = np.squeeze(val, -1)
@@ -209,16 +207,14 @@ class EigenData(PstData, EigenReader):
             row=self.col, col=pstdata.col, val=rotated_val, name=f"rotated({pstdata})"
         )
 
-        rotation = Rotation(rotated_pstdata, double=None, is_diagonal=is_diagonal)
+        rotation = Rotation(rotated_pstdata, double=None)
 
         if self.is_low_rank and not ignore_low_rank:
             rotated_back_pstdata = self.rotate_back(rotation, check_low_rank=False)
             double_pstdata = rotated_back_pstdata.clone(
                 val=pstdata.val - rotated_back_pstdata.val, name=f"double({pstdata})"
             )
-            rotation = Rotation(
-                rotated_pstdata, double=double_pstdata, is_diagonal=is_diagonal
-            )
+            rotation = Rotation(rotated_pstdata, double=double_pstdata)
 
         ## !!!cmk make a test of this kludge
         # if not np.allclose(val, self.rotate_back(rotation).val, rtol=0, atol=1e-9):
@@ -271,23 +267,20 @@ class EigenData(PstData, EigenReader):
 
 
 class Rotation:
-    diagonal_name = np.array(["diagonal"])  #!!!cmk similar code
+    #!!!cmk kludge diagonal_name = np.array(["diagonal"])  #!!!cmk similar code
 
-    def __init__(self, rotated, double, is_diagonal=False):
+    def __init__(self, rotated, double):
         self.rotated = rotated
         self.double = double
-        self.is_diagonal = is_diagonal
 
     def __getitem__(self, index):
         rotated = self.rotated[:, index : index + 1].read(view_ok=True)
-        if self.is_diagonal:
-            rotated = rotated.clone(col=self.diagonal_name)
 
         if self.double is not None:
             double = self.double[:, index : index + 1].read(view_ok=True)
         else:
             double = None
-        return Rotation(rotated, double, is_diagonal=self.is_diagonal)
+        return Rotation(rotated, double)
 
     @property
     def row_count(self):
@@ -305,34 +298,24 @@ class Rotation:
     def col(self):
         return self.rotated.col
 
-    @property
-    def diagonal_or_col(self):
-        if self.is_diagonal:
-            return self.diagonal_name
-        else:
-            return self.rotated.col
-
     def ein(self, s):
         assert len(s) == 1, "length of string must be 1"
-        assert s != "d", "string can not be 'd'"
-        if self.is_diagonal:
-            return "d", np.newaxis
-        else:
-            return s, np.s_[:]
+        assert s != "d", "string can not be 'd'"  #!!!cmk remove kludge
+        return s, np.s_[:]
 
-    @staticmethod
-    def ein_cat(*args):
-        result = ""
-        for i in range(len(args) - 1, -1, -1):
-            arg = args[i]
-            assert len(arg) == 1, "Expect inputs to be one letter"
-            if arg in result:
-                assert (
-                    arg == "d"
-                ), "if a letter appears twice it should be 'd' for diagonal"
-            else:
-                result = arg + result
-        return result
+    # @staticmethod#!!!cmk kludge
+    # def ein_cat(*args):
+    #    result = ""
+    #    for i in range(len(args) - 1, -1, -1):
+    #        arg = args[i]
+    #        assert len(arg) == 1, "Expect inputs to be one letter"
+    #        if arg in result:
+    #            assert (
+    #                arg == "d"
+    #            ), "if a letter appears twice it should be 'd' for diagonal"
+    #        else:
+    #            result = arg + result
+    #    return result
 
     @staticmethod
     def ein_d(a, b):
