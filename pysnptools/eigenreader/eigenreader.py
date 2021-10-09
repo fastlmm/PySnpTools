@@ -412,23 +412,15 @@ class EigenReader(PstReader):
 
         batch_rows = batch_rows if batch_rows is not None else self.row_count+1 
         for row_start in range(0, self.row_count, batch_rows):
+            batch_slice = np.s_[row_start:row_start+batch_rows]
             #!!!cmk0 is this the best dimension to read in batches?
             #!!!cmk0 should we give guidence on storing in F or C?
-            batch = self[:,row_start:row_start+batch_rows].read(view_ok=True)
-            #!!!cmk what for einsum to avoid double allocation?
-            rotated_pstdata.val[row_start:row_start+batch_rows,:] = np.einsum("ae,ab->eb", batch.vectors, pstdata.val)
+            batch = self[:,batch_slice].read(view_ok=True)
+            batch_out = rotated_pstdata.val[batch_slice,:] # create a view
+            np.einsum("ae,ab->eb", batch.vectors, pstdata.val, out=batch_out)
 
             if self.is_low_rank and not ignore_low_rank:
-                #!!!cmk0
-                batch_rotated_pstdata = PstData(
-                    row = self.col[row_start:row_start+batch_rows],
-                    col = pstdata.col,
-                    val = rotated_pstdata.val[row_start:row_start+batch_rows,:]
-                    )
-                    
-                batch_rotation = Rotation(batch_rotated_pstdata, double=None)
-                rotated_back_pstdata = batch.rotate_back(batch_rotation, check_low_rank=False)
-                double_pstdata.val -= rotated_back_pstdata.val
+                double_pstdata.val -= batch.vectors @ batch_out
 
         return Rotation(rotated_pstdata, double=double_pstdata)
         
