@@ -466,7 +466,7 @@ class EigenReader(PstReader):
             #!!!cmk0 is this the best dimension to read in batches?
             #!!!cmk0 should we give guidence on storing in F or C?
             batch = self[:, batch_slice].read(view_ok=True)
-            for rotation in rotation_list:
+            for pstdata, rotation in zip(pstdata_list, rotation_list):
                 batch_out = rotation.rotated.val[batch_slice, :]  # create a view
                 np.einsum("ae,ab->eb", batch.vectors, pstdata.val, out=batch_out)
                 if self.is_low_rank and not ignore_low_rank:
