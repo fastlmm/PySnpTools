@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 from pysnptools.pstreader import PstReader
+from pysnptools.pstreader import PstData
 
 #!!why do the examples use ../tests/datasets instead of "examples"?
 class EigenReader(PstReader):
@@ -371,6 +372,118 @@ class EigenReader(PstReader):
             assert self._val.shape == (len(self._row),len(self._col)), "vectors shape should match that of row_count x eid_count"
         #!!!cmk assert self._row.dtype.type is np.str_ and len(self._row.shape)==2 and self._row.shape[1]==2, "iid should be dtype str, have two dimensions, and the second dimension should be size 2"
         #!!!cmk assert self._col.dtype.type is np.str_ and len(self._col.shape)==2 and self._col.shape[1]==2, "eid should be dtype str, have two dimensions, and the second dimension should be size 2"
+    def logdet(self, delta=None):
+        # !!!cmk could have path for delta=0
+        # "reshape" lets it broadcast
+        if delta is None:
+            Sd = self.values
+        else:
+            Sd = self.values + delta
+        logdet = np.log(Sd).sum()
+        if self.is_low_rank:  # !!!cmk test this
+            logdet += (self.row_count - self.eid_count) * np.log(delta)
+        return logdet, Sd
+
+    #!!!cmk document
+    #!!!cmk how to understand the low rank bit?
+    #!!!cmk0 add batch_rows
+    def rotate_and_scale(self, pstdata, ignore_low_rank=False):
+        rotation = self.rotate(pstdata, ignore_low_rank=ignore_low_rank)
+        rotation.val[:, :] = rotation.val / self.values.reshape(-1, 1)
+        return rotation
+
+    #!!!cmk0 is batch_rows the best way to control batch? the best name?
+    def rotate(self, pstdata, batch_rows=None, ignore_low_rank=False):
+        rotated_pstdata = PstData(
+            row=self.col,
+            col=pstdata.col,
+            #!!!cmk kludge use np.empty instead?
+            val=np.full((self.col_count, pstdata.col_count),np.nan),
+            name=f"rotated({pstdata})"
+        )
+        if self.is_low_rank and not ignore_low_rank:
+            sub_val = np.zeros((pstdata.row_count, pstdata.col_count))
+
+
+        batch_rows = batch_rows if batch_rows is not None else self.row_count+1 
+        for row_start in range(0, self.row_count, batch_rows):
+            #!!!cmk0 is this the best dimension to read in batches?
+            #!!!cmk0 should we give guidence on storing in F or C?
+            batch = self[:,row_start:row_start+batch_rows].read(view_ok=True)
+            #!!!cmk what for einsum to avoid double allocation?
+            rotated_pstdata.val[row_start:row_start+batch_rows,:] = np.einsum("ae,ab->eb", batch.vectors, pstdata.val)
+
+            if self.is_low_rank and not ignore_low_rank:
+                #!!!cmk0
+                batch_rotated_pstdata = PstData(
+                    row = self.col[row_start:row_start+batch_rows],
+                    col = pstdata.col,
+                    val = rotated_pstdata.val[row_start:row_start+batch_rows,:]
+                    )
+                    
+                batch_rotation = Rotation(batch_rotated_pstdata, double=None)
+                rotated_back_pstdata = batch.rotate_back(batch_rotation, check_low_rank=False)
+                sub_val += rotated_back_pstdata.val
+
+        #!!!cmk don't let rotated_back_pstdata escape loop
+        if self.is_low_rank and not ignore_low_rank:
+            double_pstdata = rotated_back_pstdata.clone(
+                val=pstdata.val - sub_val,
+               name=f"double({pstdata})"
+               )
+        else:
+           double_pstdata = None
+        return Rotation(rotated_pstdata, double=double_pstdata)
+        
+
+
+
+        ## !!!cmk make a test of this kludge
+        # if not np.allclose(val, self.rotate_back(rotation).val, rtol=0, atol=1e-9):
+        #    pstdata2 = self.rotate_back(rotation)
+        #    assert False
+
+        return rotation
+
+
+#!!!cmk kludge move to own file
+class Rotation:
+    def __init__(self, rotated, double):
+        self.rotated = rotated
+        self.double = double
+
+    def __getitem__(self, index):
+        rotated = self.rotated[:, index : index + 1].read(view_ok=True)
+
+        if self.double is not None:
+            double = self.double[:, index : index + 1].read(view_ok=True)
+        else:
+            double = None
+        return Rotation(rotated, double)
+
+    @property
+    def row_count(self):
+        return self.rotated.row_count
+
+    @property
+    def col_count(self):
+        return self.rotated.col_count
+
+    @property
+    def row(self):
+        return self.rotated.row
+
+    @property
+    def col(self):
+        return self.rotated.col
+
+    @property
+    def val(self):
+        return self.rotated.val
+
+    @property
+    def shape(self):
+        return self.rotated.shape
 
 
 if __name__ == "__main__":

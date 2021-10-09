@@ -179,73 +179,6 @@ class EigenData(PstData, EigenReader):
         """
         return PstData.allclose(self, value, equal_nan=equal_nan)
 
-    def logdet(self, delta=None):
-        # !!!cmk could have path for delta=0
-        # "reshape" lets it broadcast
-        if delta is None:
-            Sd = self.values
-        else:
-            Sd = self.values + delta
-        logdet = np.log(Sd).sum()
-        if self.is_low_rank:  # !!!cmk test this
-            logdet += (self.row_count - self.eid_count) * np.log(delta)
-        return logdet, Sd
-
-    #!!!cmk document
-    #!!!cmk how to understand the low rank bit?
-    def rotate_and_scale(self, pstdata, ignore_low_rank=False):
-        rotation = self.rotate(pstdata, ignore_low_rank=ignore_low_rank)
-        rotation.val[:, :] = rotation.val / self.values.reshape(-1, 1)
-        return rotation
-
-    def rotate(self, pstdata, ignore_low_rank=False):
-        val = pstdata.val
-        if len(val.shape) == 3:
-            val = np.squeeze(val, -1)
-        rotated_val = np.einsum("ae,ab->eb", self.vectors, val)
-        rotated_pstdata = PstData(
-            row=self.col, col=pstdata.col, val=rotated_val, name=f"rotated({pstdata})"
-        )
-
-        rotation = Rotation(rotated_pstdata, double=None)
-
-        if self.is_low_rank and not ignore_low_rank:
-            rotated_back_pstdata = self.rotate_back(rotation, check_low_rank=False)
-            double_pstdata = rotated_back_pstdata.clone(
-                val=pstdata.val - rotated_back_pstdata.val, name=f"double({pstdata})"
-            )
-            rotation = Rotation(rotated_pstdata, double=double_pstdata)
-
-        ## !!!cmk make a test of this kludge
-        # if not np.allclose(val, self.rotate_back(rotation).val, rtol=0, atol=1e-9):
-        #    pstdata2 = self.rotate_back(rotation)
-        #    assert False
-
-        return rotation
-
-    #!!!cmk how to understand the low rank bit?
-    def rotate_back(self, rotation, check_low_rank=True):
-        if check_low_rank:
-            assert (
-                rotation.double is not None
-            ) == self.is_low_rank, "low rank eigens expect a non-empty rotation.double"
-
-        val = rotation.val
-        if len(val.shape) == 3:
-            val = np.squeeze(val, -1)
-        rotated_back_val = np.einsum("ae,eb->ab", self.vectors, val)
-
-        if rotation.double is not None:
-            rotated_back_val += rotation.double.val
-
-        rotated_back_pstdata = PstData(
-            row=self.row,
-            col=rotation.col,
-            val=rotated_back_val,
-            name=f"rotated_back({rotation})",
-        )
-        return rotated_back_pstdata
-
     def __repr__(self):
         if self._name == "":
             if len(self._std_string_list) > 0:
@@ -265,74 +198,29 @@ class EigenData(PstData, EigenReader):
 
     #!!!cmk document
 
+    #!!!cmk should this be in eigendata or eigenreader?
+    #!!!cmk how to understand the low rank bit?
+    def rotate_back(self, rotation, check_low_rank=True):
+        if check_low_rank:
+            assert (
+                rotation.double is not None
+            ) == self.is_low_rank, "low rank eigens expect a non-empty rotation.double"
 
-class Rotation:
-    #!!!cmk kludge diagonal_name = np.array(["diagonal"])  #!!!cmk similar code
+        val = rotation.val
+        # if len(val.shape) == 3: #!!!cmk0
+        #    val = np.squeeze(val, -1)
+        rotated_back_val = np.einsum("ae,eb->ab", self.vectors, val)
 
-    def __init__(self, rotated, double):
-        self.rotated = rotated
-        self.double = double
+        if rotation.double is not None:
+            rotated_back_val += rotation.double.val
 
-    def __getitem__(self, index):
-        rotated = self.rotated[:, index : index + 1].read(view_ok=True)
-
-        if self.double is not None:
-            double = self.double[:, index : index + 1].read(view_ok=True)
-        else:
-            double = None
-        return Rotation(rotated, double)
-
-    @property
-    def row_count(self):
-        return self.rotated.row_count
-
-    @property
-    def col_count(self):
-        return self.rotated.col_count
-
-    @property
-    def row(self):
-        return self.rotated.row
-
-    @property
-    def col(self):
-        return self.rotated.col
-
-    def ein(self, s):
-        assert len(s) == 1, "length of string must be 1"
-        assert s != "d", "string can not be 'd'"  #!!!cmk remove kludge
-        return s, np.s_[:]
-
-    # @staticmethod#!!!cmk kludge
-    # def ein_cat(*args):
-    #    result = ""
-    #    for i in range(len(args) - 1, -1, -1):
-    #        arg = args[i]
-    #        assert len(arg) == 1, "Expect inputs to be one letter"
-    #        if arg in result:
-    #            assert (
-    #                arg == "d"
-    #            ), "if a letter appears twice it should be 'd' for diagonal"
-    #        else:
-    #            result = arg + result
-    #    return result
-
-    @staticmethod
-    def ein_d(a, b):
-        result = "d"
-        if b != "d":
-            result = b + result
-        if a != "d":
-            result = a + result
-        return result
-
-    @property
-    def val(self):
-        return self.rotated.val
-
-    @property
-    def shape(self):
-        return self.rotated.shape
+        rotated_back_pstdata = PstData(
+            row=self.row,
+            col=rotation.col,
+            val=rotated_back_val,
+            name=f"rotated_back({rotation})",
+        )
+        return rotated_back_pstdata
 
 
 if __name__ == "__main__":
