@@ -402,7 +402,12 @@ class EigenReader(PstReader):
             name=f"rotated({pstdata})"
         )
         if self.is_low_rank and not ignore_low_rank:
-            sub_val = np.zeros((pstdata.row_count, pstdata.col_count))
+            double_pstdata = pstdata.clone(
+                val=pstdata.val.copy(),
+               name=f"double({pstdata})"
+               )
+        else:
+            double_pstdata = None
 
 
         batch_rows = batch_rows if batch_rows is not None else self.row_count+1 
@@ -423,16 +428,8 @@ class EigenReader(PstReader):
                     
                 batch_rotation = Rotation(batch_rotated_pstdata, double=None)
                 rotated_back_pstdata = batch.rotate_back(batch_rotation, check_low_rank=False)
-                sub_val += rotated_back_pstdata.val
+                double_pstdata.val -= rotated_back_pstdata.val
 
-        #!!!cmk don't let rotated_back_pstdata escape loop
-        if self.is_low_rank and not ignore_low_rank:
-            double_pstdata = rotated_back_pstdata.clone(
-                val=pstdata.val - sub_val,
-               name=f"double({pstdata})"
-               )
-        else:
-           double_pstdata = None
         return Rotation(rotated_pstdata, double=double_pstdata)
         
 
