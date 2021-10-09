@@ -197,7 +197,7 @@ class EigenData(PstData, EigenReader):
         return s
 
     #!!!cmk document
-
+    #!!!cmk0 is this really needed?
     #!!!cmk should this be in eigendata or eigenreader?
     #!!!cmk how to understand the low rank bit?
     def rotate_back(self, rotation, check_low_rank=True):

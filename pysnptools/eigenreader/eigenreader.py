@@ -56,8 +56,8 @@ class EigenReader(PstReader):
         :class:`.EigenData`               in-memory          Yes                    *n/a*              *n/a*
         :class:`.EigenNpz`                binary             No                     .eigen.npz        Yes
         ========================= =================== ====================== ================== ======================
-    
-  
+
+
     Methods & Properties:
 
         Every EigenReader, such as :class:`.EigenNpz` and :class:`.EigenData`, has these properties: :attr:`row`, :attr:`row_count`, :attr:`eid`, :attr:`eid_count`,
@@ -105,7 +105,7 @@ class EigenReader(PstReader):
         Selecting and reordering rows is like  :class:`.SnpReader`.
         Selecting and reordering eigenvectors and eigenvalues is similar to :class:`.SnpReader` except instead of selecting and reordering SNPs,
         we select and reorder eigenvectors and eigenvalues.
-        
+
     When Data is Read:
 
         *same as with* :class:`.SnpReader`
@@ -119,7 +119,7 @@ class EigenReader(PstReader):
         *same as with* :class:`.SnpReader`
 
     The :meth:`read` Method
-  
+
         By default the :meth:`read` returns a 2-D ndarray of numpy.float64 laid out in memory in F-contiguous order
         (row-index varies the fastest). You may, instead,
         ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
@@ -132,8 +132,8 @@ class EigenReader(PstReader):
         super(EigenReader, self).__init__(*args, **kwargs)
 
     # !!!cmk
-    #@property
-    #def iid(self):
+    # @property
+    # def iid(self):
     #    """An ndarray of the iids. Each iid is an ndarray of two strings (a family ID and a individual ID) that identifies an individual.
 
     #    :rtype: ndarray of strings with shape [:attr:`.iid_count`,2]
@@ -156,13 +156,13 @@ class EigenReader(PstReader):
     # !!!cmk document
     @property
     def is_low_rank(self):
-        k = self.eid_count       # number of eigenvalues (and eigenvectors)
-        N = self.row_count       # number of individuals
-        return k<N
+        k = self.eid_count  # number of eigenvalues (and eigenvectors)
+        N = self.row_count  # number of individuals
+        return k < N
 
     # !!!cmk
-    #@property
-    #def iid_count(self):
+    # @property
+    # def iid_count(self):
     #    """number of iids
 
     #    :rtype: integer
@@ -224,18 +224,32 @@ class EigenReader(PstReader):
 
     @property
     def row_property(self):
-        """Defined as a zero-width array for compatibility with :class:`PstReader`, but not used.
-        """
-        if not hasattr(self,'_row_property'):
-            self._row_property = np.empty((self.row_count,0))
+        """Defined as a zero-width array for compatibility with :class:`PstReader`, but not used."""
+        if not hasattr(self, "_row_property"):
+            self._row_property = np.empty((self.row_count, 0))
         return self._row_property
 
-
-    def _read(self, iid_index_or_none, eid_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
+    def _read(
+        self,
+        iid_index_or_none,
+        eid_index_or_none,
+        order,
+        dtype,
+        force_python_only,
+        view_ok,
+        num_threads,
+    ):
         raise NotImplementedError
-    
+
     #!!check that views always return contiguous memory by default
-    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False, num_threads=None):
+    def read(
+        self,
+        order="F",
+        dtype=np.float64,
+        force_python_only=False,
+        view_ok=False,
+        num_threads=None,
+    ):
         """Reads the SNP values and returns a :class:`.EigenData` (with :attr:`EigenData.vectors` property containing a new 2D ndarray of the column eigenvectors).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
@@ -253,7 +267,7 @@ class EigenReader(PstReader):
         :type force_python_only: bool
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`EigenData.vectors`'s ndarray. If True,
-            if practical and reading from a :class:`EigenData`, will return a new 
+            if practical and reading from a :class:`EigenData`, will return a new
             :class:`EigenData` with an ndarray shares memory with the original :class:`EigenData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
             Use these parameters with care because any change to either ndarraywill effect
@@ -286,23 +300,32 @@ class EigenReader(PstReader):
         [0.466804   0.38812848 0.14506752]
         >>> subsub_eigendata = subset_eigendata[:10,:].read(order='A',view_ok=True) # Create an in-memory subset of the subset with eigenvectors for the first ten rows. Share memory if practical.
         >>> import numpy as np
-        >>> # print np.may_share_memory(subset_eigendata.vectors, subsub_eigendata.vectors) # Do the two ndarray's share memory? They could. Currently they won't.       
+        >>> # print np.may_share_memory(subset_eigendata.vectors, subsub_eigendata.vectors) # Do the two ndarray's share memory? They could. Currently they won't.
         """
         dtype = np.dtype(dtype)
-        vectors = self._read(None, None, order, dtype, force_python_only, view_ok, num_threads)
+        vectors = self._read(
+            None, None, order, dtype, force_python_only, view_ok, num_threads
+        )
         from pysnptools.eigenreader import EigenData
-        ret = EigenData(row=self.row,eid=self.eid,values=self.values,vectors=vectors,name=str(self))
+
+        ret = EigenData(
+            row=self.row,
+            eid=self.eid,
+            values=self.values,
+            vectors=vectors,
+            name=str(self),
+        )
         return ret
 
     #!!!cmk
-    #def iid_to_index(self, list):
+    # def iid_to_index(self, list):
     #    """Takes a list of iids and returns a row list of row index numbers
 
     #    :param list: list of iids
     #    :type order: list of list of strings
 
     #    :rtype: ndarray of int
-        
+
     #    This method (to the degree practical) reads only iid, eid, and eigenvalue data from the disk, not eigvenvectors. Moreover, the iid, eid, and eigenvalues are read from file only once.
 
     #    :Example:
@@ -323,7 +346,7 @@ class EigenReader(PstReader):
         :type list: list of strings
 
         :rtype: ndarray of int
-        
+
         This method (to the degree practical) reads only row ids, eid, and eigenvalue data from the disk, not SNP value data. Moreover, the row id, eid, and eigenvalue data is read from file only once.
 
         :Example:
@@ -339,39 +362,54 @@ class EigenReader(PstReader):
 
     @property
     def val_shape(self):
-        '''
+        """
         Tells the shape of value for a given individual and SNP. For EigenReaders always returns 3.
-        '''
+        """
         return 2
-
 
     def __getitem__(self, row_indexer_and_snp_indexer):
         from pysnptools.eigenreader._subset import _EigenSubset
+
         row_indexer, snp_indexer = row_indexer_and_snp_indexer
         return _EigenSubset(self, row_indexer, snp_indexer)
 
     @staticmethod
     def _as_eigendata(eigenreader, force_python_only, order, dtype, num_threads):
-        '''
+        """
         Like 'read' except won't read if already a EigenData
-        '''
-        from pysnptools.eigenreader import EigenData #must import here to avoid cycles
+        """
+        from pysnptools.eigenreader import EigenData  # must import here to avoid cycles
+
         dtype = np.dtype(dtype)
 
-        if hasattr(eigenreader,'vectors') and eigenreader.vectors.dtype==dtype and (order=="A" or (order=="C" and eigenreader.vectors.flags["C_CONTIGUOUS"]) or (order=="F" and eigenreader.vectors.flags["F_CONTIGUOUS"])):
+        if (
+            hasattr(eigenreader, "vectors")
+            and eigenreader.vectors.dtype == dtype
+            and (
+                order == "A"
+                or (order == "C" and eigenreader.vectors.flags["C_CONTIGUOUS"])
+                or (order == "F" and eigenreader.vectors.flags["F_CONTIGUOUS"])
+            )
+        ):
             return eigenreader
         else:
-            return eigenreader.read(order=order,dtype=dtype,view_ok=True, num_threads=num_threads)
-    
+            return eigenreader.read(
+                order=order, dtype=dtype, view_ok=True, num_threads=num_threads
+            )
+
     def copyinputs(self, copier):
         raise NotImplementedError
 
-    def _assert_row_eid_values(self,check_vectors):
+    def _assert_row_eid_values(self, check_vectors):
         if check_vectors:
-            assert len(self._val.shape)==2, "vectors should have 2 dimensions"
-            assert self._val.shape == (len(self._row),len(self._col)), "vectors shape should match that of row_count x eid_count"
+            assert len(self._val.shape) == 2, "vectors should have 2 dimensions"
+            assert self._val.shape == (
+                len(self._row),
+                len(self._col),
+            ), "vectors shape should match that of row_count x eid_count"
         #!!!cmk assert self._row.dtype.type is np.str_ and len(self._row.shape)==2 and self._row.shape[1]==2, "iid should be dtype str, have two dimensions, and the second dimension should be size 2"
         #!!!cmk assert self._col.dtype.type is np.str_ and len(self._col.shape)==2 and self._col.shape[1]==2, "eid should be dtype str, have two dimensions, and the second dimension should be size 2"
+
     def logdet(self, delta=None):
         # !!!cmk could have path for delta=0
         # "reshape" lets it broadcast
@@ -394,38 +432,47 @@ class EigenReader(PstReader):
 
     #!!!cmk0 is batch_rows the best way to control batch? the best name?
     def rotate(self, pstdata, batch_rows=None, ignore_low_rank=False):
-        rotated_pstdata = PstData(
-            row=self.col,
-            col=pstdata.col,
-            #!!!cmk kludge use np.empty instead?
-            val=np.full((self.col_count, pstdata.col_count),np.nan),
-            name=f"rotated({pstdata})"
-        )
-        if self.is_low_rank and not ignore_low_rank:
-            double_pstdata = pstdata.clone(
-                val=pstdata.val.copy(),
-               name=f"double({pstdata})"
-               )
-        else:
-            double_pstdata = None
+        return self.rotate_list(
+            [pstdata], batch_rows=batch_rows, ignore_low_rank=ignore_low_rank
+        )[0]
 
+    #!!!cmk understand the ignore_low_rank option. who uses it and why?
+    def rotate_list(self, pstdata_list, batch_rows=None, ignore_low_rank=False):
 
-        batch_rows = batch_rows if batch_rows is not None else self.row_count+1 
-        for row_start in range(0, self.row_count, batch_rows):
-            batch_slice = np.s_[row_start:row_start+batch_rows]
-            #!!!cmk0 is this the best dimension to read in batches?
-            #!!!cmk0 should we give guidence on storing in F or C?
-            batch = self[:,batch_slice].read(view_ok=True)
-            batch_out = rotated_pstdata.val[batch_slice,:] # create a view
-            np.einsum("ae,ab->eb", batch.vectors, pstdata.val, out=batch_out)
+        rotation_list = []
+        for pstdata in pstdata_list:
+
+            rotated_pstdata = PstData(
+                row=self.col,
+                col=pstdata.col,
+                #!!!cmk kludge use np.empty instead?
+                val=np.full((self.col_count, pstdata.col_count), np.nan),
+                name=f"rotated({pstdata})",
+            )
 
             if self.is_low_rank and not ignore_low_rank:
-                double_pstdata.val -= batch.vectors @ batch_out
+                double_pstdata = pstdata.clone(
+                    val=pstdata.val.copy(), name=f"double({pstdata})"
+                )
+            else:
+                double_pstdata = None
 
-        return Rotation(rotated_pstdata, double=double_pstdata)
-        
+            rotation = Rotation(rotated_pstdata, double=double_pstdata)
+            rotation_list.append(rotation)
 
+        batch_rows = batch_rows if batch_rows is not None else self.row_count + 1
+        for row_start in range(0, self.row_count, batch_rows):
+            batch_slice = np.s_[row_start : row_start + batch_rows]
+            #!!!cmk0 is this the best dimension to read in batches?
+            #!!!cmk0 should we give guidence on storing in F or C?
+            batch = self[:, batch_slice].read(view_ok=True)
+            for rotation in rotation_list:
+                batch_out = rotation.rotated.val[batch_slice, :]  # create a view
+                np.einsum("ae,ab->eb", batch.vectors, pstdata.val, out=batch_out)
+                if self.is_low_rank and not ignore_low_rank:
+                    rotation.double.val -= batch.vectors @ batch_out
 
+        return rotation_list
 
         ## !!!cmk make a test of this kludge
         # if not np.allclose(val, self.rotate_back(rotation).val, rtol=0, atol=1e-9):
@@ -478,21 +525,25 @@ class Rotation:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    if False: # cmk
+    if False:  # cmk
         from pysnptools.eigenreader import EigenNpz
-        from pysnptools.util import example_file # Download and return local file name
+        from pysnptools.util import example_file  # Download and return local file name
+
         npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
         eigen_on_disk = EigenNpz(npz_file)
-        print(eigen_on_disk.row[:3]) # print the first three row ids
-        #[['POP1' '0']
+        print(eigen_on_disk.row[:3])  # print the first three row ids
+        # [['POP1' '0']
         #    ['POP1' '12']
         #    ['POP1' '44']]
-        print(eigen_on_disk.eid[:4]) # print the first four eids
-        #['eid0', 'eid1', 'eid2', 'eid4']
-        print(eigen_on_disk.row_to_index([['POP1','44'],['POP1','12']])) # Find the row indexes for two rows.
-        #[2 1]
+        print(eigen_on_disk.eid[:4])  # print the first four eids
+        # ['eid0', 'eid1', 'eid2', 'eid4']
+        print(
+            eigen_on_disk.row_to_index([["POP1", "44"], ["POP1", "12"]])
+        )  # Find the row indexes for two rows.
+        # [2 1]
 
     import doctest
-    doctest.testmod(optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
+
+    doctest.testmod(optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc t
     print("done")
