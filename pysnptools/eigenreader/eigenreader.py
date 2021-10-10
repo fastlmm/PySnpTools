@@ -1,7 +1,8 @@
 import numpy as np
+from pathlib import Path
 import logging
 from pysnptools.pstreader import PstReader
-from pysnptools.pstreader import PstData
+from pysnptools.pstreader import PstData, PstNpz
 
 #!!why do the examples use ../tests/datasets instead of "examples"?
 class EigenReader(PstReader):
@@ -426,7 +427,9 @@ class EigenReader(PstReader):
     #!!!cmk how to understand the low rank bit?
     #!!!cmk only used in one place
     def rotate_and_scale(self, pstdata, ignore_low_rank=False, batch_rows=None):
-        rotation = self.rotate(pstdata, ignore_low_rank=ignore_low_rank, batch_rows=batch_rows)
+        rotation = self.rotate(
+            pstdata, ignore_low_rank=ignore_low_rank, batch_rows=batch_rows
+        )
         rotation.val[:, :] = rotation.val / self.values.reshape(-1, 1)
         return rotation
 
@@ -481,8 +484,11 @@ class EigenReader(PstReader):
 
 
 #!!!cmk kludge move to own file
+#!!!cmk0 rename this RotationData and create a RotationReader
 class Rotation:
     def __init__(self, rotated, double):
+        assert isinstance(rotated,PstData), "Can only create a Rotation instance from PstData"
+        assert double is None or isinstance(double,PstData), "Can only create a Rotation instance from PstData"
         self.rotated = rotated
         self.double = double
 
@@ -518,6 +524,42 @@ class Rotation:
     @property
     def shape(self):
         return self.rotated.shape
+
+    def read(self, view_ok=False):
+        if view_ok:
+            return self
+        return Rotation(
+            self.rotated.read(view_ok=view_ok),
+            self.double.read(view_ok=view_ok)
+            if self.double is not None else None
+            )
+
+
+class RotationNpz:
+    def __init__(self, pattern):
+        self.rotated = PstNpz(str(pattern).format("rotated"))
+        double_path = Path(str(pattern).format("double"))
+        if double_path.exists():
+            self.double = PstNpz(str(double_path))
+        else:
+            self.double = None
+
+    def read(self, view_ok=False):
+        return Rotation(
+            self.rotated.read(view_ok=view_ok),
+            self.double.read(view_ok=view_ok)
+            if self.double is not None else None
+            )
+
+    @staticmethod
+    def write(pattern, rotation_data):
+        rotated = PstNpz.write(str(pattern).format("rotated"), rotation_data.rotated)
+        if rotation_data.double is not None:
+            double = PstNpz.write(str(pattern).format("double"), rotation_data.double)
+        else:
+            double = None
+        return RotationNpz(pattern)
+
 
 
 if __name__ == "__main__":
