@@ -197,7 +197,7 @@ class EigenData(PstData, EigenReader):
         return s
 
     #!!!cmk document
-    #!!!cmk0 is this really needed?
+    #!!!cmk is this really needed? (only used one place)
     #!!!cmk should this be in eigendata or eigenreader?
     #!!!cmk how to understand the low rank bit?
     def rotate_back(self, rotation, check_low_rank=True):
@@ -207,8 +207,6 @@ class EigenData(PstData, EigenReader):
             ) == self.is_low_rank, "low rank eigens expect a non-empty rotation.double"
 
         val = rotation.val
-        # if len(val.shape) == 3: #!!!cmk0
-        #    val = np.squeeze(val, -1)
         rotated_back_val = np.einsum("ae,eb->ab", self.vectors, val)
 
         if rotation.double is not None:
