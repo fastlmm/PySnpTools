@@ -487,8 +487,12 @@ class EigenReader(PstReader):
 #!!!cmk0 rename this RotationData and create a RotationReader
 class Rotation:
     def __init__(self, rotated, double):
-        assert isinstance(rotated,PstData), "Can only create a Rotation instance from PstData"
-        assert double is None or isinstance(double,PstData), "Can only create a Rotation instance from PstData"
+        assert isinstance(
+            rotated, PstData
+        ), "Can only create a Rotation instance from PstData"
+        assert double is None or isinstance(
+            double, PstData
+        ), "Can only create a Rotation instance from PstData"
         self.rotated = rotated
         self.double = double
 
@@ -530,9 +534,8 @@ class Rotation:
             return self
         return Rotation(
             self.rotated.read(view_ok=view_ok),
-            self.double.read(view_ok=view_ok)
-            if self.double is not None else None
-            )
+            self.double.read(view_ok=view_ok) if self.double is not None else None,
+        )
 
 
 class RotationNpz:
@@ -547,9 +550,8 @@ class RotationNpz:
     def read(self, view_ok=False):
         return Rotation(
             self.rotated.read(view_ok=view_ok),
-            self.double.read(view_ok=view_ok)
-            if self.double is not None else None
-            )
+            self.double.read(view_ok=view_ok) if self.double is not None else None,
+        )
 
     @staticmethod
     def write(pattern, rotation_data):
@@ -559,7 +561,6 @@ class RotationNpz:
         else:
             double = None
         return RotationNpz(pattern)
-
 
 
 if __name__ == "__main__":
