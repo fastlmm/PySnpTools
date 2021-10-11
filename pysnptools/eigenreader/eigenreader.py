@@ -2,7 +2,7 @@ import numpy as np
 from pathlib import Path
 import logging
 from pysnptools.pstreader import PstReader
-from pysnptools.pstreader import PstData, PstNpz
+from pysnptools.pstreader import PstData, PstNpz, PstMemMap
 
 #!!why do the examples use ../tests/datasets instead of "examples"?
 class EigenReader(PstReader):
@@ -538,12 +538,12 @@ class Rotation:
         )
 
 
-class RotationNpz:
+class RotationMemMap:
     def __init__(self, pattern):
-        self.rotated = PstNpz(str(pattern).format("rotated"))
+        self.rotated = PstMemMap(str(pattern).format("rotated"))
         double_path = Path(str(pattern).format("double"))
         if double_path.exists():
-            self.double = PstNpz(str(double_path))
+            self.double = PstMemMap(str(double_path))
         else:
             self.double = None
 
@@ -555,12 +555,12 @@ class RotationNpz:
 
     @staticmethod
     def write(pattern, rotation_data):
-        rotated = PstNpz.write(str(pattern).format("rotated"), rotation_data.rotated)
+        rotated = PstMemMap.write(str(pattern).format("rotated"), rotation_data.rotated)
         if rotation_data.double is not None:
-            double = PstNpz.write(str(pattern).format("double"), rotation_data.double)
+            double = PstMemMap.write(str(pattern).format("double"), rotation_data.double)
         else:
             double = None
-        return RotationNpz(pattern)
+        return RotationMemMap(pattern)
 
 
 if __name__ == "__main__":
