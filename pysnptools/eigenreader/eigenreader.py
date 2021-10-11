@@ -2,7 +2,7 @@ import numpy as np
 from pathlib import Path
 import logging
 from pysnptools.pstreader import PstReader
-from pysnptools.pstreader import PstData, PstNpz, PstMemMap
+from pysnptools.pstreader import PstData, PstMemMap
 
 #!!why do the examples use ../tests/datasets instead of "examples"?
 class EigenReader(PstReader):
@@ -427,11 +427,11 @@ class EigenReader(PstReader):
     #!!!cmk how to understand the low rank bit?
     #!!!cmk only used in one place
     def rotate_and_scale(self, pstdata, ignore_low_rank=False, batch_rows=None):
-        rotation = self.rotate(
+        rotationdata = self.rotate(
             pstdata, ignore_low_rank=ignore_low_rank, batch_rows=batch_rows
         )
-        rotation.val[:, :] = rotation.val / self.values.reshape(-1, 1)
-        return rotation
+        rotationdata.val[:, :] = rotationdata.val / self.values.reshape(-1, 1)
+        return rotationdata
 
     #!!!cmk0 is batch_rows the best way to control batch? the best name?
     def rotate(self, pstdata, batch_rows=None, ignore_low_rank=False):
@@ -442,7 +442,7 @@ class EigenReader(PstReader):
     #!!!cmk understand the ignore_low_rank option. who uses it and why?
     #!!!cmk only used by rotate_and_scale which is only used in one place
     def rotate_list(self, pstdata_list, batch_rows=None, ignore_low_rank=False):
-        rotation_list = []
+        rotationdata_list = []
         for pstdata in pstdata_list:
             rotated_pstdata = PstData(
                 row=self.col,
@@ -458,8 +458,8 @@ class EigenReader(PstReader):
             else:
                 double_pstdata = None
 
-            rotation = Rotation(rotated_pstdata, double=double_pstdata)
-            rotation_list.append(rotation)
+            rotationdata = RotationData(rotated_pstdata, double=double_pstdata)
+            rotationdata_list.append(rotationdata)
 
         batch_rows = batch_rows if batch_rows is not None else self.row_count + 1
         for row_start in range(0, self.row_count, batch_rows):
@@ -467,13 +467,13 @@ class EigenReader(PstReader):
             #!!!cmk0 is this the best dimension to read in batches?
             #!!!cmk0 should we give guidence on storing in F or C?
             batch = self[:, batch_slice].read(view_ok=True)
-            for pstdata, rotation in zip(pstdata_list, rotation_list):
-                batch_out = rotation.rotated.val[batch_slice, :]  # create a view
+            for pstdata, rotationdata in zip(pstdata_list, rotationdata_list):
+                batch_out = rotationdata.rotated.val[batch_slice, :]  # create a view
                 np.einsum("ae,ab->eb", batch.vectors, pstdata.val, out=batch_out)
                 if self.is_low_rank and not ignore_low_rank:
-                    rotation.double.val -= batch.vectors @ batch_out
+                    rotationdata.double.val -= batch.vectors @ batch_out
 
-        return rotation_list
+        return rotationdata_list
 
         ## !!!cmk make a test of this kludge
         # if not np.allclose(val, self.rotate_back(rotation).val, rtol=0, atol=1e-9):
@@ -485,14 +485,14 @@ class EigenReader(PstReader):
 
 #!!!cmk kludge move to own file
 #!!!cmk0 rename this RotationData and create a RotationReader
-class Rotation:
+class RotationData:
     def __init__(self, rotated, double):
         assert isinstance(
             rotated, PstData
-        ), "Can only create a Rotation instance from PstData"
+        ), "Can only create a RotationData instance from PstData"
         assert double is None or isinstance(
             double, PstData
-        ), "Can only create a Rotation instance from PstData"
+        ), "Can only create a RotationData instance from PstData"
         self.rotated = rotated
         self.double = double
 
@@ -503,7 +503,7 @@ class Rotation:
             double = self.double[:, index : index + 1].read(view_ok=True)
         else:
             double = None
-        return Rotation(rotated, double)
+        return RotationData(rotated, double)
 
     @property
     def row_count(self):
@@ -532,7 +532,7 @@ class Rotation:
     def read(self, view_ok=False):
         if view_ok:
             return self
-        return Rotation(
+        return RotationData(
             self.rotated.read(view_ok=view_ok),
             self.double.read(view_ok=view_ok) if self.double is not None else None,
         )
@@ -548,18 +548,16 @@ class RotationMemMap:
             self.double = None
 
     def read(self, view_ok=False):
-        return Rotation(
+        return RotationData(
             self.rotated.read(view_ok=view_ok),
             self.double.read(view_ok=view_ok) if self.double is not None else None,
         )
 
     @staticmethod
     def write(pattern, rotation_data):
-        rotated = PstMemMap.write(str(pattern).format("rotated"), rotation_data.rotated)
+        PstMemMap.write(str(pattern).format("rotated"), rotation_data.rotated)
         if rotation_data.double is not None:
-            double = PstMemMap.write(str(pattern).format("double"), rotation_data.double)
-        else:
-            double = None
+            PstMemMap.write(str(pattern).format("double"), rotation_data.double)
         return RotationMemMap(pattern)
 
 
