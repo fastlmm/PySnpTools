@@ -74,7 +74,7 @@ class EigenData(PstData, EigenReader):
     """
 
     def __init__(
-        self, row, values, vectors, eid=None, name=None, copyinputs_function=None
+        self, iid, values, vectors, eid=None, name=None, copyinputs_function=None
     ):
 
         # We don't have a 'super(EigenData, self).__init__()' here because EigenData takes full responsibility for initializing both its superclasses
@@ -82,7 +82,7 @@ class EigenData(PstData, EigenReader):
         ##self._val = None
 
         self._row = PstData._fixup_input(
-            row, empty_creator=lambda ignore: np.empty([0, 2], dtype="str"), dtype="str"
+            iid, empty_creator=lambda ignore: np.empty([0, 2], dtype="str"), dtype="str"
         )
         self._row_property = PstData._fixup_input(
             None,
@@ -124,7 +124,7 @@ class EigenData(PstData, EigenReader):
             assert val.shape[2] == 1, "Expect to run on just one phenotype"
             val = np.squeeze(val, -1)
         w, v = np.linalg.eigh(val)  # !!! cmk do SVD sometimes?
-        eigen = EigenData(values=w, vectors=v, row=aka.row)
+        eigen = EigenData(values=w, vectors=v, iid=aka.row)
         if keep_above > np.NINF:
             eigen = eigen[:, eigen.values > keep_above].read(view_ok=True)
         return eigen

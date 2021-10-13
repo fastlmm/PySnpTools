@@ -54,6 +54,7 @@
     <Compile Include="distreader\test.py" />
     <Compile Include="distreader\_subset.py" />
     <Compile Include="distreader\__init__.py" />
+    <Compile Include="eigenreader\eigenmemmap.py" />
     <Compile Include="eigenreader\eigennpz.py" />
     <Compile Include="eigenreader\eigendata.py" />
     <Compile Include="eigenreader\eigenreader.py" />

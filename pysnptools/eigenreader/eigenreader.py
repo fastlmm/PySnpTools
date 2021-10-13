@@ -3,6 +3,7 @@ from pathlib import Path
 import logging
 from pysnptools.pstreader import PstReader
 from pysnptools.pstreader import PstData, PstMemMap
+from pysnptools.util import log_in_place
 
 #!!why do the examples use ../tests/datasets instead of "examples"?
 class EigenReader(PstReader):
@@ -128,49 +129,49 @@ class EigenReader(PstReader):
 
     Details of Methods & Properties:
     """
-
+    
     def __init__(self, *args, **kwargs):
         super(EigenReader, self).__init__(*args, **kwargs)
 
-    # !!!cmk
-    # @property
-    # def iid(self):
-    #    """An ndarray of the iids. Each iid is an ndarray of two strings (a family ID and a individual ID) that identifies an individual.
+    #!!!cmk
+    @property
+    def iid(self):
+        """An ndarray of the iids. Each iid is an ndarray of two strings (a family ID and a individual ID) that identifies an individual.
 
-    #    :rtype: ndarray of strings with shape [:attr:`.iid_count`,2]
+        :rtype: ndarray of strings with shape [:attr:`.iid_count`,2]
 
-    #    This property (to the degree practical) reads only iid, eid, and eigenvalue data from the disk, not column eigenvectors. Moreover, the iid, eid, and eigenvalue data is read from file only once.
+        This property (to the degree practical) reads only iid, eid, and eigenvalue data from the disk, not column eigenvectors. Moreover, the iid, eid, and eigenvalue data is read from file only once.
 
-    #    :Example:
+        :Example:
 
-    #    >>> from pysnptools.eigenreader import EigenNpz
-    #    >>> from pysnptools.util import example_file # Download and return local file name
-    #    >>> npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
-    #    >>> eigen_on_disk = EigenNpz(npz_file)
-    #    >>> print(eigen_on_disk.iid[:3]) # print the first three iids
-    #    [['per0' 'per0']
-    #     ['per1' 'per1']
-    #     ['per2' 'per2']]
-    #    """
-    #    return self.row
+        >>> from pysnptools.eigenreader import EigenNpz
+        >>> from pysnptools.util import example_file # Download and return local file name
+        >>> npz_file = example_file("pysnptools/examples/toydata.eigen.npz")
+        >>> eigen_on_disk = EigenNpz(npz_file)
+        >>> print(eigen_on_disk.iid[:3]) # print the first three iids
+        [['per0' 'per0']
+            ['per1' 'per1']
+            ['per2' 'per2']]
+        """
+        return self.row
 
     # !!!cmk document
     @property
     def is_low_rank(self):
         k = self.eid_count  # number of eigenvalues (and eigenvectors)
-        N = self.row_count  # number of individuals
+        N = self.iid_count  # number of individuals
         return k < N
 
-    # !!!cmk
-    # @property
-    # def iid_count(self):
-    #    """number of iids
+    #!!!cmk
+    @property
+    def iid_count(self):
+        """number of iids
 
-    #    :rtype: integer
+        :rtype: integer
 
-    #    This property (to the degree practical) reads only iid, eid, and eigenvalue data from the disk, not column eigenvectors. Moreover, the iid, eid, and eigenvalue data is read from file only once.
-    #    """
-    #    return self.row_count
+        This property (to the degree practical) reads only iid, eid, and eigenvalue data from the disk, not column eigenvectors. Moreover, the iid, eid, and eigenvalue data is read from file only once.
+        """
+        return self.row_count
 
     @property
     def eid(self):
@@ -310,7 +311,7 @@ class EigenReader(PstReader):
         from pysnptools.eigenreader import EigenData
 
         ret = EigenData(
-            row=self.row,
+            iid=self.iid,
             eid=self.eid,
             values=self.values,
             vectors=vectors,
@@ -462,16 +463,26 @@ class EigenReader(PstReader):
             rotationdata_list.append(rotationdata)
 
         batch_rows = batch_rows if batch_rows is not None else self.row_count + 1
-        for row_start in range(0, self.row_count, batch_rows):
-            batch_slice = np.s_[row_start : row_start + batch_rows]
-            #!!!cmk0 is this the best dimension to read in batches?
-            #!!!cmk0 should we give guidence on storing in F or C?
-            batch = self[:, batch_slice].read(view_ok=True)
-            for pstdata, rotationdata in zip(pstdata_list, rotationdata_list):
-                batch_out = rotationdata.rotated.val[batch_slice, :]  # create a view
-                np.einsum("ae,ab->eb", batch.vectors, pstdata.val, out=batch_out)
-                if self.is_low_rank and not ignore_low_rank:
-                    rotationdata.double.val -= batch.vectors @ batch_out
+        def _format_shape(item): #!!!cmk move
+            return f"{item.shape[0]:,d}x{item.shape[1]:,d}"
+        problem_size = np.product([np.sum([pstdata.shape[1] for pstdata in pstdata_list])] + list(self.vectors.shape))
+        if problem_size >= 10_000: #!!cmk
+            logging.info(f"Rotating [{[_format_shape(pstdata) for pstdata in pstdata_list]}] with Eigen({_format_shape(self.vectors)})")
+        with log_in_place("Eigen batch", logging.INFO) as log_writer:
+            loop_count = self.row_count // batch_rows  #!!!cmk round up
+            for loop_index, row_start in enumerate(range(0, self.row_count, batch_rows)):
+                if problem_size >= 10_000: #!!cmk
+                    log_writer(f"On batch {loop_index} of {loop_count}")
+                batch_slice = np.s_[row_start : row_start + batch_rows]
+                #!!!cmk0 is this the best dimension to read in batches?
+                #!!!cmk0 should we give guidence on storing in F or C?
+                batch = self[:, batch_slice].read(view_ok=True)
+                for pstdata, rotationdata in zip(pstdata_list, rotationdata_list):
+                    #batch_out = rotationdata.rotated.val[batch_slice, :]  # create a view
+                    #np.einsum("ae,ab->eb", batch.vectors, pstdata.val, out=batch_out) #!!!cmk0 why is this so slow?
+                    rotationdata.rotated.val[batch_slice, :] = batch.vectors.T @ pstdata.val
+                    if self.is_low_rank and not ignore_low_rank:
+                        rotationdata.double.val -= batch.vectors @ batch_out
 
         return rotationdata_list
 
