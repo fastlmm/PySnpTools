@@ -4,6 +4,7 @@ import logging
 from pysnptools.pstreader import PstReader
 from pysnptools.pstreader import PstData, PstMemMap
 from pysnptools.util import log_in_place
+from pysnptools.util.mapreduce1 import map_reduce
 
 #!!why do the examples use ../tests/datasets instead of "examples"?
 class EigenReader(PstReader):
@@ -427,64 +428,90 @@ class EigenReader(PstReader):
     #!!!cmk document
     #!!!cmk how to understand the low rank bit?
     #!!!cmk only used in one place
-    def rotate_and_scale(self, pstdata, ignore_low_rank=False, batch_rows=None):
+    def rotate_and_scale(self, pstdata, ignore_low_rank=False, batch_rows=None, runner=None):
         rotationdata = self.rotate(
-            pstdata, ignore_low_rank=ignore_low_rank, batch_rows=batch_rows
+            pstdata, ignore_low_rank=ignore_low_rank, batch_rows=batch_rows, runner=runner
         )
         rotationdata.val[:, :] = rotationdata.val / self.values.reshape(-1, 1)
         return rotationdata
 
     #!!!cmk0 is batch_rows the best way to control batch? the best name?
-    def rotate(self, pstdata, batch_rows=None, ignore_low_rank=False):
+    def rotate(self, pstdata, batch_rows=None, ignore_low_rank=False, runner=None):
         return self.rotate_list(
-            [pstdata], batch_rows=batch_rows, ignore_low_rank=ignore_low_rank
+            [pstdata], batch_rows=batch_rows, ignore_low_rank=ignore_low_rank, runner=runner
         )[0]
 
     #!!!cmk understand the ignore_low_rank option. who uses it and why?
     #!!!cmk only used by rotate_and_scale which is only used in one place
-    def rotate_list(self, pstdata_list, batch_rows=None, ignore_low_rank=False):
-        rotationdata_list = []
-        for pstdata in pstdata_list:
-            rotated_pstdata = PstData(
-                row=self.col,
-                col=pstdata.col,
-                #!!!cmk kludge use np.empty instead?
-                val=np.full((self.col_count, pstdata.col_count), np.nan),
-                name=f"rotated({pstdata})",
-            )
-            if self.is_low_rank and not ignore_low_rank:
-                double_pstdata = pstdata.clone(
-                    val=pstdata.val.copy(), name=f"double({pstdata})"
-                )
-            else:
-                double_pstdata = None
-
-            rotationdata = RotationData(rotated_pstdata, double=double_pstdata)
-            rotationdata_list.append(rotationdata)
-
+    def rotate_list(self, pstdata_list, batch_rows=None, ignore_low_rank=False, runner=None):
         batch_rows = batch_rows if batch_rows is not None else self.row_count + 1
-        def _format_shape(item): #!!!cmk move
-            return f"{item.shape[0]:,d}x{item.shape[1]:,d}"
-        problem_size = np.product([np.sum([pstdata.shape[1] for pstdata in pstdata_list])] + list(self.vectors.shape))
-        if problem_size >= 10_000: #!!cmk
-            logging.info(f"Rotating [{[_format_shape(pstdata) for pstdata in pstdata_list]}] with Eigen({_format_shape(self.vectors)})")
-        with log_in_place("Eigen batch", logging.INFO) as log_writer:
-            loop_count = self.row_count // batch_rows  #!!!cmk round up
-            for loop_index, row_start in enumerate(range(0, self.row_count, batch_rows)):
-                if problem_size >= 10_000: #!!cmk
-                    log_writer(f"On batch {loop_index} of {loop_count}")
-                batch_slice = np.s_[row_start : row_start + batch_rows]
-                #!!!cmk0 is this the best dimension to read in batches?
-                #!!!cmk0 should we give guidence on storing in F or C?
-                batch = self[:, batch_slice].read(view_ok=True)
-                for pstdata, rotationdata in zip(pstdata_list, rotationdata_list):
-                    #batch_out = rotationdata.rotated.val[batch_slice, :]  # create a view
-                    #np.einsum("ae,ab->eb", batch.vectors, pstdata.val, out=batch_out) #!!!cmk0 why is this so slow?
-                    rotationdata.rotated.val[batch_slice, :] = batch.vectors.T @ pstdata.val
-                    if self.is_low_rank and not ignore_low_rank:
-                        rotationdata.double.val -= batch.vectors @ batch_out
+        def mapper(row_start):
+            #if problem_size >= 10_000: #!!cmk
+            #    log_writer(f"On batch {loop_index} of {loop_count}")
+            batch_slice = np.s_[row_start : row_start + batch_rows]
+            #!!!cmk0 is this the best dimension to read in batches?
+            #!!!cmk0 should we give guidence on storing in F or C?
+            batch = self[:, batch_slice].read(view_ok=True)
 
-        return rotationdata_list
+            result_list = []
+            for pstdata in pstdata_list:
+                #batch_out = rotationdata.rotated.val[batch_slice, :]  # create a view
+                #np.einsum("ae,ab->eb", batch.vectors, pstdata.val, out=batch_out) #!!!cmk0 why is this so slow?
+                rotated_batch = batch.vectors.T @ pstdata.val
+                if self.is_low_rank and not ignore_low_rank:
+                    double_batch = batch.vectors @ rotated_batch
+                else:
+                    double_batch = None
+                result_list.append((batch_slice, rotated_batch, double_batch))
+            return result_list
+        def reducer(result_list_list):
+            rotationdata_list = []
+            for pstdata in pstdata_list:
+                rotated_pstdata = PstData(
+                    row=self.col,
+                    col=pstdata.col,
+                    #!!!cmk kludge use np.empty instead?
+                    val=np.full((self.col_count, pstdata.col_count), np.nan),
+                    name=f"rotated({pstdata})",
+                )
+                if self.is_low_rank and not ignore_low_rank:
+                    double_pstdata = pstdata.clone(
+                        val=pstdata.val.copy(), name=f"double({pstdata})"
+                    )
+                else:
+                    double_pstdata = None
+
+                rotationdata = RotationData(rotated_pstdata, double=double_pstdata)
+                rotationdata_list.append(rotationdata)
+
+            def _format_shape(item): #!!!cmk move
+                return f"{item.shape[0]:,d}x{item.shape[1]:,d}"
+            problem_size = np.product([np.sum([pstdata.shape[1] for pstdata in pstdata_list])] + list(self.shape))
+            if problem_size >= 10_000: #!!cmk
+                logging.info(f"Rotating [{[_format_shape(pstdata) for pstdata in pstdata_list]}] with Eigen({_format_shape(self)})")
+            with log_in_place("Eigen batch", logging.INFO) as log_writer:
+                loop_count = self.row_count // batch_rows  #!!!cmk round up
+                loop_index = -1
+                for result_list in result_list_list:
+                    if problem_size >= 10_000 and loop_count>1: #!!cmk
+                        loop_index += 1
+                        log_writer(f"On batch {loop_index} of {loop_count}")
+                    for rotationdata, result in zip(rotationdata_list, result_list):
+                        batch_slice, rotated_batch, double_batch = result
+                        rotationdata.rotated.val[batch_slice, :] = rotated_batch
+                        if double_batch is not None:
+                            rotationdata.double.val -= double_batch
+
+            return rotationdata_list
+
+        return map_reduce(range(0, self.row_count, batch_rows),
+                   mapper=mapper,
+                   reducer=reducer,
+                   runner=runner)
+
+
+
+
 
         ## !!!cmk make a test of this kludge
         # if not np.allclose(val, self.rotate_back(rotation).val, rtol=0, atol=1e-9):
