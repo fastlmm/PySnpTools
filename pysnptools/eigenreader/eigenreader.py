@@ -428,30 +428,56 @@ class EigenReader(PstReader):
     #!!!cmk document
     #!!!cmk how to understand the low rank bit?
     #!!!cmk only used in one place
-    def rotate_and_scale(self, pstdata, ignore_low_rank=False, batch_rows=None, runner=None):
+    def rotate_and_scale(self, pstdata, ignore_low_rank=False, GB_goal=None, runner=None):
         rotationdata = self.rotate(
-            pstdata, ignore_low_rank=ignore_low_rank, batch_rows=batch_rows, runner=runner
+            pstdata, ignore_low_rank=ignore_low_rank, GB_goal=GB_goal, runner=runner
         )
         rotationdata.val[:, :] = rotationdata.val / self.values.reshape(-1, 1)
         return rotationdata
 
     #!!!cmk0 is batch_rows the best way to control batch? the best name?
-    def rotate(self, pstdata, batch_rows=None, ignore_low_rank=False, runner=None):
+    def rotate(self, pstdata, GB_goal=None, ignore_low_rank=False, runner=None):
         return self.rotate_list(
-            [pstdata], batch_rows=batch_rows, ignore_low_rank=ignore_low_rank, runner=runner
+            [pstdata], GB_goal=GB_goal, ignore_low_rank=ignore_low_rank, runner=runner
         )[0]
 
     #!!!cmk understand the ignore_low_rank option. who uses it and why?
     #!!!cmk only used by rotate_and_scale which is only used in one place
-    def rotate_list(self, pstdata_list, batch_rows=None, ignore_low_rank=False, runner=None):
-        batch_rows = batch_rows if batch_rows is not None else self.row_count + 1
-        def mapper(row_start):
-            #if problem_size >= 10_000: #!!cmk
-            #    log_writer(f"On batch {loop_index} of {loop_count}")
-            batch_slice = np.s_[row_start : row_start + batch_rows]
+    def rotate_list(self, pstdata_list, GB_goal=None, ignore_low_rank=False, runner=None):
+
+        #!!!cmk move
+        eid_count = self.eid_count
+        iid_count = self.iid_count
+        col_count = int(np.sum([pstdata.col_count for pstdata in pstdata_list]))
+        if GB_goal is None:
+            eid_step = self.eid_count
+        else:
+            GB_total = iid_count * eid_count * 8.0 / (1024.0**3)
+            eid_step = min(eid_count, int(np.ceil(GB_goal * eid_count / GB_total)))
+        problem_size = int(eid_count*iid_count*col_count)
+        assert problem_size>0, "real assert cmk"
+
+        def _format_shape(item): #!!!cmk move
+            return f"{item.shape[0]:,d} x {item.shape[1]:,d}"
+        # cmk0 Must convert to float to avoid np.int overflow
+
+        loop_count = -(-self.eid_count // eid_step)  # round up
+
+        def mapper(eid_start):
+            loop_index = -(-eid_start // eid_step)  # round up
+            if problem_size >= 5_000_000 and loop_count>1: #!!cmk
+                logging.info(f"Eigen batch -- On batch {loop_index} of {loop_count}")
+            #with log_in_place("Eigen batch", logging.INFO) as log_writer:
+            #    loop_count = self.eid_count // eid_step  #!!!cmk round up
+            #    loop_index = -1
+            #    for result_list in result_list_list:
+            #        if problem_size >= 5_000_000 and loop_count>1: #!!cmk
+            #            loop_index += 1
+            #            log_writer(f"On batch {loop_index} of {loop_count}")
+            eid_slice = np.s_[eid_start : eid_start + eid_step]
             #!!!cmk0 is this the best dimension to read in batches?
             #!!!cmk0 should we give guidence on storing in F or C?
-            batch = self[:, batch_slice].read(view_ok=True)
+            batch = self[:, eid_slice].read(view_ok=True)
 
             result_list = []
             for pstdata in pstdata_list:
@@ -462,7 +488,7 @@ class EigenReader(PstReader):
                     double_batch = batch.vectors @ rotated_batch
                 else:
                     double_batch = None
-                result_list.append((batch_slice, rotated_batch, double_batch))
+                result_list.append((eid_slice, rotated_batch, double_batch))
             return result_list
         def reducer(result_list_list):
             rotationdata_list = []
@@ -484,27 +510,18 @@ class EigenReader(PstReader):
                 rotationdata = RotationData(rotated_pstdata, double=double_pstdata)
                 rotationdata_list.append(rotationdata)
 
-            def _format_shape(item): #!!!cmk move
-                return f"{item.shape[0]:,d}x{item.shape[1]:,d}"
-            problem_size = np.product([np.sum([pstdata.shape[1] for pstdata in pstdata_list])] + list(self.shape))
-            if problem_size >= 10_000: #!!cmk
+            if problem_size >= 5_000_000: #!!cmk
                 logging.info(f"Rotating [{[_format_shape(pstdata) for pstdata in pstdata_list]}] with Eigen({_format_shape(self)})")
-            with log_in_place("Eigen batch", logging.INFO) as log_writer:
-                loop_count = self.row_count // batch_rows  #!!!cmk round up
-                loop_index = -1
-                for result_list in result_list_list:
-                    if problem_size >= 10_000 and loop_count>1: #!!cmk
-                        loop_index += 1
-                        log_writer(f"On batch {loop_index} of {loop_count}")
-                    for rotationdata, result in zip(rotationdata_list, result_list):
-                        batch_slice, rotated_batch, double_batch = result
-                        rotationdata.rotated.val[batch_slice, :] = rotated_batch
-                        if double_batch is not None:
-                            rotationdata.double.val -= double_batch
+            for result_list in result_list_list:
+                for rotationdata, result in zip(rotationdata_list, result_list):
+                    eid_slice, rotated_batch, double_batch = result
+                    rotationdata.rotated.val[eid_slice, :] = rotated_batch
+                    if double_batch is not None:
+                        rotationdata.double.val -= double_batch
 
             return rotationdata_list
 
-        return map_reduce(range(0, self.row_count, batch_rows),
+        return map_reduce(range(0, self.eid_count, eid_step),
                    mapper=mapper,
                    reducer=reducer,
                    runner=runner)
