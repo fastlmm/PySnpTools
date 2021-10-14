@@ -207,7 +207,7 @@ class EigenData(PstData, EigenReader):
             ) == self.is_low_rank, "low rank eigens expect a non-empty rotation.double"
 
         val = rotation.val
-        rotated_back_val = np.einsum("ae,eb->ab", self.vectors, val)
+        rotated_back_val = np.einsum("ae,eb->ab", self.vectors, val, optimize=True)
 
         if rotation.double is not None:
             rotated_back_val += rotation.double.val

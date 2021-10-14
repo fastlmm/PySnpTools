@@ -44,6 +44,7 @@ class Local(Runner):
 
     def run(self, distributable):
         _JustCheckExists().input(distributable)
+        #!!!cmk should we set other NUM_THREADS?
         with patch.dict('os.environ', {'MKL_NUM_THREADS': str(self.mkl_num_threads)} if self.mkl_num_threads is not None else {}) as _:
             result = _run_all_in_memory(distributable)
         _JustCheckExists().output(distributable)

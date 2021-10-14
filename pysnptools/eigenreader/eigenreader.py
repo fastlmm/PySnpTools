@@ -467,13 +467,6 @@ class EigenReader(PstReader):
             loop_index = -(-eid_start // eid_step)  # round up
             if problem_size >= 5_000_000 and loop_count>1: #!!cmk
                 logging.info(f"Eigen batch -- On batch {loop_index} of {loop_count}")
-            #with log_in_place("Eigen batch", logging.INFO) as log_writer:
-            #    loop_count = self.eid_count // eid_step  #!!!cmk round up
-            #    loop_index = -1
-            #    for result_list in result_list_list:
-            #        if problem_size >= 5_000_000 and loop_count>1: #!!cmk
-            #            loop_index += 1
-            #            log_writer(f"On batch {loop_index} of {loop_count}")
             eid_slice = np.s_[eid_start : eid_start + eid_step]
             #!!!cmk0 is this the best dimension to read in batches?
             #!!!cmk0 should we give guidence on storing in F or C?
@@ -481,8 +474,6 @@ class EigenReader(PstReader):
 
             result_list = []
             for pstdata in pstdata_list:
-                #batch_out = rotationdata.rotated.val[batch_slice, :]  # create a view
-                #np.einsum("ae,ab->eb", batch.vectors, pstdata.val, out=batch_out) #!!!cmk0 why is this so slow?
                 rotated_batch = batch.vectors.T @ pstdata.val
                 if self.is_low_rank and not ignore_low_rank:
                     double_batch = batch.vectors @ rotated_batch
