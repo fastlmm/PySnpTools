@@ -127,6 +127,7 @@ class EigenData(PstData, EigenReader):
         eigen = EigenData(values=w, vectors=v, iid=aka.row)
         if keep_above > np.NINF:
             eigen = eigen[:, eigen.values > keep_above].read(view_ok=True)
+        assert eigen.eid_count > 0, "!!!cmk0 expect at least one non-zero eigenvalue"
         return eigen
 
     @property
@@ -153,7 +154,9 @@ class EigenData(PstData, EigenReader):
                 [row_count, col_count, 2], dtype=np.float64
             ),
         )  #!!!Replace empty with my FillNA method?
-        self._assert_row_eid_values(check_val=True)
+         #!!!cmk is there such a keyword?
+         #!!!cmk add coverage test
+        self._assert_row_eid_values(check_vectors=True)
 
     def allclose(self, value, equal_nan=True):
         """

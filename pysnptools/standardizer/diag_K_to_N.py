@@ -4,7 +4,7 @@ import logging
 import warnings
 
 
-class DiagKtoN(Standardizer):
+class openDiagKtoN(Standardizer):
     '''
     Both a :class:`.Standardizer` and a A :class:`.KernelStandardizer`.
 

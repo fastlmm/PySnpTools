@@ -158,9 +158,9 @@ class EigenReader(PstReader):
 
     # !!!cmk document
     @property
-    def is_low_rank(self):
-        k = self.eid_count  # number of eigenvalues (and eigenvectors)
+    def is_low_rank(self): # !!!cmklr
         N = self.iid_count  # number of individuals
+        k = self.eid_count  # number of eigenvalues (and eigenvectors)
         return k < N
 
     #!!!cmk
@@ -421,7 +421,7 @@ class EigenReader(PstReader):
         else:
             Sd = self.values + delta
         logdet = np.log(Sd).sum()
-        if self.is_low_rank:  # !!!cmk test this
+        if self.is_low_rank:  # !!!cmk test this # !!!cmklr
             logdet += (self.row_count - self.eid_count) * np.log(delta)
         return logdet, Sd
 
@@ -475,7 +475,7 @@ class EigenReader(PstReader):
             result_list = []
             for pstdata in pstdata_list:
                 rotated_batch = batch.vectors.T @ pstdata.val
-                if self.is_low_rank and not ignore_low_rank:
+                if self.is_low_rank and not ignore_low_rank:# !!!cmklr
                     double_batch = batch.vectors @ rotated_batch
                 else:
                     double_batch = None

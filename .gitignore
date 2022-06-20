@@ -1035,3 +1035,4 @@ ModelManifest.xml
 /pysnptools/runs/
 /pysnptools/snpreader/s3/172.21.144.1/traviscibucket/deldir
 /pysnptools/util/mapreduce1/.work_directory.prime_search1
+/.vs
