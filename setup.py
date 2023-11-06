@@ -24,7 +24,7 @@ install_requires = [
     "more-itertools>=8.7.0",
     "cbgen>= 1.0.4",
     "bgen-reader>=4.0.8",
-    "bed-reader>=0.2.36",
+    "bed-reader>=1.0.0b3",  # cmk
 ]
 
 # python setup.py sdist bdist_wininst upload
