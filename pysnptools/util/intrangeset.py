@@ -6,7 +6,6 @@ import logging
 import numpy as np
 import unittest
 import doctest
-import six
 import numbers
 import io
 

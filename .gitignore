@@ -1059,4 +1059,3 @@ ModelManifest.xml
 /deleteme1.bed
 .vs/
 pysnptools/runs/*
-pysnptools/util/filecache/ignore/*
