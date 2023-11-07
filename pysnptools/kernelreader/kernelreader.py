@@ -8,6 +8,7 @@ import pysnptools.util as pstutil
 from pysnptools.pstreader import PstReader
 from pysnptools.kernelstandardizer import DiagKtoN
 
+
 class KernelReader(PstReader):
     """A KernelReader is one of three things:
 
@@ -15,7 +16,7 @@ class KernelReader(PstReader):
 
         >>> from pysnptools.kernelreader import KernelNpz
         >>> from pysnptools.util import example_file # Download and return local file name
-        >>> 
+        >>>
         >>> kernel_file = example_file('pysnptools/examples/toydata.kernel.npz')
         >>> kernel_on_disk = KernelNpz(kernel_file)
         >>> print(kernel_on_disk) # prints specification for reading from file
@@ -29,7 +30,7 @@ class KernelReader(PstReader):
         >>> from pysnptools.snpreader import Bed
         >>> from pysnptools.standardizer import Unit
         >>> from pysnptools.util import example_file # Download and return local file name
-        >>> 
+        >>>
         >>> bed_file = example_file('tests/datasets/all_chr.maf0.001.N300.*','*.bed')
         >>> snp_on_disk = Bed(bed_file,count_A1=False)
         >>> kerneldata1 = snp_on_disk.read_kernel(Unit()) #reads the SNP values and computes the kernel
@@ -78,16 +79,16 @@ class KernelReader(PstReader):
         :class:`.Identity`                 *n/a*              Yes                    *n/a*              No
         :class:`.SnpKernel`                depends            depends                *n/a*              No
         ================================== ================== ====================== ================== ====================
-    
-  
+
+
     Methods & Properties:
 
-        Every KernelReader, such as :class:`.KernelNpz` and :class:`.KernelData`, when square has these properties: :attr:`iid`, :attr:`iid_count`, 
+        Every KernelReader, such as :class:`.KernelNpz` and :class:`.KernelData`, when square has these properties: :attr:`iid`, :attr:`iid_count`,
         and these methods: :meth:`read`, and :meth:`iid_to_index`. A square kernel is one that has the same iid list for both its rows and columns.
 
-        More generally, KernelReaders can have one iid list for its rows and a different iid list for its columns, so these properties and methods are also defined: :attr:`iid0`, :attr:`iid1`, :attr:`iid0_count`, 
+        More generally, KernelReaders can have one iid list for its rows and a different iid list for its columns, so these properties and methods are also defined: :attr:`iid0`, :attr:`iid1`, :attr:`iid0_count`,
         :attr:`iid1_count`, :meth:`iid0_to_index`, and :meth:`iid1_to_index`.
-       
+
         See below for details.
 
         :class:`.KernelData` is a KernelReader so it supports the above properties and methods. In addition, it supports property :attr:`KernelData.val`, method :meth:`.KernelData.standardize`, and equality testing.
@@ -101,7 +102,7 @@ class KernelReader(PstReader):
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> from pysnptools.standardizer import Unit
         >>> import pysnptools.util as pstutil
-        
+
         >>> bed_file = example_file('pysnptools/examples/toydata.5chrom.bed')
         >>> kerneldata = Bed(bed_file,count_A1=False).read_kernel(Unit())     # Create a kernel from the data in the Bed file
         >>> pstutil.create_directory_if_necessary("tempdir/toydata.kernel.npz")
@@ -121,14 +122,14 @@ class KernelReader(PstReader):
         [2 1]
 
     :class:`.KernelReader` is a kind of :class:`.PstReader`. See the documentation for :class:`.PstReader` to learn about:
-        
+
         * When Data is Read
         * When Data is Re-Read and Copied
         * Avoiding Unwanted ndarray Allocations
         * Creating Subsetting PstReaders with Indexing
 
     The :meth:`read` Method
-  
+
         By default the :meth:`read` returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (iid0-index varies the fastest). You may, instead,
         ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
 
@@ -148,9 +149,10 @@ class KernelReader(PstReader):
             >>> kerneldata2 = kernel_on_disk.read().standardize() # Read and standardize in one expression with only one ndarray allocated.
             >>> print(np.diag(kerneldata2.val).sum())
             500.0
-   
+
     Details of Methods & Properties:
     """
+
     def __init__(self, *args, **kwargs):
         super(KernelReader, self).__init__(*args, **kwargs)
 
@@ -167,7 +169,7 @@ class KernelReader(PstReader):
 
         >>> from pysnptools.kernelreader import KernelNpz
         >>> from pysnptools.util import example_file # Download and return local file name
-        >>> 
+        >>>
         >>> kernel_file = example_file('pysnptools/examples/toydata.kernel.npz')
         >>> kernel_on_disk = KernelNpz(kernel_file)
         >>> print(kernel_on_disk.iid[:3]) # print the first three iids
@@ -175,7 +177,9 @@ class KernelReader(PstReader):
          ['per1' 'per1']
          ['per2' 'per2']]
         """
-        assert self.iid0 is self.iid1, "When 'iid' is used, iid0 must be the same as iid1"
+        assert (
+            self.iid0 is self.iid1
+        ), "When 'iid' is used, iid0 must be the same as iid1"
         return self.iid0
 
     @property
@@ -201,7 +205,9 @@ class KernelReader(PstReader):
 
         This property (to the degree practical) reads only iid data from the disk, not kernel value data. Moreover, the iid data is read from file only once.
         """
-        assert self.iid0 is self.iid1, "When 'iid_count' is used, iid0 must be the same as iid1"
+        assert (
+            self.iid0 is self.iid1
+        ), "When 'iid_count' is used, iid0 must be the same as iid1"
         return self.iid0_count
 
     @property
@@ -220,14 +226,13 @@ class KernelReader(PstReader):
         """
         return self.col_count
 
-
     @property
     def row_property(self):
         """
         Defined for compatibility with :class:`.PstReader`. Will always be empty.
         """
-        if not hasattr(self,"_row_property"):
-            self._row_property = np.empty((self.row_count,0))
+        if not hasattr(self, "_row_property"):
+            self._row_property = np.empty((self.row_count, 0))
         return self._row_property
 
     @property
@@ -235,14 +240,19 @@ class KernelReader(PstReader):
         """
         Defined for compatibility with :class:`.PstReader`. Will always be empty.
         """
-        if not hasattr(self,"_col_property"):
-            self._col_property = np.empty((self.col_count,0))
+        if not hasattr(self, "_col_property"):
+            self._col_property = np.empty((self.col_count, 0))
         return self._col_property
 
-
-
-    #!!check that views always return contiguous memory by default
-    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False, num_threads=None):
+    # !!check that views always return contiguous memory by default
+    def read(
+        self,
+        order="F",
+        dtype=np.float64,
+        force_python_only=False,
+        view_ok=False,
+        num_threads=None,
+    ):
         """Reads the kernel values and returns a :class:`.KernelData` (with :attr:`KernelData.val` property containing a new ndarray of the kernel values).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
@@ -260,7 +270,7 @@ class KernelReader(PstReader):
         :type force_python_only: bool
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`KernelData.val`'s ndarray. If True,
-            if practical and reading from a :class:`KernelData`, will return a new 
+            if practical and reading from a :class:`KernelData`, will return a new
             :class:`KernelData` with a ndarray shares memory with the original :class:`KernelData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
             Use these parameters with care because any change to either ndarray (for example, via :meth:`.KernelData.standardize`) will effect
@@ -293,11 +303,14 @@ class KernelReader(PstReader):
         9923.069928
         >>> subsub_kerneldata = subset_kerneldata[:10].read(order='A',view_ok=True) # Create an in-memory subset of the subset with kernel values for the first ten iids. Share memory if practical.
         >>> import numpy as np
-        >>> #print(np.may_share_memory(subset_kerneldata.val, subsub_kerneldata.val)) # Do the two ndarray's share memory? They could. Currently they won't.       
+        >>> #print(np.may_share_memory(subset_kerneldata.val, subsub_kerneldata.val)) # Do the two ndarray's share memory? They could. Currently they won't.
         """
         dtype = np.dtype(dtype)
-        val = self._read(None, None, order, dtype, force_python_only, view_ok, num_threads)
+        val = self._read(
+            None, None, order, dtype, force_python_only, view_ok, num_threads
+        )
         from pysnptools.kernelreader import KernelData
+
         ret = KernelData(iid0=self.iid0, iid1=self.iid1, val=val, name=str(self))
         return ret
 
@@ -309,7 +322,7 @@ class KernelReader(PstReader):
         :type order: list of list of strings
 
         :rtype: ndarray of int
-        
+
         This method (to the degree practical) reads only iid from the disk, not kernel value data. Moreover, the iid data is read from file only once.
 
         :Example:
@@ -321,27 +334,27 @@ class KernelReader(PstReader):
         >>> print(kernel_on_disk.iid_to_index([['per2','per2'],['per1','per1']])) #Find the indexes for two iids.
         [2 1]
         """
-        assert self.iid0 is self.iid1, "When 'iid_to_index' is used, iid0 must be the same as iid1"
+        assert (
+            self.iid0 is self.iid1
+        ), "When 'iid_to_index' is used, iid0 must be the same as iid1"
         return self.iid0_to_index(list)
 
     def iid0_to_index(self, list):
-        """Takes a list of row iids and returns a list of index numbers. See :attr:`iid_to_index`
-        """
+        """Takes a list of row iids and returns a list of index numbers. See :attr:`iid_to_index`"""
         return self.row_to_index(list)
 
     @staticmethod
     def _makekey(item):
         return tuple(str(i) for i in item)
 
-
     def iid1_to_index(self, list):
-        """Takes a list of column iids and returns a list of index numbers. See :attr:`iid_to_index`
-        """
+        """Takes a list of column iids and returns a list of index numbers. See :attr:`iid_to_index`"""
         return self.col_to_index(list)
 
     def __getitem__(self, iid_indexer_and_snp_indexer):
         from pysnptools.kernelreader._subset import _KernelSubset
-        if isinstance(iid_indexer_and_snp_indexer,tuple):
+
+        if isinstance(iid_indexer_and_snp_indexer, tuple):
             iid0_indexer, iid1_indexer = iid_indexer_and_snp_indexer
         else:
             iid0_indexer = iid_indexer_and_snp_indexer
@@ -349,17 +362,38 @@ class KernelReader(PstReader):
 
         return _KernelSubset(self, iid0_indexer, iid1_indexer)
 
-    def _assert_iid0_iid1(self,check_val):
+    def _assert_iid0_iid1(self, check_val):
         if check_val:
-            assert len(self._val.shape)==2, "val should have two dimensions"
-            assert self._val.shape == (len(self._row),len(self._col)), "val shape should match that of iid0_count x iid1_count"
+            assert len(self._val.shape) == 2, "val should have two dimensions"
+            assert self._val.shape == (
+                len(self._row),
+                len(self._col),
+            ), "val shape should match that of iid0_count x iid1_count"
 
-        assert self._row.dtype.type is np.str_ and len(self._row.shape)==2 and self._row.shape[1]==2, "iid0 should be dtype str, have two dimensions, and the second dimension should be size 2"
-        assert self._col.dtype.type is np.str_ and len(self._col.shape)==2 and self._col.shape[1]==2, "iid1 should be dtype str have two dimensions, and the second dimension should be size 2"
+        assert (
+            self._row.dtype.type is np.str_
+            and len(self._row.shape) == 2
+            and self._row.shape[1] == 2
+        ), "iid0 should be dtype str, have two dimensions, and the second dimension should be size 2"
+        assert (
+            self._col.dtype.type is np.str_
+            and len(self._col.shape) == 2
+            and self._col.shape[1] == 2
+        ), "iid1 should be dtype str have two dimensions, and the second dimension should be size 2"
 
-    def _read_with_standardizing(self, to_kerneldata, snp_standardizer=None, kernel_standardizer=DiagKtoN(), return_trained=False):
-        assert to_kerneldata, "When working with non-SnpKernels, to_kerneldata must be 'True'"
-        kernel, kernel_trained = self.read().standardize(kernel_standardizer,return_trained=True)
+    def _read_with_standardizing(
+        self,
+        to_kerneldata,
+        snp_standardizer=None,
+        kernel_standardizer=DiagKtoN(),
+        return_trained=False,
+    ):
+        assert (
+            to_kerneldata
+        ), "When working with non-SnpKernels, to_kerneldata must be 'True'"
+        kernel, kernel_trained = self.read().standardize(
+            kernel_standardizer, return_trained=True
+        )
 
         if return_trained:
             return kernel, None, kernel_trained
@@ -368,9 +402,9 @@ class KernelReader(PstReader):
 
     @property
     def val_shape(self):
-        '''
+        """
         Tells the shape of value for a given individual and SNP. For KernelReaders always returns None, meaning a single scalar value.
-        '''
+        """
         return None
 
 
@@ -378,6 +412,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod(optionflags=doctest.ELLIPSIS)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test
     print("done")

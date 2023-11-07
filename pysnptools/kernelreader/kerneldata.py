@@ -9,7 +9,8 @@ from pysnptools.kernelstandardizer import Identity as KS_Identity
 from pysnptools.kernelstandardizer import DiagKtoN
 import pysnptools.util as pstutil
 
-class KernelData(KernelReader,PstData):
+
+class KernelData(KernelReader, PstData):
     """A :class:`.KernelReader` for holding kernel values in-memory, along with related iid information.
     It is usually created by calling the :meth:`.SnpReader.read_kernel` method on a :class:`.SnpReader`, for example, :class:`.Bed`.
     It can also be created by calling the :meth:`.KernelReader.read` method on :class:`.SnpKernel`, for example, :class:`.KernelNpz`.
@@ -68,32 +69,76 @@ class KernelData(KernelReader,PstData):
 
     **Methods beyond** :class:`.KernelReader`
     """
-    def __init__(self, iid=None, iid0=None, iid1=None, val=None, name=None, parent_string=None, xp = None): #!!!autodoc doesn't generate good doc for this constructor
-        #We don't have a 'super(KernelData, self).__init__()' here because KernelData takes full responsibility for initializing both its superclasses
+
+    def __init__(
+        self,
+        iid=None,
+        iid0=None,
+        iid1=None,
+        val=None,
+        name=None,
+        parent_string=None,
+        xp=None,
+    ):  # !!!autodoc doesn't generate good doc for this constructor
+        # We don't have a 'super(KernelData, self).__init__()' here because KernelData takes full responsibility for initializing both its superclasses
         xp = pstutil.array_module(xp)
         self._val = None
 
-        #!!why does SnpData __init__ have a copy_inputs, but KernelData doesn't?
-        assert (iid is None) != (iid0 is None and iid1 is None), "Either 'iid' or both 'iid0' 'iid1' must be provided."
-        assert name is None or parent_string is None, "Can't set both 'name' and the deprecated 'parent_string'"
+        # !!why does SnpData __init__ have a copy_inputs, but KernelData doesn't?
+        assert (iid is None) != (
+            iid0 is None and iid1 is None
+        ), "Either 'iid' or both 'iid0' 'iid1' must be provided."
+        assert (
+            name is None or parent_string is None
+        ), "Can't set both 'name' and the deprecated 'parent_string'"
         if parent_string is not None:
-            warnings.warn("'parent_string' is deprecated. Use 'name'", DeprecationWarning)
+            warnings.warn(
+                "'parent_string' is deprecated. Use 'name'", DeprecationWarning
+            )
 
         if iid is not None:
-            self._row = PstData._fixup_input(iid,empty_creator=lambda ignore:np.empty([0,2],dtype='str'),dtype='str')
+            self._row = PstData._fixup_input(
+                iid,
+                empty_creator=lambda ignore: np.empty([0, 2], dtype="str"),
+                dtype="str",
+            )
             self._col = self._row
         else:
-            self._row = PstData._fixup_input(iid0,empty_creator=lambda ignore:np.empty([0,2],dtype='str'),dtype='str')
-            self._col = PstData._fixup_input(iid1,empty_creator=lambda ignore:np.empty([0,2],dtype='str'),dtype='str')
-        self._row_property = PstData._fixup_input(None,count=len(self._row),empty_creator=lambda count:np.empty([count,0],dtype='str'),dtype='str')
-        self._col_property = PstData._fixup_input(None,count=len(self._col),empty_creator=lambda count:np.empty([count,0],dtype='str'),dtype='str')
-        self._val = PstData._fixup_input_val(val,row_count=len(self._row),col_count=len(self._col),
-                                             empty_creator=lambda row_count,col_count:xp.empty([row_count,col_count],dtype=xp.float64),xp=xp)
-        self._assert_iid0_iid1(check_val=True) 
+            self._row = PstData._fixup_input(
+                iid0,
+                empty_creator=lambda ignore: np.empty([0, 2], dtype="str"),
+                dtype="str",
+            )
+            self._col = PstData._fixup_input(
+                iid1,
+                empty_creator=lambda ignore: np.empty([0, 2], dtype="str"),
+                dtype="str",
+            )
+        self._row_property = PstData._fixup_input(
+            None,
+            count=len(self._row),
+            empty_creator=lambda count: np.empty([count, 0], dtype="str"),
+            dtype="str",
+        )
+        self._col_property = PstData._fixup_input(
+            None,
+            count=len(self._col),
+            empty_creator=lambda count: np.empty([count, 0], dtype="str"),
+            dtype="str",
+        )
+        self._val = PstData._fixup_input_val(
+            val,
+            row_count=len(self._row),
+            col_count=len(self._col),
+            empty_creator=lambda row_count, col_count: xp.empty(
+                [row_count, col_count], dtype=xp.float64
+            ),
+            xp=xp,
+        )
+        self._assert_iid0_iid1(check_val=True)
         self._name = name or parent_string or ""
         self._std_string_list = []
         self._xp = xp
-
 
     @property
     def val(self):
@@ -108,13 +153,19 @@ class KernelData(KernelReader,PstData):
 
     @val.setter
     def val(self, new_value):
-        self._val = PstData._fixup_input_val(new_value,row_count=len(self._row),col_count=len(self._col),empty_creator=lambda row_count,col_count:np.empty([row_count,col_count],dtype=np.float64),
-                                             xp=self._xp)
-        self._assert_iid0_iid1(check_val=True) 
+        self._val = PstData._fixup_input_val(
+            new_value,
+            row_count=len(self._row),
+            col_count=len(self._col),
+            empty_creator=lambda row_count, col_count: np.empty(
+                [row_count, col_count], dtype=np.float64
+            ),
+            xp=self._xp,
+        )
+        self._assert_iid0_iid1(check_val=True)
 
-
-    def allclose(self, value,equal_nan=True):
-        '''
+    def allclose(self, value, equal_nan=True):
+        """
         :param value: Other object with which to compare.
         :type value: :class:`KernelData`
         :param equal_nan: (Default: True) Tells if NaN in :attr:`KernelData.val` should be treated as regular values when testing equality.
@@ -128,12 +179,17 @@ class KernelData(KernelReader,PstData):
         >>> print(kerneldata5.allclose(kerneldata6,equal_nan=False)) #False, if we consider the NaN as special values, all the arrays are not equal.
         False
 
-        '''
-        return PstData.allclose(self,value,equal_nan=equal_nan)
+        """
+        return PstData.allclose(self, value, equal_nan=equal_nan)
 
-
-    #!! SnpData.standardize() changes the str to help show that the data has been standardized. Should this to that too?
-    def standardize(self, standardizer=DiagKtoN(), return_trained=False, force_python_only=False, num_threads=None):
+    # !! SnpData.standardize() changes the str to help show that the data has been standardized. Should this to that too?
+    def standardize(
+        self,
+        standardizer=DiagKtoN(),
+        return_trained=False,
+        force_python_only=False,
+        num_threads=None,
+    ):
         """Does in-place standardization of the in-memory
         kernel data. The method multiples the values with a scalar factor such that the diagonal sums to iid_count. Although it works in place, for convenience
         it also returns the KernelData.
@@ -156,12 +212,18 @@ class KernelData(KernelReader,PstData):
         >>> print(np.diag(kerneldata2.val).sum())
         500.0
         """
-        return standardizer.standardize(self, return_trained=return_trained, force_python_only=force_python_only,num_threads=num_threads)
+        return standardizer.standardize(
+            self,
+            return_trained=return_trained,
+            force_python_only=force_python_only,
+            num_threads=num_threads,
+        )
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod(optionflags=doctest.ELLIPSIS)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test

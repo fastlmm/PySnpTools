@@ -9,7 +9,7 @@ import numbers
 
 try:
     from builtins import int
-except:
+except Exception:
     pass
 
 
@@ -423,7 +423,7 @@ class PstReader(object):
     ):
         raise NotImplementedError
 
-    #!!check that views always return contiguous memory by default
+    # !!check that views always return contiguous memory by default
     def read(
         self,
         order="F",
@@ -559,7 +559,7 @@ class PstReader(object):
             col_set = None
             try:
                 col_set = set(self.col)
-            except:
+            except Exception:
                 pass
 
             if col_set is not None:
@@ -594,7 +594,7 @@ class PstReader(object):
         try:
             hash(item)
             return item
-        except:
+        except Exception:
             pass
 
         return tuple((PstReader._makekey(subitem) for subitem in item))
@@ -710,7 +710,7 @@ class PstReader(object):
             return sub_val, False
 
         if PstReader._is_all_slice(row_indexer) or PstReader._is_all_slice(col_indexer):
-            sub_val = val[row_indexer, col_indexer]  #!!is this faster than the C++?
+            sub_val = val[row_indexer, col_indexer]  # !!is this faster than the C++?
         else:
             row_index = PstReader._make_sparray_from_sparray_or_slice(
                 self.row_count, row_indexer

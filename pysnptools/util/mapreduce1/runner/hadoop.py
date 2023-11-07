@@ -57,7 +57,7 @@ class Hadoop(Runner):
         # Check that the local machine has python path set
         localpythonpath = os.environ.get(
             "PYTHONPATH"
-        )  #!!should it be able to work without pythonpath being set (e.g. if there was just one file)? Also, is None really the return or is it an exception.
+        )  # !!should it be able to work without pythonpath being set (e.g. if there was just one file)? Also, is None really the return or is it an exception.
         if localpythonpath == None:
             raise Exception("Expect local machine to have 'pythonpath' set")
 
@@ -136,8 +136,8 @@ class Hadoop(Runner):
     ):
         logging.info("Hadoop runner is submitting to cluster")
 
-        #!! e.g. hdfs://rr1-n13-02-c02/user/carlk/inputs.tgz#inputs,hdfs://rr1-n13-02-c02/user/carlk/datasets.tgz#datasets,hdfs://rr1-n13-02-c02/user/carlk/src.tgz#src
-        #!! could do this functionally
+        # !! e.g. hdfs://rr1-n13-02-c02/user/carlk/inputs.tgz#inputs,hdfs://rr1-n13-02-c02/user/carlk/datasets.tgz#datasets,hdfs://rr1-n13-02-c02/user/carlk/src.tgz#src
+        # !! could do this functionally
         archivesStringList = []
         for tgz in tgzList:
             archiveString = "hdfs:{0}#{1}".format(tgz[1], os.path.splitext(tgz[0])[0])
@@ -308,7 +308,7 @@ class Hadoop(Runner):
         localfilepath, file = os.path.split(distributable_py_file)
         remoteexepath = os.path.join(
             remotepythonpath.split(";")[0], "fastlmm", "util"
-        )  #!!shouldn't need to assume where the file is in source
+        )  # !!shouldn't need to assume where the file is in source
 
         batfilename_abs_list = []
         for part in ["Mapper", "Reducer"]:
@@ -453,10 +453,10 @@ class Hadoop(Runner):
                 ignoreFile.write("\n")
 
         run_dir_abs = "/user/{0}/{1}".format(username, run_dir_rel)
-        #!! hadoop_create_directory_if_necessary(run_dir_abs,isfile=False)
+        # !! hadoop_create_directory_if_necessary(run_dir_abs,isfile=False)
         return remotewd, run_dir_abs, run_dir_rel
 
-    #!! move these hadoop commands to a library
+    # !! move these hadoop commands to a library
     @staticmethod
     def hadoop_create_directory_if_necessary(name, isfile=True):
         import os
@@ -467,7 +467,7 @@ class Hadoop(Runner):
             directory_name = name
         hadoop_makedirs(directory_name)
 
-    #!! what if already is there?
+    # !! what if already is there?
     @staticmethod
     def hadoop_makedirs(directory_name):
         hadoop_command("fs -mkdir {0}".format(directory_name))
@@ -624,7 +624,6 @@ class HadoopCopier(object):  # Implements ICopier
 
     @staticmethod
     def CreateNewTarFile(directory, subsubItemList, tgzName, filter_hidden=True):
-
         # logging.info("{0}, {1}, {2}".format(directory, subsubItemList, tgzName))
         directory1 = os.path.normpath(directory)
 
@@ -694,7 +693,7 @@ class HadoopCopier(object):  # Implements ICopier
             normpath = os.path.normpath(item)
             try:
                 relpath = os.path.relpath(normpath)
-            except:
+            except Exception:
                 raise Exception(
                     "for Hadoop input files must be in or below the current directory ('{0}' is not)".format(
                         item
@@ -852,7 +851,7 @@ class HadoopCopier(object):  # Implements ICopier
 
     _ignoreTgzChangeFileName = ".ignoreTgzChange"
 
-    #!! test that this stops it from look down below
+    # !! test that this stops it from look down below
     @staticmethod
     def containsDotIgnoreTgzChange(filepath):
         signalPath = os.path.join(filepath, HadoopCopier._ignoreTgzChangeFileName)

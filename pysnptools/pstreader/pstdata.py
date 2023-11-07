@@ -5,14 +5,17 @@ import logging
 from pysnptools.pstreader import PstReader
 import pysnptools.util as pstutil
 
-def _default_empty_creator(count):
-    return np.empty([count or 0, 0],dtype='str')
 
-def _default_empty_creator_val(row_count,col_count):
-    return np.empty([row_count,col_count],dtype='str')
+def _default_empty_creator(count):
+    return np.empty([count or 0, 0], dtype="str")
+
+
+def _default_empty_creator_val(row_count, col_count):
+    return np.empty([row_count, col_count], dtype="str")
+
 
 class PstData(PstReader):
-    '''A :class:`.PstReader` for holding values in-memory, along with related row and col information.
+    """A :class:`.PstReader` for holding values in-memory, along with related row and col information.
     It is usually created by calling the :meth:`.PstReader.read` method on another :class:`.PstReader`, for example, :class:`.PstNpz`. It can also be constructed directly.
 
     See :class:`.PstReader` for details and examples.
@@ -36,7 +39,7 @@ class PstData(PstReader):
     **Equality:**
 
         Two PstData objects are equal if their five arrays (:attr:`PstData.val`, :attr:`PstReader.row`, :attr:`PstReader.col`, :attr:`PstReader.row_property`, and :attr:`PstReader.col_property`) arrays are equal.
-        (Their 'name' does not need to be the same).  
+        (Their 'name' does not need to be the same).
         If either :attr:`PstData.val` contains NaN, the objects will not be equal. However, :meth:`.PstData.allclose` can be used to treat NaN as regular values.
         Any NaN's in the other four arrays are treated as regular values.
 
@@ -64,35 +67,55 @@ class PstData(PstReader):
     **Methods beyond** :class:`.PstReader`
 
 
-    '''
-    def __init__(self, row, col, val, row_property=None, col_property=None, name=None, parent_string=None, copyinputs_function=None):
+    """
+
+    def __init__(
+        self,
+        row,
+        col,
+        val,
+        row_property=None,
+        col_property=None,
+        name=None,
+        parent_string=None,
+        copyinputs_function=None,
+    ):
         super(PstData, self).__init__()
 
         self._val = None
 
         self._row = PstData._fixup_input(row)
         self._col = PstData._fixup_input(col)
-        if self._row.dtype == self._col.dtype and np.array_equal(self._row, self._col): #If it's square, mark it so by making the col and row the same object
+        if self._row.dtype == self._col.dtype and np.array_equal(
+            self._row, self._col
+        ):  # If it's square, mark it so by making the col and row the same object
             self._col = self._row
-        self._row_property = PstData._fixup_input(row_property,count=len(self._row))
-        self._col_property = PstData._fixup_input(col_property,count=len(self._col))
-        self._val = PstData._fixup_input_val(val,row_count=len(self._row),col_count=len(self._col))
+        self._row_property = PstData._fixup_input(row_property, count=len(self._row))
+        self._col_property = PstData._fixup_input(col_property, count=len(self._col))
+        self._val = PstData._fixup_input_val(
+            val, row_count=len(self._row), col_count=len(self._col)
+        )
         self._assert_row_col_and_properties(check_val=True)
 
         name = name or parent_string or ""
         if parent_string is not None:
-            warnings.warn("'parent_string' is deprecated. Use 'name'", DeprecationWarning)
+            warnings.warn(
+                "'parent_string' is deprecated. Use 'name'", DeprecationWarning
+            )
         self._name = name
 
-    def _assert_row_col_and_properties(self,check_val):
+    def _assert_row_col_and_properties(self, check_val):
         if check_val:
-            assert self._val.shape[:2] == (len(self._row),len(self._col)), "val shape should match that of row_count x col_count"
-            
-    def __eq__(a,b):
-        return a.allclose(b,equal_nan=False)
+            assert self._val.shape[:2] == (
+                len(self._row),
+                len(self._col),
+            ), "val shape should match that of row_count x col_count"
 
-    def allclose(self,value,equal_nan=True):
-        '''
+    def __eq__(a, b):
+        return a.allclose(b, equal_nan=False)
+
+    def allclose(self, value, equal_nan=True):
+        """
         :param value: Other object with which to compare.
         :type value: :class:`PstData`
         :param equal_nan: (Default: True) Tells if NaN in :attr:`PstData.val` should be treated as regular values when testing equality.
@@ -106,60 +129,85 @@ class PstData(PstReader):
         >>> print(pstdata5.allclose(pstdata6,equal_nan=False)) #False, if we consider the NaN as special values, all the arrays are not equal.
         False
 
-        '''
+        """
         try:
-            return (PstData._allclose(self.row,value.row,equal_nan=True) and
-                    PstData._allclose(self.col,value.col,equal_nan=True) and
-                    PstData._allclose(self.row_property,value.row_property,equal_nan=True) and
-                    PstData._allclose(self.col_property,value.col_property,equal_nan=True) and
-                    np.allclose(self.val,value.val,equal_nan=equal_nan))
-        except:
+            return (
+                PstData._allclose(self.row, value.row, equal_nan=True)
+                and PstData._allclose(self.col, value.col, equal_nan=True)
+                and PstData._allclose(
+                    self.row_property, value.row_property, equal_nan=True
+                )
+                and PstData._allclose(
+                    self.col_property, value.col_property, equal_nan=True
+                )
+                and np.allclose(self.val, value.val, equal_nan=equal_nan)
+            )
+        except Exception:
             return False
 
     @staticmethod
-    def _allclose(a,b,equal_nan=True):
+    def _allclose(a, b, equal_nan=True):
         if not equal_nan:
-            return np.array_equal(a,b)
-        if a.dtype == 'float' and b.dtype == 'float':
-            return np.allclose(a,b,equal_nan=equal_nan)
-        return np.array_equal(a,b)
+            return np.array_equal(a, b)
+        if a.dtype == "float" and b.dtype == "float":
+            return np.allclose(a, b, equal_nan=equal_nan)
+        return np.array_equal(a, b)
 
     @staticmethod
-    def _fixup_input(input,count=None, empty_creator=_default_empty_creator,dtype=None):
-        if input is None or len(input)==0:
+    def _fixup_input(
+        input, count=None, empty_creator=_default_empty_creator, dtype=None
+    ):
+        if input is None or len(input) == 0:
             input = empty_creator(count)
-        elif not isinstance(input,np.ndarray):
-            input = np.array(input,dtype=dtype)
+        elif not isinstance(input, np.ndarray):
+            input = np.array(input, dtype=dtype)
 
-        assert count is None or len(input) == count, "Expect length of {0} for input {1}".format(count,input)
+        assert (
+            count is None or len(input) == count
+        ), "Expect length of {0} for input {1}".format(count, input)
 
         return input
 
     @staticmethod
-    def _fixup_input_val(input,row_count,col_count,empty_creator=_default_empty_creator_val, _require_float32_64=True, xp = None):
+    def _fixup_input_val(
+        input,
+        row_count,
+        col_count,
+        empty_creator=_default_empty_creator_val,
+        _require_float32_64=True,
+        xp=None,
+    ):
         xp = pstutil.array_module(xp)
 
         if input is None:
-            assert row_count == 0 or col_count == 0, "If val is None, either row_count or col_count must be 0"
+            assert (
+                row_count == 0 or col_count == 0
+            ), "If val is None, either row_count or col_count must be 0"
             input = _default_empty_creator_val(row_count, col_count)
-        elif not isinstance(input,xp.ndarray):
-            input = xp.array(input,dtype=xp.float64)
-        elif _require_float32_64 and input.dtype not in [xp.float32,xp.float64]:
-            input = xp.array(input,dtype=xp.float64)
+        elif not isinstance(input, xp.ndarray):
+            input = xp.array(input, dtype=xp.float64)
+        elif _require_float32_64 and input.dtype not in [xp.float32, xp.float64]:
+            input = xp.array(input, dtype=xp.float64)
 
-        assert len(input.shape) in {2,3}, "Expect val to be two or three dimensional."
-        assert input.shape[0] == row_count, "Expect number of rows ({0}) in val to match the number of row names given ({1})".format(input.shape[0], row_count)
-        assert input.shape[1] == col_count, "Expect number of columns ({0}) in val to match the number of column names given ({1})".format(input.shape[1], col_count)
+        assert len(input.shape) in {2, 3}, "Expect val to be two or three dimensional."
+        assert (
+            input.shape[0] == row_count
+        ), "Expect number of rows ({0}) in val to match the number of row names given ({1})".format(
+            input.shape[0], row_count
+        )
+        assert (
+            input.shape[1] == col_count
+        ), "Expect number of columns ({0}) in val to match the number of column names given ({1})".format(
+            input.shape[1], col_count
+        )
 
         return input
-
-
 
     def __repr__(self):
         if self._name == "":
             return "{0}()".format(self.__class__.__name__)
         else:
-            return "{0}({1})".format(self.__class__.__name__,self._name)
+            return "{0}({1})".format(self.__class__.__name__, self._name)
 
     def copyinputs(self, copier):
         pass
@@ -175,18 +223,17 @@ class PstData(PstReader):
     @property
     def row_property(self):
         return self._row_property
-    
+
     @property
     def col_property(self):
         return self._col_property
 
-
     @property
     def val_shape(self):
-        '''
+        """
         Tells the shape of value for a given individual and SNP. If None, means a single scalar value.
-        '''
-        if len(self._val.shape)==2:
+        """
+        if len(self._val.shape) == 2:
             return None
         else:
             return self._val.shape[2]
@@ -197,7 +244,7 @@ class PstData(PstReader):
 
         >>> from pysnptools.pstreader import PstNpz
         >>> from pysnptools.util import example_file
-        >>> 
+        >>>
         >>> pstnpz_file = example_file('tests/datasets/little.pst.npz')
         >>> pstdata = PstNpz(pstnpz_file)[:5,:].read() #read data for first 5 rows
         >>> print(pstdata.val[4,5]) #print one of the values
@@ -207,18 +254,36 @@ class PstData(PstReader):
 
     @val.setter
     def val(self, new_value):
-        self._val = PstData._fixup_input_val(new_value,row_count=len(self._row),col_count=len(self._col))
+        self._val = PstData._fixup_input_val(
+            new_value, row_count=len(self._row), col_count=len(self._col)
+        )
         self._assert_row_col_and_properties(check_val=True)
-
-
 
     # Most _read's support only indexlists or None, but this one supports Slices, too.
     _read_accepts_slices = True
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
+
+    def _read(
+        self,
+        row_index_or_none,
+        col_index_or_none,
+        order,
+        dtype,
+        force_python_only,
+        view_ok,
+        num_threads,
+    ):
         dtype = np.dtype(dtype)
-        val, shares_memory = self._apply_sparray_or_slice_to_val(self.val, row_index_or_none, col_index_or_none, order, dtype, force_python_only, num_threads)
+        val, shares_memory = self._apply_sparray_or_slice_to_val(
+            self.val,
+            row_index_or_none,
+            col_index_or_none,
+            order,
+            dtype,
+            force_python_only,
+            num_threads,
+        )
         if shares_memory and not view_ok:
-            val = val.copy(order='K')
+            val = val.copy(order="K")
         return val
 
 
@@ -226,5 +291,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod(optionflags=doctest.ELLIPSIS)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test

@@ -1,6 +1,6 @@
 try:
     import h5py
-except:
+except Exception:
     pass
 
 import os
@@ -10,15 +10,16 @@ from pysnptools.pstreader import PstReader
 from pysnptools.pstreader.pstdata import PstData
 import warnings
 
+
 class PstHdf5(PstReader):
-    '''
+    """
     A :class:`.PstReader` for reading \*.pst.hdf5 files from disk.
 
     See :class:`.PstReader` for general examples of using PstReaders.
 
     The general HDF5 format is described in `here <http://www.hdfgroup.org/HDF5/>`__. The PstHdf5 format stores
     val, row, col, row_property, and col_property information in Hdf5 format.
-   
+
     **Constructor:**
         :Parameters: * **filename** (*string*) -- The PstHdf5 file to read.
 
@@ -26,34 +27,36 @@ class PstHdf5(PstReader):
 
         >>> from pysnptools.pstreader import PstHdf5
         >>> from pysnptools.util import example_file # Download and return local file name
-        >>> 
+        >>>
         >>> psthdf5_file = example_file('pysnptools/examples/toydata.iidmajor.snp.hdf5')
         >>> on_disk = PstHdf5(psthdf5_file) # PstHdf5 can load .pst.hdf5, .snp.hdf5, and kernel.hdf5
         >>> print(on_disk.row_count)
         500
 
     **Methods beyond** :class:`.PstReader`
-    '''
+    """
 
-    def __init__(self, filename, block_size=5000): #LATER document block size
-        super(PstHdf5, self).__init__() #We know PstReader doesn't want the file name
+    def __init__(self, filename, block_size=5000):  # LATER document block size
+        super(PstHdf5, self).__init__()  # We know PstReader doesn't want the file name
 
         self._block_size = block_size
 
         self._ran_once = False
         self._h5 = None
 
-        self.filename=filename
+        self.filename = filename
 
     def __getstate__(self):
         return self.filename, self._block_size
 
-    def __setstate__(self,state):
+    def __setstate__(self, state):
         filename, block_size = state
         self.__init__(filename, block_size=block_size)
 
-    def __repr__(self): 
-        return "{0}('{1}')".format(self.__class__.__name__,self.filename) #!!LATER print non-default values, too
+    def __repr__(self):  # !!# !!# !!# !!
+        return "{0}('{1}')".format(
+            self.__class__.__name__, self.filename
+        )  # !!LATER print non-default values, too
 
     def copyinputs(self, copier):
         copier.input(self.filename)
@@ -79,13 +82,19 @@ class PstHdf5(PstReader):
         return self._col_property
 
     def _find_vocab(self):
-        vocab_list = [['row','col','val','row_property','col_property'],['iid','sid','val',None,'pos'],['iid','rs','snps',None,'pos']]
+        vocab_list = [
+            ["row", "col", "val", "row_property", "col_property"],
+            ["iid", "sid", "val", None, "pos"],
+            ["iid", "rs", "snps", None, "pos"],
+        ]
 
         for vocab in vocab_list:
             if all((key is None or key in self._h5) for key in vocab):
                 return vocab
-        raise Exception("Don't know how to read HDF5 with these keys: " + ",".join(self._h5.iterkeys()))
-
+        raise Exception(
+            "Don't know how to read HDF5 with these keys: "
+            + ",".join(self._h5.iterkeys())
+        )
 
     def _run_once(self):
         if self._ran_once:
@@ -93,16 +102,33 @@ class PstHdf5(PstReader):
         try:
             self._h5 = h5py.File(self.filename, "r")
         except IOError as e:
-            raise IOError("Missing or unopenable file '{0}' -- Native error message: {1}".format(self.filename,e))
+            raise IOError(
+                "Missing or unopenable file '{0}' -- Native error message: {1}".format(
+                    self.filename, e
+                )
+            )
 
-        row_key,col_key,val_key,row_property_key,col_property_key = self._find_vocab()
+        (
+            row_key,
+            col_key,
+            val_key,
+            row_property_key,
+            col_property_key,
+        ) = self._find_vocab()
 
         self._row = PstData._fixup_input(self._h5[row_key])
         self._col = PstData._fixup_input(self._h5[col_key])
-        if self._row.dtype == self._col.dtype and np.array_equal(self._row,self._col):  #If it's square, mark it so by making the col and row the same object
+        if self._row.dtype == self._col.dtype and np.array_equal(
+            self._row, self._col
+        ):  # If it's square, mark it so by making the col and row the same object
             self._row = self._col
-        self._row_property = PstData._fixup_input(self._h5[row_property_key] if row_property_key else None,count=len(self._row))  #Extra "if ... else" for backwards compatibility.
-        self._col_property = PstData._fixup_input(self._h5[col_property_key],count=len(self._col))
+        self._row_property = PstData._fixup_input(
+            self._h5[row_property_key] if row_property_key else None,
+            count=len(self._row),
+        )  # Extra "if ... else" for backwards compatibility.
+        self._col_property = PstData._fixup_input(
+            self._h5[col_property_key], count=len(self._col)
+        )
         self.val_in_file = self._h5[val_key]
 
         self.is_col_major = None
@@ -110,32 +136,41 @@ class PstHdf5(PstReader):
             self.is_col_major = self.val_in_file.attrs["col-major"]
         elif "SNP-major" in self.val_in_file.attrs:
             self.is_col_major = self.val_in_file.attrs["SNP-major"]
-        assert self.is_col_major is not None, "In Hdf5 the 'val' matrix must have a Boolean 'col-major' (or 'SNP-major') attribute"
+        assert (
+            self.is_col_major is not None
+        ), "In Hdf5 the 'val' matrix must have a Boolean 'col-major' (or 'SNP-major') attribute"
 
         S_original = len(self._col)
         N_original = len(self._row)
         if self.is_col_major:
             if not self.val_in_file.shape[-2:] == (S_original, N_original):
-               raise Exception("In Hdf5, the val matrix dimensions don't match those of 'row' and 'col'")
-            self._val_shape = None if len(self.val_in_file.shape)==2 else self.val_in_file.shape[0]
+                raise Exception(
+                    "In Hdf5, the val matrix dimensions don't match those of 'row' and 'col'"
+                )
+            self._val_shape = (
+                None if len(self.val_in_file.shape) == 2 else self.val_in_file.shape[0]
+            )
         else:
             if not self.val_in_file.shape[:2] == (N_original, S_original):
-               raise Exception("In Hdf5, the val matrix dimensions don't match those of 'row' and 'col'")
-            self._val_shape = None if len(self.val_in_file.shape)==2 else self.val_in_file.shape[-1]
+                raise Exception(
+                    "In Hdf5, the val matrix dimensions don't match those of 'row' and 'col'"
+                )
+            self._val_shape = (
+                None if len(self.val_in_file.shape) == 2 else self.val_in_file.shape[-1]
+            )
         self._ran_once = True
-
 
     @staticmethod
     def _is_sorted_without_repeats(list):
         if len(list) < 2:
             return True
-        for i in range(1,len(list)):
-            if not list[i-1] < list[i]:
+        for i in range(1, len(list)):
+            if not list[i - 1] < list[i]:
                 return False
         return True
 
     def flush(self):
-        '''Flush the connection to the HDF5 file. (If values or properties are accessed again, the file will be reopened.)
+        """Flush the connection to the HDF5 file. (If values or properties are accessed again, the file will be reopened.)
 
         >>> import pysnptools.util as pstutil
         >>> from pysnptools.pstreader import PstHdf5
@@ -145,65 +180,100 @@ class PstHdf5(PstReader):
         >>> val1 = reader[0,0].read()
         >>> reader.flush()
 
-        '''
+        """
         if self._ran_once:
             self._h5.close()
             del self._h5
             self._h5 = None
             self._ran_once = False
 
-
     def __del__(self):
-        if self._h5 != None:  # we need to test this because Python doesn't guarantee that __init__ was fully run
+        if (
+            self._h5 != None
+        ):  # we need to test this because Python doesn't guarantee that __init__ was fully run
             self._h5.close()
 
     def _read_direct(self, val, val_order, selection=None):
         if selection is None:
-            selection = np.s_[:,:] if self._val_shape is None else np.s_[:,:,:]
+            selection = np.s_[:, :] if self._val_shape is None else np.s_[:, :, :]
 
         if self.is_col_major:
             selection = tuple(reversed(selection))
 
         if val_order == "F":
-            self.val_in_file.read_direct(val.T,selection)
+            self.val_in_file.read_direct(val.T, selection)
         else:
             assert val_order == "C", "real assert"
-            self.val_in_file.read_direct(val,selection)
+            self.val_in_file.read_direct(val, selection)
 
     def _create_block(self, block_size, order, dtype):
-        matches_order = self.is_col_major == (order =="F")
+        matches_order = self.is_col_major == (order == "F")
         opposite_order = "C" if order == "F" else "F"
         dtype = np.dtype(dtype)
 
         if matches_order:
             if self._val_shape is None:
-                return np.empty([len(self._row),block_size], dtype=dtype, order=order), order
+                return (
+                    np.empty([len(self._row), block_size], dtype=dtype, order=order),
+                    order,
+                )
             else:
-                return np.empty([len(self._row),block_size,self._val_shape], dtype=dtype, order=order), order
+                return (
+                    np.empty(
+                        [len(self._row), block_size, self._val_shape],
+                        dtype=dtype,
+                        order=order,
+                    ),
+                    order,
+                )
         else:
             if self._val_shape is None:
-                #LATER should make own version np.empty with optional 3rd dimension and np.nan fill?
-                return np.empty([len(self._row),block_size], dtype=dtype, order=opposite_order), opposite_order
+                # LATER should make own version np.empty with optional 3rd dimension and np.nan fill?
+                return (
+                    np.empty(
+                        [len(self._row), block_size], dtype=dtype, order=opposite_order
+                    ),
+                    opposite_order,
+                )
             else:
-                return np.empty([len(self._row),block_size, self._val_shape,], dtype=dtype, order=opposite_order), opposite_order
+                return (
+                    np.empty(
+                        [
+                            len(self._row),
+                            block_size,
+                            self._val_shape,
+                        ],
+                        dtype=dtype,
+                        order=opposite_order,
+                    ),
+                    opposite_order,
+                )
 
-    def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
+    def _read(
+        self,
+        row_index_or_none,
+        col_index_or_none,
+        order,
+        dtype,
+        force_python_only,
+        view_ok,
+        num_threads,
+    ):
         self._run_once()
         dtype = np.dtype(dtype)
 
-        assert order in ['F','C','A'], "Expect order to be 'F', 'C' or 'A'"
+        assert order in ["F", "C", "A"], "Expect order to be 'F', 'C' or 'A'"
 
         if order == "A":
             order = "F" if self.is_col_major else "C"
 
         opposite_order = "C" if order == "F" else "F"
 
-
         if row_index_or_none is not None:
             row_index_count = len(row_index_or_none)
             row_index_list = row_index_or_none
             row_is_sorted = PstHdf5._is_sorted_without_repeats(row_index_list)
-            if isinstance(row_index_list,np.ndarray):
+            if isinstance(row_index_list, np.ndarray):
                 row_index_list = row_index_list.tolist()
         else:
             row_index_count = self.row_count
@@ -213,39 +283,57 @@ class PstHdf5(PstReader):
         if col_index_or_none is not None:
             col_index_count = len(col_index_or_none)
             col_index_list = col_index_or_none
-            if isinstance(col_index_list,np.ndarray):
+            if isinstance(col_index_list, np.ndarray):
                 col_index_list = col_index_list.tolist()
         else:
             col_index_count = self.col_count
             col_index_list = list(range(self.col_count))
-        #Check if snps and iids indexes are in order and in range
+        # Check if snps and iids indexes are in order and in range
         col_are_sorted = PstHdf5._is_sorted_without_repeats(col_index_list)
 
         if self._val_shape is None:
             val = np.empty([row_index_count, col_index_count], dtype=dtype, order=order)
         else:
-            val = np.empty([row_index_count, col_index_count,self._val_shape], dtype=dtype, order=order)
-        val.fill(np.nan) #LATER Keep this?
+            val = np.empty(
+                [row_index_count, col_index_count, self._val_shape],
+                dtype=dtype,
+                order=order,
+            )
+        val.fill(np.nan)  # LATER Keep this?
 
-        matches_order = self.is_col_major == (order=="F")
-        is_simple = not force_python_only and row_is_sorted and col_are_sorted and matches_order #If 'is_simple' may be able to use a faster reader
+        matches_order = self.is_col_major == (order == "F")
+        is_simple = (
+            not force_python_only and row_is_sorted and col_are_sorted and matches_order
+        )  # If 'is_simple' may be able to use a faster reader
 
         # case 0 -- zero elements in val
         if row_index_count == 0 or col_index_count == 0:
             pass
 
         # case 1 - all cols & all rows requested
-        elif is_simple and col_index_count == self.col_count and row_index_count == self.row_count:
+        elif (
+            is_simple
+            and col_index_count == self.col_count
+            and row_index_count == self.row_count
+        ):
             self._read_direct(val, order)
 
         # case 2 - some cols and all rows
         elif is_simple and row_index_count == self.row_count:
-            selection = np.s_[:,col_index_list] if self._val_shape is None else np.s_[:,col_index_list,:]
+            selection = (
+                np.s_[:, col_index_list]
+                if self._val_shape is None
+                else np.s_[:, col_index_list, :]
+            )
             self._read_direct(val, order, selection)
 
         # case 3 all cols and some row
         elif is_simple and col_index_count == self.col_count:
-            selection = np.s_[row_index_list,:] if self._val_shape is None else np.s_[row_index_list,:,:]
+            selection = (
+                np.s_[row_index_list, :]
+                if self._val_shape is None
+                else np.s_[row_index_list, :, :]
+            )
             self._read_direct(val, order, selection)
 
         # case 4 some cols and some rows -- use blocks
@@ -255,30 +343,41 @@ class PstHdf5(PstReader):
 
             if not col_are_sorted:
                 col_index_index_list = np.argsort(col_index_list).tolist()
-                col_index_list_sorted = list(np.array(col_index_list)[col_index_index_list])
+                col_index_list_sorted = list(
+                    np.array(col_index_list)[col_index_index_list]
+                )
             else:
                 col_index_index_list = np.arange(col_index_count)
                 col_index_list_sorted = col_index_list
 
             for start in range(0, col_index_count, block_size):
-                #print start
-                stop = min(start+block_size,col_index_count)
-                if stop-start < block_size:  #On the last loop, the buffer might be too big, so make it smaller
-                    block, block_order = self._create_block(stop-start, order, dtype)
+                # print start
+                stop = min(start + block_size, col_index_count)
+                if (
+                    stop - start < block_size
+                ):  # On the last loop, the buffer might be too big, so make it smaller
+                    block, block_order = self._create_block(stop - start, order, dtype)
                 col_index_list_forblock = col_index_list_sorted[start:stop]
                 col_index_index_list_forblock = col_index_index_list[start:stop]
-                selection = np.s_[:,col_index_list_forblock] if self._val_shape is None else np.s_[:,col_index_list_forblock,:]
+                selection = (
+                    np.s_[:, col_index_list_forblock]
+                    if self._val_shape is None
+                    else np.s_[:, col_index_list_forblock, :]
+                )
                 self._read_direct(block, block_order, selection)
-                val[:,col_index_index_list_forblock] = block[row_index_list,:]
+                val[:, col_index_index_list_forblock] = block[row_index_list, :]
 
-        #!!LATER does this test work when the size is 1 x 1 and order if F? iid_index_or_none=[0], sid_index_or_none=[1000] (based on test_blocking_hdf5)
-        has_right_order = (order=="C" and val.flags["C_CONTIGUOUS"]) or (order=="F" and val.flags["F_CONTIGUOUS"])
-        expected_shape = (row_index_count, col_index_count) if self._val_shape is None else (row_index_count, col_index_count,self._val_shape)
+        # !!LATER does this test work when the size is 1 x 1 and order if F? iid_index_or_none=[0], sid_index_or_none=[1000] (based on test_blocking_hdf5)
+        has_right_order = (order == "C" and val.flags["C_CONTIGUOUS"]) or (
+            order == "F" and val.flags["F_CONTIGUOUS"]
+        )
+        expected_shape = (
+            (row_index_count, col_index_count)
+            if self._val_shape is None
+            else (row_index_count, col_index_count, self._val_shape)
+        )
         assert val.shape == expected_shape and val.dtype == dtype and has_right_order
         return val
-
-
-
 
     @staticmethod
     def write(filename, pstdata, hdf5_dtype=None, col_major=True):
@@ -303,24 +402,32 @@ class PstHdf5(PstReader):
         PstHdf5('tempdir/tiny.pst.hdf5')
         """
 
-        assert hdf5_dtype is None or (isinstance(hdf5_dtype, str) and len(hdf5_dtype) == 2 and  hdf5_dtype[0] == 'f'), "Expect hdf5_dtype to be None or to start with 'f', e.g. 'f4' for single, 'f8' for double"
+        assert hdf5_dtype is None or (
+            isinstance(hdf5_dtype, str)
+            and len(hdf5_dtype) == 2
+            and hdf5_dtype[0] == "f"
+        ), "Expect hdf5_dtype to be None or to start with 'f', e.g. 'f4' for single, 'f8' for double"
 
         val = (pstdata.val.T) if col_major else pstdata.val
 
         def any_u_to_a(possible_unicode):
-            #If it's any kind of string, encode it as ascii
-            if possible_unicode.dtype.char == 'S' or possible_unicode.dtype.char == 'U': #not using np.issubdtype because of future warning
-                return np.array(possible_unicode,dtype='S')
-            else: #Otherwise, just leave it.
+            # If it's any kind of string, encode it as ascii
+            if (
+                possible_unicode.dtype.char == "S" or possible_unicode.dtype.char == "U"
+            ):  # not using np.issubdtype because of future warning
+                return np.array(possible_unicode, dtype="S")
+            else:  # Otherwise, just leave it.
                 return possible_unicode
 
         with h5py.File(filename, "w") as h5:
-            h5.create_dataset('row', data=any_u_to_a(pstdata.row))
-            h5.create_dataset('col', data=any_u_to_a(pstdata.col))
-            h5.create_dataset('row_property', data=any_u_to_a(pstdata.row_property))
-            h5.create_dataset('col_property', data=any_u_to_a(pstdata.col_property))
-            h5.create_dataset('val', data=val,dtype=hdf5_dtype,shuffle=True)#compression="gzip", doesn't seem to work with Anaconda
-            h5['val'].attrs["col-major"] = col_major
+            h5.create_dataset("row", data=any_u_to_a(pstdata.row))
+            h5.create_dataset("col", data=any_u_to_a(pstdata.col))
+            h5.create_dataset("row_property", data=any_u_to_a(pstdata.row_property))
+            h5.create_dataset("col_property", data=any_u_to_a(pstdata.col_property))
+            h5.create_dataset(
+                "val", data=val, dtype=hdf5_dtype, shuffle=True
+            )  # compression="gzip", doesn't seem to work with Anaconda
+            h5["val"].attrs["col-major"] = col_major
 
         return PstHdf5(filename)
 
@@ -329,4 +436,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod(optionflags=doctest.ELLIPSIS)

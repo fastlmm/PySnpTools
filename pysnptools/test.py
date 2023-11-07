@@ -1560,12 +1560,10 @@ def getTestSuite():
     return test_suite
 
 
-# cmk fix lint issues in this file
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARN)
 
     suites = getTestSuite()
-    r = unittest.TextTestRunner(failfast=True)  # cmk set to false
+    r = unittest.TextTestRunner(failfast=False)
     ret = r.run(suites)
     assert ret.wasSuccessful()

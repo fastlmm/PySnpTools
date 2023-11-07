@@ -4,15 +4,16 @@ import logging
 import scipy as np
 import warnings
 
-class SnpNpz(PstNpz,SnpReader):
-    '''
+
+class SnpNpz(PstNpz, SnpReader):
+    """
     A :class:`.SnpReader` for reading \*.snp.npz files from disk.
 
     See :class:`.SnpReader` for general examples of using SnpReaders.
 
     The general NPZ format is described `here <http://docs.scipy.org/doc/numpy/reference/generated/numpy.savez.html>`__. The SnpNpz format stores
     val, iid, sid, and pos information in NPZ format.
-   
+
     **Constructor:**
         :Parameters: * **filename** (*string*) -- The SnpNpz file to read.
 
@@ -27,7 +28,7 @@ class SnpNpz(PstNpz,SnpReader):
 
     **Methods beyond** :class:`.SnpReader`
 
-    '''
+    """
 
     def __init__(self, *args, **kwargs):
         super(SnpNpz, self).__init__(*args, **kwargs)
@@ -36,16 +37,15 @@ class SnpNpz(PstNpz,SnpReader):
     def row(self):
         self._run_once()
         if self._row.dtype.type is not np.str_:
-            self._row = np.array(self._row,dtype='str')
+            self._row = np.array(self._row, dtype="str")
         return self._row
 
     @property
     def col(self):
         self._run_once()
         if self._col.dtype.type is not np.str_:
-            self._col = np.array(self._col,dtype='str')
+            self._col = np.array(self._col, dtype="str")
         return self._col
-
 
     @staticmethod
     def write(filename, snpdata):
@@ -66,14 +66,27 @@ class SnpNpz(PstNpz,SnpReader):
         >>> SnpNpz.write("tempdir/toydata10.snp.npz",snpdata)          # Write data in SnpNpz format
         SnpNpz('tempdir/toydata10.snp.npz')
         """
-        row_ascii = np.array(snpdata.row,dtype='S') #!!! would be nice to avoid this copy when not needed.
-        col_ascii = np.array(snpdata.col,dtype='S') #!!! would be nice to avoid this copy when not needed.
-        np.savez(filename, row=row_ascii, col=col_ascii, row_property=snpdata.row_property, col_property=snpdata.col_property,val=snpdata.val)
+        row_ascii = np.array(
+            snpdata.row, dtype="S"
+        )  # !!! would be nice to avoid this copy when not needed.
+        col_ascii = np.array(
+            snpdata.col, dtype="S"
+        )  # !!! would be nice to avoid this copy when not needed.
+        np.savez(
+            filename,
+            row=row_ascii,
+            col=col_ascii,
+            row_property=snpdata.row_property,
+            col_property=snpdata.col_property,
+            val=snpdata.val,
+        )
         logging.debug("Done writing " + filename)
         return SnpNpz(filename)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod(optionflags=doctest.ELLIPSIS)

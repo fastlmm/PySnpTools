@@ -12,7 +12,8 @@ import ctypes
 import datetime
 from tempfile import TemporaryFile
 
-#!!! currently any output files should be in the home directory, e.g. "aric.depnet.txt" not r"tempout\aric.depnet.txt". Fix this.
+
+# !!! currently any output files should be in the home directory, e.g. "aric.depnet.txt" not r"tempout\aric.depnet.txt". Fix this.
 class Hadoop2(Runner):
 
     """
@@ -63,7 +64,7 @@ class Hadoop2(Runner):
         # Check that the local machine has python path set
         localpythonpath = os.environ.get(
             "PYTHONPATH"
-        )  #!!should it be able to work without pythonpath being set (e.g. if there was just one file)? Also, is None really the return or is it an exception.
+        )  # !!should it be able to work without pythonpath being set (e.g. if there was just one file)? Also, is None really the return or is it an exception.
         if localpythonpath is None:
             raise Exception("Expect local machine to have 'pythonpath' set")
 
@@ -142,8 +143,8 @@ class Hadoop2(Runner):
     ):
         logging.info("Hadoop2 runner is submitting to cluster")
 
-        #!! e.g. hdfs://rr1-n13-02-c02/user/carlk/inputs.tgz#inputs,hdfs://rr1-n13-02-c02/user/carlk/datasets.tgz#datasets,hdfs://rr1-n13-02-c02/user/carlk/src.tgz#src
-        #!! could do this functionally
+        # !! e.g. hdfs://rr1-n13-02-c02/user/carlk/inputs.tgz#inputs,hdfs://rr1-n13-02-c02/user/carlk/datasets.tgz#datasets,hdfs://rr1-n13-02-c02/user/carlk/src.tgz#src
+        # !! could do this functionally
         archivesStringList = []
         for tgz in tgzList:
             archiveString = "hdfs:{0}#{1}".format(tgz[1], os.path.splitext(tgz[0])[0])
@@ -332,7 +333,7 @@ class Hadoop2(Runner):
         localfilepath, file = os.path.split(distributable_py_file)
         remoteexepath = os.path.join(
             remotepythonpath.split(";")[0], "fastlmm", "util"
-        )  #!!shouldn't need to assume where the file is in source
+        )  # !!shouldn't need to assume where the file is in source
 
         batfilename_abs_list = []
         for part in ["Mapper", "Reducer"]:
@@ -483,7 +484,7 @@ class Hadoop2(Runner):
         Hadoop2.hadoop_create_directory_if_necessary(run_dir_abs, isfile=False)
         return remotewd, run_dir_abs, run_dir_rel
 
-    #!! move these hadoop commands to a library
+    # !! move these hadoop commands to a library
     @staticmethod
     def hadoop_create_directory_if_necessary(name, isfile=True):
         import os
@@ -494,7 +495,7 @@ class Hadoop2(Runner):
             directory_name = name
         Hadoop2.hadoop_makedirs(directory_name)
 
-    #!! what if already is there?
+    # !! what if already is there?
     @staticmethod
     def hadoop_makedirs(directory_name):
         Hadoop2.hadoop_command("fs -mkdir -p {0}".format(directory_name))
@@ -526,7 +527,7 @@ class ListCopier(object):  # Implements ICopier
 
     def input(self, item):
         if isinstance(item, str):
-            #!!! item = item.replace('\\','/') # replace any backslashes in the file names with forward slashes.
+            # !!! item = item.replace('\\','/') # replace any backslashes in the file names with forward slashes.
             self.inputList.append(item)
         elif hasattr(item, "copyinputs"):
             item.copyinputs(self)
@@ -535,7 +536,7 @@ class ListCopier(object):  # Implements ICopier
 
     def output(self, item):
         if isinstance(item, str):
-            #!!! item = item.replace('\\','/') # replace any backslashes in the file names with forward slashes.
+            # !!! item = item.replace('\\','/') # replace any backslashes in the file names with forward slashes.
             self.outputList.append(item)
         elif hasattr(item, "copyoutputs"):
             item.copyoutputs(self)
@@ -587,7 +588,7 @@ class HadoopCopier(object):  # Implements ICopier
                     stderr=subprocess.STDOUT,
                     shell=True,
                 )
-            except:
+            except Exception:
                 subprocess.check_output(
                     r"%HADOOP_HOME%\bin\Hadoop fs -rm -f {0}".format(hdfsNameWild),
                     stderr=subprocess.STDOUT,
@@ -655,7 +656,6 @@ class HadoopCopier(object):  # Implements ICopier
 
     @staticmethod
     def CreateNewTarFile(directory, subsubItemList, tgzName, filter_hidden=True):
-
         # logging.info("{0}, {1}, {2}".format(directory, subsubItemList, tgzName))
         directory1 = os.path.normpath(directory)
 
@@ -725,7 +725,7 @@ class HadoopCopier(object):  # Implements ICopier
             normpath = os.path.normpath(item)
             try:
                 relpath = os.path.relpath(normpath)
-            except:
+            except Exception:
                 raise Exception(
                     "for Hadoop input files must be in or below the current directory ('{0}' is not)".format(
                         item
@@ -883,7 +883,7 @@ class HadoopCopier(object):  # Implements ICopier
 
     _ignoreTgzChangeFileName = ".ignoreTgzChange"
 
-    #!! test that this stops it from look down below
+    # !! test that this stops it from look down below
     @staticmethod
     def containsDotIgnoreTgzChange(filepath):
         signalPath = os.path.join(filepath, HadoopCopier._ignoreTgzChangeFileName)

@@ -82,7 +82,7 @@ class SnpReader(PstReader):
             >>> import pysnptools.util as pstutil
             >>> from pysnptools.util import example_file # Download and return local file name
 
-            >>> bed_fn = example_file("pysnptools/examples/toydata.5chrom.bed")
+            >>> bed_fn = example_file("pysnptools/examples/toydata.5chrom.*", "*.bed")
             >>> snpdata = Bed(bed_fn)[:,::2].read() # Read every-other SNP
             >>> pstutil.create_directory_if_necessary("tempdir/everyother.bed")
             >>> Bed.write("tempdir/everyother.bed",snpdata,count_A1=False)   # Write data in Bed format
@@ -917,4 +917,3 @@ if __name__ == "__main__":
     doctest.testmod(optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc t
     print("done")
-# cmk todo: change example_file("pysnptools/examples/toydata.5chrom.bed") to .*, "*.bed")

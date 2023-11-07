@@ -3,6 +3,7 @@ import logging
 import warnings
 from pysnptools.standardizer import Standardizer
 
+
 class UnitTrained(Standardizer):
     """A :class:`.Standardizer` to unit standardize one set of SNP data based on the mean and stddev of another set of SNP data.
     NaN values are then filled with zero.
@@ -30,47 +31,77 @@ class UnitTrained(Standardizer):
     0.229819
     """
 
-    #!!might want to add code so that can check that sids are in the same order for both test and train
+    # !!might want to add code so that can check that sids are in the same order for both test and train
     def __init__(self, sid, stats):
         super(UnitTrained, self).__init__()
         self.sid = sid
         self.stats = stats
         self.sid_to_index = None
 
-    def __repr__(self): 
-        return "{0}(stats={1},sid={2})".format(self.__class__.__name__,self.stats,self.sid)
+    def __repr__(self):
+        return "{0}(stats={1},sid={2})".format(
+            self.__class__.__name__, self.stats, self.sid
+        )
 
     @property
     def is_constant(self):
-        return True        
+        return True
 
-    def standardize(self, snps, block_size=None, return_trained=False, force_python_only=False, num_threads=None):
+    def standardize(
+        self,
+        snps,
+        block_size=None,
+        return_trained=False,
+        force_python_only=False,
+        num_threads=None,
+    ):
         if block_size is not None:
-            warnings.warn("block_size is deprecated (and not needed, since standardization is in-place", DeprecationWarning)
+            warnings.warn(
+                "block_size is deprecated (and not needed, since standardization is in-place",
+                DeprecationWarning,
+            )
 
-        if hasattr(snps,"val"):
+        if hasattr(snps, "val"):
             val = snps.val
-            if len(self.sid) == len(snps.sid) and np.array_equal(self.sid,snps.sid):
+            if len(self.sid) == len(snps.sid) and np.array_equal(self.sid, snps.sid):
                 stats = self.stats
             else:
                 if self.sid_to_index is None:
-                    self.sid_to_index = {sid:index for index,sid in enumerate(self.sid)}
-                stats = np.array([self.stats[self.sid_to_index[sid]] for sid in snps.sid])
+                    self.sid_to_index = {
+                        sid: index for index, sid in enumerate(self.sid)
+                    }
+                stats = np.array(
+                    [self.stats[self.sid_to_index[sid]] for sid in snps.sid]
+                )
         else:
-            warnings.warn("standardizing an nparray instead of a SnpData is deprecated", DeprecationWarning)#LATER test coverage
+            warnings.warn(
+                "standardizing an nparray instead of a SnpData is deprecated",
+                DeprecationWarning,
+            )  # LATER test coverage
             val = snps
             stats = self.stats
 
-        self._standardize_unit_and_beta(val, is_beta=False, a=np.nan, b=np.nan, apply_in_place=True,use_stats=True,stats=stats,
-                                        num_threads=num_threads, force_python_only=force_python_only)
+        self._standardize_unit_and_beta(
+            val,
+            is_beta=False,
+            a=np.nan,
+            b=np.nan,
+            apply_in_place=True,
+            use_stats=True,
+            stats=stats,
+            num_threads=num_threads,
+            force_python_only=force_python_only,
+        )
 
         if return_trained:
             return snps, self
         else:
             return snps
 
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod(optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
+
+    doctest.testmod(optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE)

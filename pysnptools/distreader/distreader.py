@@ -12,7 +12,8 @@ import warnings
 import pysnptools.standardizer as stdizer
 from pysnptools.snpreader._dist2snp import _Dist2Snp
 
-#!!why do the examples use ../tests/datasets instead of "examples"?
+
+# !!why do the examples use ../tests/datasets instead of "examples"?
 class DistReader(PstReader):
     """A DistReader is one of three things:
 
@@ -61,14 +62,14 @@ class DistReader(PstReader):
 
         ========================= =================== ====================== ================== ======================
         *Class*                   *Format*            *Random Access*        *Suffixes*         *Write* method?
-        :class:`.DistData`        in-memory floats    Yes                    *n/a*              *n/a*              
-        :class:`.Bgen`            binary, floats      Yes (by sid)           \*.bgen            Yes              
+        :class:`.DistData`        in-memory floats    Yes                    *n/a*              *n/a*
+        :class:`.Bgen`            binary, floats      Yes (by sid)           \*.bgen            Yes
         :class:`.DistNpz`         binary, floats      No                     .dist.npz          Yes
         :class:`.DistHdf5`        binary, floats      Yes (by sid or iid)    .dist.hdf5         Yes
-        :class:`.DistMemMap`      mem-mapped floats   Yes                    .dist.memmap       Yes              
+        :class:`.DistMemMap`      mem-mapped floats   Yes                    .dist.memmap       Yes
         ========================= =================== ====================== ================== ======================
-    
-  
+
+
     Methods & Properties:
 
         Every DistReader, such as :class:`.Bgen` and :class:`.DistData`, has these properties: :attr:`iid`, :attr:`iid_count`, :attr:`sid`, :attr:`sid_count`,
@@ -96,7 +97,7 @@ class DistReader(PstReader):
     Selecting and Reordering Individuals and SNPs
 
         *same as with* :class:`.SnpReader`
-        
+
     When Data is Read:
 
         *same as with* :class:`.SnpReader`
@@ -110,7 +111,7 @@ class DistReader(PstReader):
         *same as with* :class:`.SnpReader`
 
     The :meth:`read` Method
-  
+
         By default the :meth:`read` returns a 3-D ndarray of numpy.float64 laid out in memory in F-contiguous order
         (iid-index varies the fastest). You may, instead,
         ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
@@ -183,8 +184,8 @@ class DistReader(PstReader):
         """
         return self.col_count
 
-    #!!document that chr must not be X,Y,M only numbers (as per the PLINK DistNpz format)
-    #!!Also what about telling the ref and alt allele? Also, what about tri and quad alleles, etc?
+    # !!document that chr must not be X,Y,M only numbers (as per the PLINK DistNpz format)
+    # !!Also what about telling the ref and alt allele? Also, what about tri and quad alleles, etc?
     @property
     def pos(self):
         """A ndarray of the position information for each sid. Each element is a ndarray of three numpy.numbers (chromosome, genetic distance, basepair distance).
@@ -209,18 +210,32 @@ class DistReader(PstReader):
 
     @property
     def row_property(self):
-        """Defined as a zero-width array for compatibility with :class:`PstReader`, but not used.
-        """
-        if not hasattr(self,'_row_property'):
-            self._row_property = np.empty((self.row_count,0))
+        """Defined as a zero-width array for compatibility with :class:`PstReader`, but not used."""
+        if not hasattr(self, "_row_property"):
+            self._row_property = np.empty((self.row_count, 0))
         return self._row_property
 
-
-    def _read(self, iid_index_or_none, sid_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
+    def _read(
+        self,
+        iid_index_or_none,
+        sid_index_or_none,
+        order,
+        dtype,
+        force_python_only,
+        view_ok,
+        num_threads,
+    ):
         raise NotImplementedError
-    
-    #!!check that views always return contiguous memory by default
-    def read(self, order='F', dtype=np.float64, force_python_only=False, view_ok=False, num_threads=None):
+
+    # !!check that views always return contiguous memory by default
+    def read(
+        self,
+        order="F",
+        dtype=np.float64,
+        force_python_only=False,
+        view_ok=False,
+        num_threads=None,
+    ):
         """Reads the SNP values and returns a :class:`.DistData` (with :attr:`DistData.val` property containing a new 3D ndarray of the SNP distribution values).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
@@ -238,7 +253,7 @@ class DistReader(PstReader):
         :type force_python_only: bool
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`DistData.val`'s ndarray. If True,
-            if practical and reading from a :class:`DistData`, will return a new 
+            if practical and reading from a :class:`DistData`, will return a new
             :class:`DistData` with a ndarray shares memory with the original :class:`DistData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
             Use these parameters with care because any change to either ndarraywill effect
@@ -271,12 +286,15 @@ class DistReader(PstReader):
         [0.466804   0.38812848 0.14506752]
         >>> subsub_distdata = subset_distdata[:10,:].read(order='A',view_ok=True) # Create an in-memory subset of the subset with SNP values for the first ten iids. Share memory if practical.
         >>> import numpy as np
-        >>> # print np.may_share_memory(subset_distdata.val, subsub_distdata.val) # Do the two ndarray's share memory? They could. Currently they won't.       
+        >>> # print np.may_share_memory(subset_distdata.val, subsub_distdata.val) # Do the two ndarray's share memory? They could. Currently they won't.
         """
         dtype = np.dtype(dtype)
-        val = self._read(None, None, order, dtype, force_python_only, view_ok, num_threads)
+        val = self._read(
+            None, None, order, dtype, force_python_only, view_ok, num_threads
+        )
         from pysnptools.distreader import DistData
-        ret = DistData(self.iid,self.sid,val,pos=self.pos,name=str(self))
+
+        ret = DistData(self.iid, self.sid, val, pos=self.pos, name=str(self))
         return ret
 
     def as_snp(self, max_weight=2.0, block_size=None):
@@ -305,7 +323,7 @@ class DistReader(PstReader):
         >>> print(snpreader[0,0].read().val)
         [[0.67826352]]
         """
-        dist2snp = _Dist2Snp(self,max_weight=max_weight,block_size=block_size)
+        dist2snp = _Dist2Snp(self, max_weight=max_weight, block_size=block_size)
         return dist2snp
 
     def iid_to_index(self, list):
@@ -315,7 +333,7 @@ class DistReader(PstReader):
         :type order: list of list of strings
 
         :rtype: ndarray of int
-        
+
         This method (to the degree practical) reads only iid and sid data from the disk, not SNP value data. Moreover, the iid and sid data is read from file only once.
 
         :Example:
@@ -336,7 +354,7 @@ class DistReader(PstReader):
         :type list: list of strings
 
         :rtype: ndarray of int
-        
+
         This method (to the degree practical) reads only iid and sid data from the disk, not SNP value data. Moreover, the iid and sid data is read from file only once.
 
         :Example:
@@ -352,41 +370,62 @@ class DistReader(PstReader):
 
     @property
     def val_shape(self):
-        '''
+        """
         Tells the shape of value for a given individual and SNP. For DistReaders always returns 3.
-        '''
+        """
         return 3
-
 
     def __getitem__(self, iid_indexer_and_snp_indexer):
         from pysnptools.distreader._subset import _DistSubset
+
         iid_indexer, snp_indexer = iid_indexer_and_snp_indexer
         return _DistSubset(self, iid_indexer, snp_indexer)
 
     @staticmethod
     def _as_distdata(distreader, force_python_only, order, dtype, num_threads):
-        '''
+        """
         Like 'read' except won't read if already a DistData
-        '''
-        from pysnptools.distreader import DistData #must import here to avoid cycles
+        """
+        from pysnptools.distreader import DistData  # must import here to avoid cycles
+
         dtype = np.dtype(dtype)
 
-        if hasattr(distreader,'val') and distreader.val.dtype==dtype and (order=="A" or (order=="C" and distreader.val.flags["C_CONTIGUOUS"]) or (order=="F" and distreader.val.flags["F_CONTIGUOUS"])):
+        if (
+            hasattr(distreader, "val")
+            and distreader.val.dtype == dtype
+            and (
+                order == "A"
+                or (order == "C" and distreader.val.flags["C_CONTIGUOUS"])
+                or (order == "F" and distreader.val.flags["F_CONTIGUOUS"])
+            )
+        ):
             return distreader
         else:
-            return distreader.read(order=order,dtype=dtype,view_ok=True, num_threads=num_threads)
-    
+            return distreader.read(
+                order=order, dtype=dtype, view_ok=True, num_threads=num_threads
+            )
+
     def copyinputs(self, copier):
         raise NotImplementedError
 
-    def _assert_iid_sid_pos(self,check_val):
+    def _assert_iid_sid_pos(self, check_val):
         if check_val:
-            assert len(self._val.shape)==3 and self._val.shape[-1]==3, "val should have 3 dimensions and the last dimension should have size 3"
-            assert self._val.shape == (len(self._row),len(self._col),3), "val shape should match that of iid_count x sid_count"
-        assert self._row.dtype.type is np.str_ and len(self._row.shape)==2 and self._row.shape[1]==2, "iid should be dtype str, have two dimensions, and the second dimension should be size 2"
-        assert self._col.dtype.type is np.str_ and len(self._col.shape)==1, "sid should be of dtype of str and one dimensional"
-
-
+            assert (
+                len(self._val.shape) == 3 and self._val.shape[-1] == 3
+            ), "val should have 3 dimensions and the last dimension should have size 3"
+            assert self._val.shape == (
+                len(self._row),
+                len(self._col),
+                3,
+            ), "val shape should match that of iid_count x sid_count"
+        assert (
+            self._row.dtype.type is np.str_
+            and len(self._row.shape) == 2
+            and self._row.shape[1] == 2
+        ), "iid should be dtype str, have two dimensions, and the second dimension should be size 2"
+        assert (
+            self._col.dtype.type is np.str_ and len(self._col.shape) == 1
+        ), "sid should be of dtype of str and one dimensional"
 
 
 if __name__ == "__main__":
@@ -394,10 +433,14 @@ if __name__ == "__main__":
 
     if False:
         from pysnptools.distreader import Bgen
-        dist_on_disk = Bgen('../examples/2500x100.bgen')
-        print(dist_on_disk.pos[:4,].astype('int')) # print position information for the first three sids: #The '...' is for possible space char
+
+        dist_on_disk = Bgen("../examples/2500x100.bgen")
+        print(
+            dist_on_disk.pos[:4,].astype("int")
+        )  # print position information for the first three sids: #The '...' is for possible space char
 
     import doctest
-    doctest.testmod(optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
+
+    doctest.testmod(optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc t
     print("done")

@@ -116,7 +116,7 @@ def intersect_apply(
             try:  # pheno dictionary
                 iid = data["iid"]
                 reindex = lambda data, iididx: _reindex_phen_dict(data, iididx)
-            except:
+            except Exception:
                 if hasattr(data, "iid1") and is_test:  # test kernel
                     iid = data.iid1
                     reindex = lambda data, iididx: data[:, iididx]
@@ -130,7 +130,7 @@ def intersect_apply(
                                 reindex = lambda data, iididx: data[iididx]
                             else:
                                 reindex = lambda data, iididx: data[iididx, :]
-                        except:
+                        except Exception:
                             reindex = lambda data, iididx: data[iididx, :]
                     except AttributeError:  # tuple of (val,iid)
                         iid = data[1]
