@@ -1063,3 +1063,4 @@ pysnptools/util/filecache/.work_directory.None/*
 pysnptools/util/filecache/runs/*
 ignorenpzconvert.py
 ignore/*
+ignore2.py

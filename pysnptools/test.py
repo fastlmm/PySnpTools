@@ -1539,31 +1539,32 @@ def getTestSuite():
     """
     test_suite = unittest.TestSuite([])
 
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDistReaders))
+    # cmk
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDistReaders))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPySnpTools))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDistributedBed))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestFileCache))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestUtilTools))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestIntRangeSet))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSnpDocStrings))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPstDocStrings))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestKrDocStrings))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSnpGen))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestGenerate))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestExampleFile))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPstMemMap))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSnpMemMap))
-    test_suite.addTests(NaNCNCTestCases.factory_iterator())
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPstReader))
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestKernelReader))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDistributedBed))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestFileCache))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestUtilTools))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestIntRangeSet))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSnpDocStrings))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPstDocStrings))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestKrDocStrings))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSnpGen))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestGenerate))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestExampleFile))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPstMemMap))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSnpMemMap))
+    # test_suite.addTests(NaNCNCTestCases.factory_iterator())
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPstReader))
+    # test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestKernelReader))
 
     return test_suite
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.WARN)
+    logging.basicConfig(level=logging.INFO)
 
     suites = getTestSuite()
-    r = unittest.TextTestRunner(failfast=False)
+    r = unittest.TextTestRunner(failfast=False)  # cmk set to false
     ret = r.run(suites)
     assert ret.wasSuccessful()

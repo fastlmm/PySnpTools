@@ -103,7 +103,7 @@ class DistributedBed(SnpReader):
         storage = state
         self.__init__(storage)
 
-        # !! # !! # !! copyinputs(self, copier):
+    def copyinputs(self, copier):
         pass
 
     def _read(
