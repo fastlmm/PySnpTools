@@ -1,7 +1,4 @@
 import numpy as np
-import os.path
-from itertools import *
-import pandas as pd
 import logging
 import time
 import pysnptools.util as pstutil
@@ -11,46 +8,46 @@ import pysnptools.standardizer as stdizer
 from bed_reader import open_bed
 
 
-#!!why do the examples use ../tests/datasets instead of "examples"?
+# !!why do the examples use ../tests/datasets instead of "examples"?
 class SnpReader(PstReader):
     """A SnpReader is one of three things:
 
-        * A class such as :class:`.Bed` for you to specify a file with data. For example,
+    * A class such as :class:`.Bed` for you to specify a file with data. For example,
 
-            >>> from pysnptools.snpreader import Bed
-            >>> from pysnptools.util import example_file # Download and return local file name
-            >>> bedfile = example_file("tests/datasets/all_chr.maf0.001.N300.*","*.bed")
-            >>> snp_on_disk = Bed(bedfile,count_A1=False)
-            >>> print(snp_on_disk) # prints the name of the file reader
-            Bed(...tests/datasets/all_chr.maf0.001.N300.bed',count_A1=False)
-            >>> snp_on_disk.sid_count # prints the number of SNPS (but doesn't read any SNP values)
-            1015
+    >>> from pysnptools.snpreader import Bed
+    >>> from pysnptools.util import example_file # Download and return local file name
+    >>> bedfile = example_file("tests/datasets/all_chr.maf0.001.N300.*","*.bed")
+    >>> snp_on_disk = Bed(bedfile,count_A1=False)
+    >>> print(snp_on_disk) # prints the name of the file reader
+    Bed(...tests/datasets/all_chr.maf0.001.N300.bed',count_A1=False)
+    >>> snp_on_disk.sid_count # prints the number of SNPS (but doesn't read any SNP values)
+    1015
 
-        * A :class:`.SnpData` class that holds SNP data in memory, typically after reading it from disk:
+    * A :class:`.SnpData` class that holds SNP data in memory, typically after reading it from disk:
 
-            >>> snp_on_disk = Bed(bedfile,count_A1=False)
-            >>> snpdata1 = snp_on_disk.read() #reads the SNP values
-            >>> type(snpdata1.val).__name__ # The val property is an ndarray of SNP values
-            'ndarray'
-            >>> print(snpdata1) # prints the name of the file reader
-            SnpData(Bed(...tests/datasets/all_chr.maf0.001.N300.bed',count_A1=False))
-            >>> snpdata1.iid_count #prints the number of iids (number of individuals) in this in-memory data
-            300
+    >>> snp_on_disk = Bed(bedfile,count_A1=False)
+    >>> snpdata1 = snp_on_disk.read() #reads the SNP values
+    >>> type(snpdata1.val).__name__ # The val property is an ndarray of SNP values
+    'ndarray'
+    >>> print(snpdata1) # prints the name of the file reader
+    SnpData(Bed(...tests/datasets/all_chr.maf0.001.N300.bed',count_A1=False))
+    >>> snpdata1.iid_count #prints the number of iids (number of individuals) in this in-memory data
+    300
 
-        * A subset of any SnpReader, specified with "[ *iid_index* , *sid_index* ]", to read only some SNP values. It can
-          also be used to re-order the values.
+    * A subset of any SnpReader, specified with "[ *iid_index* , *sid_index* ]", to read only some SNP values.
+        It can also be used to re-order the values.
 
-            >>> snp_on_disk = Bed(bedfile,count_A1=False)
-            >>> subset_on_disk = snp_on_disk[[3,4],::2] # specification for a subset of the data on disk. No SNP values are read yet.
-            >>> print(subset_on_disk.sid_count) # prints the number of sids in this subset (but still doesn't read any SNP values)
-            508
-            >>> print(subset_on_disk) #prints a specification of 'subset_on_disk'
-            Bed(...tests/datasets/all_chr.maf0.001.N300.bed',count_A1=False)[[3,4],::2]
-            >>> snpdata_subset = subset_on_disk.read() # efficiently reads the specified subset of values from the disk
-            >>> print(snpdata_subset) # prints the name of the file reader
-            SnpData(Bed(...tests/datasets/all_chr.maf0.001.N300.bed',count_A1=False)[[3,4],::2])
-            >>> print((int(snpdata_subset.val.shape[0]), int(snpdata_subset.val.shape[1]))) # The dimensions of the ndarray of SNP values
-            (2, 508)
+    >>> snp_on_disk = Bed(bedfile,count_A1=False)
+    >>> subset_on_disk = snp_on_disk[[3,4],::2] # specification for a subset of the data on disk. No SNP values are read yet.
+    >>> print(subset_on_disk.sid_count) # prints the number of sids in this subset (but still doesn't read any SNP values)
+    508
+    >>> print(subset_on_disk) #prints a specification of 'subset_on_disk'
+    Bed(...tests/datasets/all_chr.maf0.001.N300.bed',count_A1=False)[[3,4],::2]
+    >>> snpdata_subset = subset_on_disk.read() # efficiently reads the specified subset of values from the disk
+    >>> print(snpdata_subset) # prints the name of the file reader
+    SnpData(Bed(...tests/datasets/all_chr.maf0.001.N300.bed',count_A1=False)[[3,4],::2])
+    >>> print((int(snpdata_subset.val.shape[0]), int(snpdata_subset.val.shape[1]))) # The dimensions of the ndarray of SNP values
+    (2, 508)
 
         The SnpReaders Classes
 
@@ -74,7 +71,8 @@ class SnpReader(PstReader):
             Every SnpReader, such as :class:`.Bed` and :class:`.SnpData`, has these properties: :attr:`iid`, :attr:`iid_count`, :attr:`sid`, :attr:`sid_count`,
             :attr:`pos` and these methods: :meth:`read`, :meth:`iid_to_index`, :meth:`sid_to_index`, :meth:`read_kernel`. See below for details.
 
-            :class:`.SnpData` is a SnpReader so it supports the above properties and methods. In addition, it supports property :attr:`.SnpData.val`, method :meth:`.SnpData.standardize`, and equality testing.
+            :class:`.SnpData` is a SnpReader so it supports the above properties and methods. In addition, it supports property :attr:`.SnpData.val`,
+            method :meth:`.SnpData.standardize`, and equality testing.
             See below for details.
 
             Many of the classes, such as :class:`.Bed`, also provide a static :meth:`Bed.write` method for writing :class:`.SnpData` to disk.
@@ -381,8 +379,8 @@ class SnpReader(PstReader):
         """
         return self.col_count
 
-    #!!document that chr must not be X,Y,M only numbers (as per the PLINK BED format)
-    #!!Also what about telling the ref and alt allele? Also, what about tri and quad alleles, etc?
+    # !!document that chr must not be X,Y,M only numbers (as per the PLINK BED format)
+    # !!Also what about telling the ref and alt allele? Also, what about tri and quad alleles, etc?
     @property
     def pos(self):
         """A ndarray of the position information for each sid. Each element is a ndarray of three numpy.numbers (chromosome, genetic distance, basepair distance).
@@ -423,7 +421,7 @@ class SnpReader(PstReader):
     ):
         raise NotImplementedError
 
-    #!!check that views always return contiguous memory by default
+    # !!check that views always return contiguous memory by default
     def read(
         self,
         order="F",
@@ -546,7 +544,6 @@ class SnpReader(PstReader):
         return self.col_to_index(list)
 
     def __getitem__(self, iid_indexer_and_snp_indexer):
-        import os
         from pysnptools.snpreader._subset import _SnpSubset
 
         iid_indexer, snp_indexer = iid_indexer_and_snp_indexer
@@ -663,8 +660,6 @@ class SnpReader(PstReader):
         """
         Like 'read' except (1) won't read if already a snpdata and (2) returns the standardizer
         """
-        from pysnptools.snpreader import SnpData
-
         dtype = np.dtype(dtype)
 
         if (
@@ -801,7 +796,7 @@ class SnpReader(PstReader):
     @staticmethod
     def _name_of_other_file(filename, remove_suffix, add_suffix):
         if filename.lower().endswith(remove_suffix.lower()):
-            filename = filename[0 : -1 - len(remove_suffix)]
+            filename = filename[: -1 - len(remove_suffix)]
         return filename + "." + add_suffix
 
     @staticmethod
