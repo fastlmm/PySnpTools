@@ -1,8 +1,9 @@
 {
-  "url": "https://github.com/fastlmm/PySnpTools/raw/ede2ae36da3a80ea258f6aba19e310ae2ac8fb0b",
+  "url": "https://github.com/fastlmm/PySnpTools/raw/06bf85868ca106dcb1624e5ea53beae1bd12c1e6",
   "file_to_hash": {
-    "pysnptools/examples/tiny.pst.memmap": "97d0c6a4b73767b482a017eb9aa8d193",
-    "pysnptools/examples/tiny.snp.memmap": "bcdca55d267cdc2d7d16668f4fd2a694",
+    "pysnptools/examples/tiny.pst.memmap": "f1720231eb0fb15fae99d9b782493b91",
+    "pysnptools/examples/tiny.snp.memmap": "56f0a2708a59832c19b2555f328df6bb",
+    "pysnptools/examples/tiny.dist.memmap": "47e203770865b73b5ce70f1828a2ebc2",
     "pysnptools/examples/toydata.5chrom.bed": "766f55aa716bc7bc97cad4de41a50ec3",
     "pysnptools/examples/toydata.5chrom.bim": "6a07f96e521f9a86df7bfd7814eebcd6",
     "pysnptools/examples/toydata.5chrom.fam": "f4eb01f67e0738d4865fad2014af8537",
@@ -228,7 +229,6 @@
     "doc/ipynb/all.fam": "03665525a42d58f2d661e4c6e5d54d55",
     "doc/ipynb/pheno_10_causals.txt": "1bbabc7ba273f9320d74d05912576a10",
     "doc/ipynb/cov.txt": "790f41114e3fbcce3f98f9284fc87231",
-    "pysnptools/examples/tiny.dist.memmap": "2e1df54d5e25fcc6f3c0bb5902f5c65f",
     "pysnptools/examples/2500x100.bgen": "c0731801c2474daa19b0949b4c52a17d",
     "pysnptools/examples/example.bgen": "b8d324a100ce3910ef359da0bd903398",
     "pysnptools/examples/toydata.dist.npz": "66c71450d0f5e7be7c4787a8c6dbc70c",
