@@ -1058,3 +1058,5 @@ ModelManifest.xml
 /deleteme1.bim
 /deleteme1.bed
 .vs/
+pysnptools/runs/*
+pysnptools/util/filecache/ignore/*

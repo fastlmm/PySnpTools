@@ -1,3 +1,5 @@
+from io import StringIO
+import sys
 import unittest
 import logging
 import os
@@ -398,10 +400,21 @@ class TestFileCache(unittest.TestCase):
             pysnptools.util.filecache.peertopeer,
             pysnptools.util.filecache.hashdown,
         ]:
-            result = doctest.testmod(
-                mod, optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
-            )
-            assert result.failed == 0, "failed doc test: " + __file__
+            buffer = StringIO()
+            old_stdout = sys.stdout
+            sys.stdout = buffer  # Redirect the stdout to the buffer
+
+            try:
+                result = doctest.testmod(
+                    mod, optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
+                )
+                if result.failed:
+                    assert (
+                        result.failed == 0
+                    ), f"Doc test failed in {mod.__name__} with the following output:\n{buffer.getvalue()}"
+            finally:
+                sys.stdout = old_stdout
+                buffer.close()
         os.chdir(old_dir)
 
 
@@ -416,7 +429,7 @@ def getTestSuite():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARN)
     suites = getTestSuite()
 
     r = unittest.TextTestRunner(failfast=True)  # !!! should be false

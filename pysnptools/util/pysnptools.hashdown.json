@@ -1,5 +1,5 @@
 {
-  "url": "https://github.com/fastlmm/PySnpTools/raw/734fd1133471a987358f4ec3ff2200545435ca3a",
+  "url": "https://github.com/fastlmm/PySnpTools/raw/ea1ec5ab30abd66c0972257c18722ef48e93e131",
   "file_to_hash": {
     "pysnptools/examples/tiny.pst.memmap": "45b01d183fb0fd623c1430422bfa3eb8",
     "pysnptools/examples/tiny.snp.memmap": "f9b055ad10a4dc10c380d32066c3a8f4",
@@ -47,7 +47,7 @@
     "tests/datasets/all_chr.maf0.001.N300.hdf5": "41854b7347876740e92e740514399cc6",
     "tests/datasets/all_chr.maf0.001.N300.pst.npz": "ca0e9ca7bb1da3ff6ec15279645182c0",
     "tests/datasets/distributed_bed_test1_X.bed": "aa25f6ac4aeacf1fb9102f3699a7df3d",
-    "tests/datasets/distributed_bed_test1_X.bim": "9b46fe63744ae88655c6ffbf2d962ce7",
+    "tests/datasets/distributed_bed_test1_X.bim": "2758fbe1a9b04435cb8897812688ad88",
     "tests/datasets/distributed_bed_test1_X.fam": "6546c2e6aa8186688e5701fd04c3c710",
     "tests/datasets/little.pst.npz": "ff99fc1958fedd22f92068e7934b439c",
     "tests/datasets/phenSynthFrom22.23.N300.randcidorder.txt": "e4b732c7bd8f5187e2acd7493bee640a",
