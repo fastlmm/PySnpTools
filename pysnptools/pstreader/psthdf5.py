@@ -189,7 +189,7 @@ class PstHdf5(PstReader):
 
     def __del__(self):
         if (
-            self._h5 != None
+            self._h5 is not None
         ):  # we need to test this because Python doesn't guarantee that __init__ was fully run
             self._h5.close()
 

@@ -347,7 +347,6 @@ class ExpandWork(object):  # implements IDistributable
             return islice(self.sub_distributable.work_sequence(), start, stop)
 
     def _work_sequence_range(self, start, stop):
-
         sub_start = self.index_to_sub_index(start)
         sub_stop = self.index_to_sub_index(stop - 1) + 1
         sub_workIndex = sub_start
@@ -416,7 +415,7 @@ class ExpandWork(object):  # implements IDistributable
                 workIndex += 1
                 for workindex in range(1, expand_to):
                     paddedResultToIgnore = next(result_sequence)
-                    if paddedResultToIgnore != None:
+                    if paddedResultToIgnore is not None:
                         raise Exception("Assert: Expected 'None' result")
                     workIndex += 1
             sub_workIndex += 1
