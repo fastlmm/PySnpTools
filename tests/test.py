@@ -3,14 +3,13 @@ import pysnptools.test
 import unittest
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     logging.basicConfig(level=logging.WARN)
 
     suites = unittest.TestSuite([pysnptools.test.getTestSuite()])
     suites.debug
 
-    r = unittest.TextTestRunner(failfast=False)
+    r = unittest.TextTestRunner(failfast=True)  # cmk set to false
     ret = r.run(suites)
     assert ret.wasSuccessful()
 

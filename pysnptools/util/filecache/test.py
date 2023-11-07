@@ -36,7 +36,7 @@ class TestFileCache(unittest.TestCase):
             "util/util.py",
         ]:
             hashdown0.file_exists(file)
-        file_to_hash = hashdown0.file_to_hash
+        _ = hashdown0.file_to_hash
         hashdown = Hashdown(
             url, file_to_hash=hashdown0.file_to_hash, allow_unknown_files=False
         )
@@ -161,8 +161,6 @@ class TestFileCache(unittest.TestCase):
         )
 
     def test_peer_to_peer(self):
-        from pysnptools.util.filecache import ip_address_pid
-
         logging.info("test_peer_to_peer")
 
         temp_dir = self._temp_dir()
@@ -220,9 +218,9 @@ class TestFileCache(unittest.TestCase):
         return len
 
     def _write_and_read(self, storage):
-        test_storage = storage.join(
-            "test_snps"
-        )  #!!!How to induce an error: create a 'test_snps' file at the top level then try to create an empty directory with the same name
+        test_storage = storage.join("test_snps")
+        # !!!How to induce an error: create a 'test_snps' file at the top level then try to create
+        # an empty directory with the same name
 
         # Clear the directory
         test_storage.rmtree()
@@ -312,8 +310,8 @@ class TestFileCache(unittest.TestCase):
         assert 0 == self._len(test_storage.walk("main.txt/test.txt"))  # Now allowed.
 
         #  writing zero length files is OK
-        #  File share has a special file called "main.txt". Can we mess things up by using 'main.txt' as a directory name, too.
-        # It's OK to write to a file in a directory that used to exist, but now has no files.
+        #  File share has a special file called "main.txt". Can we mess things up by using 'main.txt' as a directory
+        #  name, too. It's OK to write to a file in a directory that used to exist, but now has no files.
         test_storage.save("main.txt", "")
         assert test_storage.file_exists("main.txt")
         file_list = list(test_storage.walk())
@@ -421,7 +419,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     suites = getTestSuite()
 
-    r = unittest.TextTestRunner(failfast=True)  #!!! should be false
+    r = unittest.TextTestRunner(failfast=True)  # !!! should be false
     ret = r.run(suites)
     assert ret.wasSuccessful()
 

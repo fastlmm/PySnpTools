@@ -11,6 +11,7 @@ import warnings
 from pysnptools.util.intrangeset import IntRangeSet
 from bed_reader import get_num_threads, subset_f64_f64, subset_f32_f64, subset_f32_f32
 
+
 def _testtest(data, iididx):
     return (data[0][iididx], data[1][iididx])
 
@@ -268,7 +269,9 @@ def intersect_ids(idslist):
     return indarr
 
 
-def sub_matrix(val, row_index_list, col_index_list, order="A", dtype=np.float64, num_threads=None):
+def sub_matrix(
+    val, row_index_list, col_index_list, order="A", dtype=np.float64, num_threads=None
+):
     """
     Efficiently creates a sub-matrix from a 2-D or 3-D ndarray.
 
@@ -325,31 +328,33 @@ def sub_matrix(val, row_index_list, col_index_list, order="A", dtype=np.float64,
 
     def create_sub_val(dtype):
         return np.full(
-        (len(row_index_list), len(col_index_list), val_shape),
-        np.NAN,
-        dtype=dtype,
-        order=effective_order
-        )   
+            (len(row_index_list), len(col_index_list), val_shape),
+            np.NAN,
+            dtype=dtype,
+            order=effective_order,
+        )
 
     logging.debug("About to call Rust matrixSubset")
     num_threads = get_num_threads(num_threads)
     if val.flags["F_CONTIGUOUS"] or val.flags["C_CONTIGUOUS"]:
-        row_index_list = np.asarray(row_index_list,dtype=np.uintp)
-        col_index_list = np.asarray(col_index_list,dtype=np.uintp)
+        row_index_list = np.asarray(row_index_list, dtype=np.uintp)
+        col_index_list = np.asarray(col_index_list, dtype=np.uintp)
         if val.dtype == np.float64:
             sub_val = create_sub_val(np.float64)
             subset_f64_f64(
-                    val,
-                    row_index_list,
-                    col_index_list,
-                    sub_val,
-                    num_threads,
-                )
+                val,
+                row_index_list,
+                col_index_list,
+                sub_val,
+                num_threads,
+            )
             if dtype == np.float64:
                 pass
             elif dtype == np.float32:
-                warnings.warn("Converting float64 to float32 can cause loss of information")
-                sub_val = sub_val.astype(dtype,order)
+                warnings.warn(
+                    "Converting float64 to float32 can cause loss of information"
+                )
+                sub_val = sub_val.astype(dtype, order)
             else:
                 raise Exception(
                     "dtype '{0}' not known, only float64 and float32".format(dtype)
@@ -358,21 +363,13 @@ def sub_matrix(val, row_index_list, col_index_list, order="A", dtype=np.float64,
             if dtype == np.float64:
                 sub_val = create_sub_val(np.float64)
                 subset_f32_f64(
-                        val,
-                        row_index_list,
-                        col_index_list,
-                        sub_val,
-                        num_threads
-                    )
+                    val, row_index_list, col_index_list, sub_val, num_threads
+                )
             elif dtype == np.float32:
                 sub_val = create_sub_val(np.float32)
                 subset_f32_f32(
-                        val,
-                        row_index_list,
-                        col_index_list,
-                        sub_val,
-                        num_threads
-                    )  
+                    val, row_index_list, col_index_list, sub_val, num_threads
+                )
             else:
                 raise Exception(
                     "dtype '{0}' not known, only float64 and float32".format(dtype)

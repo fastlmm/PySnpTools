@@ -1,9 +1,4 @@
-import platform
-import os
-import sys
-import shutil
 from setuptools import setup
-import numpy
 
 # Version number
 version = "0.5.10"
@@ -34,7 +29,8 @@ setup(
     description="PySnpTools",
     long_description=readme(),
     long_description_content_type="text/markdown",
-    keywords="gwas bioinformatics sets intervals ranges regions plink genomics file-format reader genotype bed-format writer python snps",
+    keywords="gwas bioinformatics sets intervals ranges regions plink genomics "
+    + "file-format reader genotype bed-format writer python snps",
     url="https://fastlmm.github.io/",
     author="FaST-LMM Team",
     author_email="fastlmm-dev@python.org",
