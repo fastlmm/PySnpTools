@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 from itertools import *
 import pandas as pd
@@ -55,7 +56,10 @@ class Pheno(_OneShot, SnpReader):
         """
         super(Pheno, self).__init__()
 
-        self.filename = str(input)
+        if isinstance(input, Path):
+            input = str(input)
+
+        self.filename = input
         self._iid_if_none = iid_if_none
         self.missing = missing
 
