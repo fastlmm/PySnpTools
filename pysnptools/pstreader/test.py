@@ -84,7 +84,7 @@ class TestPstReader(unittest.TestCase):
         # def _twotwod_U(c):
         #    return [[str(i).encode('UTF-8'),u"hello"] for i in range(c)]
         def _none(c):
-            return None  # !!# !!# !!# !!# !!
+            return None
 
         def _zero(c):
             return np.empty([c, 0], dtype="S")

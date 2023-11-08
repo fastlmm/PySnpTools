@@ -153,7 +153,7 @@ class Dense(_OneShot, SnpReader):
         """
 
         if isinstance(filename, SnpData) and isinstance(
-            snpdata, "S"
+            snpdata, "str"
         ):  # For backwards compatibility, reverse inputs if necessary
             warnings.warn(
                 "write statement should have filename before data to write",

@@ -62,7 +62,7 @@ class PeerToPeer(FileCache):
             common_directory = LocalCache(common_directory)
         self.common_directory = common_directory
         self.id_and_path_function = id_and_path_function
-        # !!f.leave_space = leave_space
+        self.leave_space = leave_space
         assert not self.common_directory._simple_file_exists(
             "main.txt"
         ), "A common_directory cannot exist where a file already exists."

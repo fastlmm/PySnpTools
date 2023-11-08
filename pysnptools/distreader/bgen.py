@@ -1109,7 +1109,9 @@ if __name__ == "__main__":
         from pysnptools.distreader import Bgen
 
         distgen = DistGen(seed=332, iid_count=iid_count, sid_count=sid_count)
-        Bgen.write("M:\deldir\{0}x{1}.bgen".format(iid_count, sid_count), distgen, bits)
+        Bgen.write(
+            r"M:\deldir\{0}x{1}.bgen".format(iid_count, sid_count), distgen, bits
+        )
     if False:
         from pysnptools.distreader import Bgen
 
