@@ -1564,6 +1564,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     suites = getTestSuite()
-    r = unittest.TextTestRunner(failfast=True)  # cmk set to false
+    r = unittest.TextTestRunner(failfast=True)
     ret = r.run(suites)
     assert ret.wasSuccessful()

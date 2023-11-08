@@ -1,7 +1,7 @@
 from setuptools import setup
 
 # Version number
-version = "0.5.10"
+version = "0.5.11b1"
 
 
 def readme():

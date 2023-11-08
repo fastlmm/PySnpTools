@@ -26,3 +26,4 @@ pysnptools.egg-info/*
 pysnptools/snpreader/2500x500000.sample
 pysnptools/examples/example.bgen.metadata2.mmm
 pysnptools/examples/bits1.bgen.metadata2.mmm
+doc/ipynb/mergecache.npz
