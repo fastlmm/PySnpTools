@@ -44,7 +44,7 @@ class PstHdf5(PstReader):
         self._ran_once = False
         self._h5 = None
 
-        self.filename = filename
+        self.filename = str(filename)
 
     def __getstate__(self):
         return self.filename, self._block_size

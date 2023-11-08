@@ -138,7 +138,7 @@ class Bgen(DistReader):
         super(Bgen, self).__init__()
         self._ran_once = False
 
-        self.filename = filename
+        self.filename = str(filename)
         self._iid_function = iid_function
         self._sid_function = sid_function
         self._sample = sample

@@ -795,6 +795,7 @@ class SnpReader(PstReader):
 
     @staticmethod
     def _name_of_other_file(filename, remove_suffix, add_suffix):
+        filename = str(filename)
         if filename.lower().endswith(remove_suffix.lower()):
             filename = filename[: -1 - len(remove_suffix)]
         return filename + "." + add_suffix
