@@ -5,7 +5,7 @@ from bed_reader import get_num_threads, standardize_f64, standardize_f32
 
 
 class Standardizer(object):
-    '''
+    """
     A Standardizer is a class such as :class:`.Unit` and :class:`.Beta` to be used by the :meth:`.SnpData.standardize` and :meth:`.SnpReader.read_kernel` method to standardize SNP data.
 
     :Example:
@@ -51,13 +51,20 @@ class Standardizer(object):
     0.229416
 
     Details of Methods & Properties:
-    '''
+    """
 
     def __init__(self):
         super(Standardizer, self).__init__()
 
-    def standardize(self, snps, block_size=None, return_trained=False, force_python_only=False, num_threads=None):
-        '''
+    def standardize(
+        self,
+        snps,
+        block_size=None,
+        return_trained=False,
+        force_python_only=False,
+        num_threads=None,
+    ):
+        """
         Applies standardization, in place, to :class:`.SnpData` (or a NumPy array). For convenience also returns the :class:`.SnpData` (or a NumPy array).
 
         :param snps: SNP values to standardize
@@ -80,82 +87,152 @@ class Standardizer(object):
 
         :rtype: :class:`.SnpData` (or a NumPy array), (optional) constant :class:`.Standardizer`
 
-        '''
+        """
         if block_size is not None:
-            warnings.warn("block_size is deprecated (and not needed, since standardization is in-place", DeprecationWarning)
-        raise NotImplementedError("subclass {0} needs to implement method '.standardize'".format(self.__class__.__name__))
+            warnings.warn(
+                "block_size is deprecated (and not needed, since standardization is in-place",
+                DeprecationWarning,
+            )
+        raise NotImplementedError(
+            "subclass {0} needs to implement method '.standardize'".format(
+                self.__class__.__name__
+            )
+        )
 
     @staticmethod
-    #changes snps in place
-    def _standardize_unit_and_beta(snps, is_beta, a, b, apply_in_place, use_stats, stats, num_threads, force_python_only=False):
-        '''
+    # changes snps in place
+    def _standardize_unit_and_beta(
+        snps,
+        is_beta,
+        a,
+        b,
+        apply_in_place,
+        use_stats,
+        stats,
+        num_threads,
+        force_python_only=False,
+    ):
+        """
         When snps is a cupy ndarray, will use cupy to compute new stats for unit. (Other paths are not defined for cupy)
-        '''
+        """
         xp = pstutil.get_array_module(snps)
 
-        assert snps.flags["C_CONTIGUOUS"] or snps.flags["F_CONTIGUOUS"], "Expect snps to be order 'C' or order 'F'"
+        assert (
+            snps.flags["C_CONTIGUOUS"] or snps.flags["F_CONTIGUOUS"]
+        ), "Expect snps to be order 'C' or order 'F'"
 
-        #Make sure stats is the same type as snps. Because we might be creating a new array, we return it
+        # Make sure stats is the same type as snps. Because we might be creating a new array, we return it
         if stats is None:
-            stats = xp.empty([snps.shape[1],2],dtype=snps.dtype,order="F" if snps.flags["F_CONTIGUOUS"] else "C")
+            stats = xp.empty(
+                [snps.shape[1], 2],
+                dtype=snps.dtype,
+                order="F" if snps.flags["F_CONTIGUOUS"] else "C",
+            )
         elif not (
-             stats.dtype == snps.dtype   #stats must have the same dtype as snps
-             and (stats.flags["OWNDATA"]) # stats must own its data
-             and (snps.flags["C_CONTIGUOUS"] and stats.flags["C_CONTIGUOUS"]) or (snps.flags["F_CONTIGUOUS"] and stats.flags["F_CONTIGUOUS"]) #stats must have the same order as snps
-             ):
-            stats = xp.array(stats,dtype=snps.dtype,order="F" if snps.flags["F_CONTIGUOUS"] else "C")
-        assert stats.shape == (snps.shape[1],2), "stats must have size [sid_count,2]"
+            stats.dtype == snps.dtype  # stats must have the same dtype as snps
+            and (stats.flags["OWNDATA"])  # stats must own its data
+            and (snps.flags["C_CONTIGUOUS"] and stats.flags["C_CONTIGUOUS"])
+            or (
+                snps.flags["F_CONTIGUOUS"] and stats.flags["F_CONTIGUOUS"]
+            )  # stats must have the same order as snps
+        ):
+            stats = xp.array(
+                stats,
+                dtype=snps.dtype,
+                order="F" if snps.flags["F_CONTIGUOUS"] else "C",
+            )
+        assert stats.shape == (snps.shape[1], 2), "stats must have size [sid_count,2]"
 
         if not force_python_only and xp is np:
             num_threads = get_num_threads(num_threads)
 
             if snps.dtype == np.float64:
-                if (snps.flags['F_CONTIGUOUS'] or snps.flags['C_CONTIGUOUS']) and (snps.flags["OWNDATA"] or snps.base.nbytes == snps.nbytes): #!!create a method called is_single_segment
-                    standardize_f64(snps,is_beta,a,b,apply_in_place,use_stats,stats,num_threads)
+                if (snps.flags["F_CONTIGUOUS"] or snps.flags["C_CONTIGUOUS"]) and (
+                    snps.flags["OWNDATA"] or snps.base.nbytes == snps.nbytes
+                ):  # !!create a method called is_single_segment
+                    standardize_f64(
+                        snps,
+                        is_beta,
+                        a,
+                        b,
+                        apply_in_place,
+                        use_stats,
+                        stats,
+                        num_threads,
+                    )
                     return stats
                 else:
-                    logging.info("Array is not contiguous, so will standardize with python only instead of C++")
+                    logging.info(
+                        "Array is not contiguous, so will standardize with python only instead of C++"
+                    )
             elif snps.dtype == np.float32:
-                if (snps.flags['F_CONTIGUOUS'] or snps.flags['C_CONTIGUOUS']) and (snps.flags["OWNDATA"] or snps.base.nbytes == snps.nbytes):
-                    standardize_f32(snps,is_beta,a,b,apply_in_place,use_stats,stats,num_threads)
+                if (snps.flags["F_CONTIGUOUS"] or snps.flags["C_CONTIGUOUS"]) and (
+                    snps.flags["OWNDATA"] or snps.base.nbytes == snps.nbytes
+                ):
+                    standardize_f32(
+                        snps,
+                        is_beta,
+                        a,
+                        b,
+                        apply_in_place,
+                        use_stats,
+                        stats,
+                        num_threads,
+                    )
                     return stats
                 else:
-                    logging.info("Array is not contiguous, so will standardize with python only instead of C++")
+                    logging.info(
+                        "Array is not contiguous, so will standardize with python only instead of C++"
+                    )
             else:
-                logging.info("Array type is not float64 or float32, so will standardize with python only instead of C++")
+                logging.info(
+                    "Array type is not float64 or float32, so will standardize with python only instead of C++"
+                )
 
         import pysnptools.standardizer as stdizer
+
         if is_beta:
-            Standardizer._standardize_beta_python(snps, a, b, apply_in_place, use_stats=use_stats, stats=stats)
+            Standardizer._standardize_beta_python(
+                snps, a, b, apply_in_place, use_stats=use_stats, stats=stats
+            )
             return stats
         else:
-            Standardizer._standardize_unit_python(snps, apply_in_place, use_stats=use_stats, stats=stats)
+            Standardizer._standardize_unit_python(
+                snps, apply_in_place, use_stats=use_stats, stats=stats
+            )
             return stats
 
     @staticmethod
-    def _standardize_unit_python(snps,apply_in_place,use_stats,stats):
-        '''
+    def _standardize_unit_python(snps, apply_in_place, use_stats, stats):
+        """
         Standardize snps to zero-mean and unit variance.
 
         Will work with both numpy and cupy ndarray.
-        '''
-        assert snps.dtype in [np.float64,np.float32], "snps must be a float in order to standardize in place."
+        """
+        assert snps.dtype in [
+            np.float64,
+            np.float32,
+        ], "snps must be a float in order to standardize in place."
         xp = pstutil.get_array_module(snps)
 
         imissX = xp.isnan(snps)
 
         if use_stats:
-            snp_mean = stats[:,0]
-            snp_std = stats[:,1]
+            snp_mean = stats[:, 0]
+            snp_std = stats[:, 1]
         else:
             snp_std = xp.nanstd(snps, axis=0)
             snp_mean = xp.nanmean(snps, axis=0)
             # avoid div by 0 when standardizing
-            #Don't need this warning because SNCs are still meaning full in QQ plots because they should be thought of as SNPs without enough data.
-            #logging.warn("A least one snps has only one value, that is, its standard deviation is zero")
-            snp_std[snp_std == 0.0] = xp.inf #We make the stdev infinity so that applying as a trained_standardizer will turn any input to 0. Thus if a variable has no variation in the training data, then it will be set to 0 in test data, too. 
-            stats[:,0] = snp_mean
-            stats[:,1] = snp_std
+            # Don't need this warning because SNCs are still meaning full in QQ plots because they should be thought of as SNPs without enough data.
+            # logging.warn("A least one snps has only one value, that is, its standard deviation is zero")
+            snp_std[
+                snp_std == 0.0
+            ] = (
+                xp.inf
+            )  # We make the stdev infinity so that applying as a trained_standardizer will turn any input to 0. Thus if a variable has no variation in the training data, then it will be set to 0 in test data, too.
+            stats[:, 0] = snp_mean
+            stats[:, 1] = snp_std
 
         if apply_in_place:
             snps -= snp_mean
@@ -164,71 +241,89 @@ class Standardizer(object):
 
     @property
     def is_constant(self):
-        '''
+        """
         Tell if a standardizer's statistics are constant. For example, :class:`.Unit_Trained` contains a pre-specified mean and stddev for each SNP, so :attr:`Unit_Trained.is_constant` is True.
         :class:`.Unit`, on the other hand, measures the mean and stddev for each SNP, so :attr:`Unit.is_constant` is False.
 
         :rtype: bool
-        '''
-        return False        
+        """
+        return False
 
     @staticmethod
     def _standardize_beta_python(snps, betaA, betaB, apply_in_place, use_stats, stats):
-        '''
+        """
         standardize snps with Beta prior
-        '''
-        assert snps.dtype in [np.float64,np.float32], "snps must be a float in order to standardize in place."
+        """
+        assert snps.dtype in [
+            np.float64,
+            np.float32,
+        ], "snps must be a float in order to standardize in place."
 
         imissX = np.isnan(snps)
-        snp_sum =  np.nansum(snps,axis=0)
+        snp_sum = np.nansum(snps, axis=0)
         n_obs_sum = (~imissX).sum(0)
-    
+
         if use_stats:
-            snp_mean = stats[:,0]
-            snp_std = stats[:,1]
+            snp_mean = stats[:, 0]
+            snp_std = stats[:, 1]
         else:
-            snp_mean = (snp_sum*1.0)/n_obs_sum
-            snp_std = np.sqrt(np.nansum((snps-snp_mean)**2, axis=0)/n_obs_sum)
+            snp_mean = (snp_sum * 1.0) / n_obs_sum
+            snp_std = np.sqrt(np.nansum((snps - snp_mean) ** 2, axis=0) / n_obs_sum)
             if 0.0 in snp_std:
-                #Don't need this warning because SNCs are still meaning full in QQ plots because they should be thought of as SNPs without enough data.
-                #logging.warn("A least one snps has only one value, that is, its standard deviation is zero")
-                snp_std[snp_std==0] = np.inf
-            stats[:,0] = snp_mean
-            stats[:,1] = snp_std
+                # Don't need this warning because SNCs are still meaning full in QQ plots because they should be thought of as SNPs without enough data.
+                # logging.warn("A least one snps has only one value, that is, its standard deviation is zero")
+                snp_std[snp_std == 0] = np.inf
+            stats[:, 0] = snp_mean
+            stats[:, 1] = snp_std
 
         if apply_in_place:
-            maf = snp_mean/2.0
-            maf[maf>0.5]=1.0 - maf[maf>0.5]
+            maf = snp_mean / 2.0
+            maf[maf > 0.5] = 1.0 - maf[maf > 0.5]
 
             # avoid div by 0 when standardizing
             import scipy.stats as st
+
             maf_beta = st.beta.pdf(maf, betaA, betaB)
-            #print("BetaPdf[{0},{1},{2}]={3}".format(maf,betaA,betaB,maf_beta))
+            # print("BetaPdf[{0},{1},{2}]={3}".format(maf,betaA,betaB,maf_beta))
             snps -= snp_mean
-            snps*=maf_beta
+            snps *= maf_beta
             snps[imissX] = 0.0
-            if use_stats: #If we're applying to test data, set any variables with to 0 if they have no variation in the training data.
-                snps[:,snp_std==np.inf] = 0.0
+            if (
+                use_stats
+            ):  # If we're applying to test data, set any variables with to 0 if they have no variation in the training data.
+                snps[:, snp_std == np.inf] = 0.0
 
     def _merge_trained(self, trained_list):
         raise Exception("Not defined")
 
-class _CannotBeTrained(Standardizer):
 
+class _CannotBeTrained(Standardizer):
     def __init__(self, name):
         super(_CannotBeTrained, self).__init__()
-        self.name=name
+        self.name = name
 
-    def __repr__(self): 
-        return "{0}({1})".format(self.__class__.__name__,self.name)
+    def __repr__(self):
+        return "{0}({1})".format(self.__class__.__name__, self.name)
 
-    def standardize(self, snps, block_size=None, return_trained=False, force_python_only=False, num_threads=None):
+    def standardize(
+        self,
+        snps,
+        block_size=None,
+        return_trained=False,
+        force_python_only=False,
+        num_threads=None,
+    ):
         if block_size is not None:
-            warnings.warn("block_size is deprecated (and not needed, since standardization is in-place", DeprecationWarning)
-        raise Exception("Standardizer '{0}' cannot be trained",self)
+            warnings.warn(
+                "block_size is deprecated (and not needed, since standardization is in-place",
+                DeprecationWarning,
+            )
+        raise Exception("Standardizer '{0}' cannot be trained", self)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod(optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
+
+    doctest.testmod(optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE)

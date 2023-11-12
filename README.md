@@ -39,10 +39,11 @@ Code
 
 * [PyPi](https://pypi.org/project/pysnptools/)
 * [GitHub](https://github.com/fastlmm/PySnpTools)
+* [Change Log](CHANGELOG.md)
 
 Contacts
 --------
 
-* Email the developers at fastlmm-dev@python.org.
+* Email the developers at <fastlmm-dev@python.org>.
 * [Join](mailto:fastlmm-user-join@python.org?subject=Subscribe) the user discussion and announcement list (or use [web sign up](https://mail.python.org/mailman3/lists/fastlmm-user.python.org)).
 * [Open an issue](https://github.com/fastlmm/PySnpTools/issues) on GitHub.

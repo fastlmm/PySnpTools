@@ -4,15 +4,16 @@ from pysnptools.snpreader import SnpReader
 from pysnptools.pstreader import PstHdf5
 import warnings
 
-class SnpHdf5(PstHdf5,SnpReader):
-    '''
+
+class SnpHdf5(PstHdf5, SnpReader):
+    """
     A :class:`.SnpReader` for reading \*.snp.hdf5 files from disk.
 
     See :class:`.SnpReader` for general examples of using SnpReaders.
 
     The general HDF5 format is described `here <http://www.hdfgroup.org/HDF5/>`__. The SnpHdf5 format stores
     val, iid, sid, and pos information in Hdf5 format.
-   
+
     **Constructor:**
         :Parameters: * **filename** (*string*) -- The SnpHdf5 file to read.
 
@@ -27,26 +28,26 @@ class SnpHdf5(PstHdf5,SnpReader):
 
     **Methods beyond** :class:`.SnpReader`
 
-    '''
+    """
+
     def __init__(self, *args, **kwargs):
         super(SnpHdf5, self).__init__(*args, **kwargs)
-
 
     @property
     def row(self):
         self._run_once()
         if self._row.dtype.type is not np.str_:
-            self._row = np.array(self._row,dtype='str')
+            self._row = np.array(self._row, dtype="str")
         return self._row
 
     @property
     def col(self):
         self._run_once()
         if self._col.dtype.type is not np.str_:
-            self._col = np.array(self._col,dtype='str')
+            self._col = np.array(self._col, dtype="str")
         return self._col
 
-    #LATER make flush visible here and in other *.hdf5 locations
+    # LATER make flush visible here and in other *.hdf5 locations
 
     @staticmethod
     def write(filename, snpdata, hdf5_dtype=None, sid_major=True):
@@ -71,16 +72,19 @@ class SnpHdf5(PstHdf5,SnpReader):
         >>> SnpHdf5.write("tempdir/toydata10.snp.hdf5",snpdata)        # Write data in SnpHdf5 format
         SnpHdf5('tempdir/toydata10.snp.hdf5')
         """
-        PstHdf5.write(filename,snpdata,hdf5_dtype=hdf5_dtype,col_major=sid_major)
+        PstHdf5.write(filename, snpdata, hdf5_dtype=hdf5_dtype, col_major=sid_major)
         return SnpHdf5(filename)
 
+
 class Hdf5(SnpHdf5):
-    #!! warnings.warn("class 'Hdf5' is deprecated. Use the standard class 'SnpHdf5' instead", DeprecationWarning)
+    # !! warnings.warn("class 'Hdf5' is deprecated. Use the standard class 'SnpHdf5' instead", DeprecationWarning)
     def __init__(self, *args, **kwargs):
         super(Hdf5, self).__init__(*args, **kwargs)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod(optionflags=doctest.ELLIPSIS)

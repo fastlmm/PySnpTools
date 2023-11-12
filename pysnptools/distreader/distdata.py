@@ -9,7 +9,8 @@ from pysnptools.pstreader import PstData
 import warnings
 import time
 
-class DistData(PstData,DistReader):
+
+class DistData(PstData, DistReader):
     """
     A :class:`.DistReader` for holding SNP distributions (or similar values) in-memory, along with related *iid*, *sid*, and *pos* information.
     It is usually created by calling the :meth:`.DistReader.read` method on another :class:`.DistReader`, for example, :class:`.Bgen`.
@@ -45,7 +46,7 @@ class DistData(PstData,DistReader):
 
         >>> import numpy as np
         >>> from pysnptools.distreader import DistData
-        >>> snpdata1 = DistData(iid=[['fam0','iid0'],['fam0','iid1']], sid=['snp334','snp349','snp921'], 
+        >>> snpdata1 = DistData(iid=[['fam0','iid0'],['fam0','iid1']], sid=['snp334','snp349','snp921'],
         ...                     val=[[[.5,.5,0],[0,0,1],[.5,.5,0]],
         ...                          [[0,1.,0],[0,.75,.25],[.5,.5,0]]],
         ...                     pos=[[0,0,0],[0,0,0],[0,0,0]])
@@ -85,16 +86,35 @@ class DistData(PstData,DistReader):
     """
 
     def __init__(self, iid, sid, val, pos=None, name=None, copyinputs_function=None):
-
-        #We don't have a 'super(DistData, self).__init__()' here because DistData takes full responsibility for initializing both its superclasses
+        # We don't have a 'super(DistData, self).__init__()' here because DistData takes full responsibility for initializing both its superclasses
 
         self._val = None
 
-        self._row = PstData._fixup_input(iid,empty_creator=lambda ignore:np.empty([0,2],dtype='str'),dtype='str')
-        self._col = PstData._fixup_input(sid,empty_creator=lambda ignore:np.empty([0],dtype='str'),dtype='str')
-        self._row_property = PstData._fixup_input(None,count=len(self._row),empty_creator=lambda count:np.empty([count,0],dtype='str'),dtype='str')
-        self._col_property = PstData._fixup_input(pos,count=len(self._col),empty_creator=lambda count:np.full([count, 3], np.nan))
-        self._val = PstData._fixup_input_val(val,row_count=len(self._row),col_count=len(self._col),empty_creator=lambda row_count,col_count:np.empty([row_count,col_count,3],dtype=np.float64))#!!!Replace empty with my FillNA method?
+        self._row = PstData._fixup_input(
+            iid, empty_creator=lambda ignore: np.empty([0, 2], dtype="str"), dtype="str"
+        )
+        self._col = PstData._fixup_input(
+            sid, empty_creator=lambda ignore: np.empty([0], dtype="str"), dtype="str"
+        )
+        self._row_property = PstData._fixup_input(
+            None,
+            count=len(self._row),
+            empty_creator=lambda count: np.empty([count, 0], dtype="str"),
+            dtype="str",
+        )
+        self._col_property = PstData._fixup_input(
+            pos,
+            count=len(self._col),
+            empty_creator=lambda count: np.full([count, 3], np.nan),
+        )
+        self._val = PstData._fixup_input_val(
+            val,
+            row_count=len(self._row),
+            col_count=len(self._col),
+            empty_creator=lambda row_count, col_count: np.empty(
+                [row_count, col_count, 3], dtype=np.float64
+            ),
+        )  # !!!Replace empty with my FillNA method?
         self._assert_iid_sid_pos(check_val=True)
         self._name = name or ""
         self._std_string_list = []
@@ -114,11 +134,18 @@ class DistData(PstData,DistReader):
 
     @val.setter
     def val(self, new_value):
-        self._val = PstData._fixup_input_val(new_value,row_count=len(self._row),col_count=len(self._col),empty_creator=lambda row_count,col_count:np.empty([row_count,col_count,3],dtype=np.float64))#!!!Replace empty with my FillNA method?
+        self._val = PstData._fixup_input_val(
+            new_value,
+            row_count=len(self._row),
+            col_count=len(self._col),
+            empty_creator=lambda row_count, col_count: np.empty(
+                [row_count, col_count, 3], dtype=np.float64
+            ),
+        )  # !!!Replace empty with my FillNA method?
         self._assert_iid_sid_pos(check_val=True)
 
-    def allclose(self,value,equal_nan=True):
-        '''
+    def allclose(self, value, equal_nan=True):
+        """
         :param value: Other object with which to compare.
         :type value: :class:`DistData`
         :param equal_nan: (Default: True) Tells if NaN in :attr:`DistData.val` should be treated as regular values when testing equality.
@@ -138,21 +165,24 @@ class DistData(PstData,DistReader):
         >>> print(snpdata5.allclose(snpdata6,equal_nan=False)) #False, if we consider the NaN as special values, all the arrays are not equal.
         False
 
-        '''
-        return PstData.allclose(self,value,equal_nan=equal_nan)
-
+        """
+        return PstData.allclose(self, value, equal_nan=equal_nan)
 
     def __repr__(self):
         if self._name == "":
             if len(self._std_string_list) > 0:
-                s = "{0}({1})".format(self.__class__.__name__,",".join(self._std_string_list))
+                s = "{0}({1})".format(
+                    self.__class__.__name__, ",".join(self._std_string_list)
+                )
             else:
                 s = "{0}()".format(self.__class__.__name__)
         else:
             if len(self._std_string_list) > 0:
-                s = "{0}({1},{2})".format(self.__class__.__name__,self._name,",".join(self._std_string_list))
+                s = "{0}({1},{2})".format(
+                    self.__class__.__name__, self._name, ",".join(self._std_string_list)
+                )
             else:
-                s = "{0}({1})".format(self.__class__.__name__,self._name)
+                s = "{0}({1})".format(self.__class__.__name__, self._name)
         return s
 
 
@@ -160,5 +190,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod()
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test

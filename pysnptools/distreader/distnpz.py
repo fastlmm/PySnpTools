@@ -4,15 +4,16 @@ import logging
 import scipy as np
 import warnings
 
-class DistNpz(PstNpz,DistReader):
-    '''
+
+class DistNpz(PstNpz, DistReader):
+    """
     A :class:`.DistReader` for reading \*.dist.npz files from disk.
 
     See :class:`.DistReader` for general examples of using DistReaders.
 
     The general NPZ format is described `here <http://docs.scipy.org/doc/numpy/reference/generated/numpy.savez.html>`__. The DistNpz format stores
     val, iid, sid, and pos information in NPZ format.
-   
+
     **Constructor:**
         :Parameters: * **filename** (*string*) -- The DistNpz file to read.
 
@@ -27,7 +28,7 @@ class DistNpz(PstNpz,DistReader):
 
     **Methods beyond** :class:`.DistReader`
 
-    '''
+    """
 
     def __init__(self, *args, **kwargs):
         super(DistNpz, self).__init__(*args, **kwargs)
@@ -36,16 +37,15 @@ class DistNpz(PstNpz,DistReader):
     def row(self):
         self._run_once()
         if self._row.dtype.type is not np.str_:
-            self._row = np.array(self._row,dtype='str')
+            self._row = np.array(self._row, dtype="str")
         return self._row
 
     @property
     def col(self):
         self._run_once()
         if self._col.dtype.type is not np.str_:
-            self._col = np.array(self._col,dtype='str')
+            self._col = np.array(self._col, dtype="str")
         return self._col
-
 
     @staticmethod
     def write(filename, distdata):
@@ -66,14 +66,27 @@ class DistNpz(PstNpz,DistReader):
         >>> DistNpz.write("tempdir/toydata10.dist.npz",distdata)          # Write data in DistNpz format
         DistNpz('tempdir/toydata10.dist.npz')
         """
-        row_ascii = np.array(distdata.row,dtype='S') #!!! would be nice to avoid this copy when not needed.
-        col_ascii = np.array(distdata.col,dtype='S') #!!! would be nice to avoid this copy when not needed.
-        np.savez(filename, row=row_ascii, col=col_ascii, row_property=distdata.row_property, col_property=distdata.col_property,val=distdata.val)
+        row_ascii = np.array(
+            distdata.row, dtype="S"
+        )  # !!! would be nice to avoid this copy when not needed.
+        col_ascii = np.array(
+            distdata.col, dtype="S"
+        )  # !!! would be nice to avoid this copy when not needed.
+        np.savez(
+            filename,
+            row=row_ascii,
+            col=col_ascii,
+            row_property=distdata.row_property,
+            col_property=distdata.col_property,
+            val=distdata.val,
+        )
         logging.debug("Done writing " + filename)
         return DistNpz(filename)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod()

@@ -1,11 +1,11 @@
-
-#!!!move these to their own files
+# !!!move these to their own files
 
 import numpy as np
 import logging
 
+
 class KernelStandardizer(object):
-    '''
+    """
     A KernelStandardizer is a class such as :class:`.DiagKtoN` and :class:`.Identity` to be used by the :meth:`.KernelData.standardize` to standardize Kernel data.
     It always works in-place *and* returns the :class:`.KernelData` on which it works.
 
@@ -16,7 +16,7 @@ class KernelStandardizer(object):
     >>> from pysnptools.kernelstandardizer import DiagKtoN
     >>> from pysnptools.kernelreader import KernelNpz
     >>> from pysnptools.util import example_file # Download and return local file name
-    >>> 
+    >>>
     >>> kernel_file = example_file('pysnptools/examples/toydata.kernel.npz')
     >>> kerneldata1 = KernelNpz(kernel_file).read()
     >>> print(np.diag(kerneldata1.val).sum())
@@ -40,9 +40,16 @@ class KernelStandardizer(object):
 
 
     Details of Methods & Properties:
-    '''
-    def standardize(self, kerneldata, return_trained=False, force_python_only=False, num_threads=None):
-        '''
+    """
+
+    def standardize(
+        self,
+        kerneldata,
+        return_trained=False,
+        force_python_only=False,
+        num_threads=None,
+    ):
+        """
         Applies standardization, in place, to :class:`.KernelData`. For convenience also returns the :class:`KernelData`.
 
         :param snps: kernel values to standardize
@@ -63,11 +70,16 @@ class KernelStandardizer(object):
 
         :rtype: :class:`.KernelData`, (optional) constant :class:`.KernelStandardizer`
 
-        '''
-        raise NotImplementedError("subclass {0} needs to implement method '.standardize'".format(self.__class__.__name__))
+        """
+        raise NotImplementedError(
+            "subclass {0} needs to implement method '.standardize'".format(
+                self.__class__.__name__
+            )
+        )
+
 
 class Identity(KernelStandardizer):
-    '''
+    """
     A :class:`.KernelStandardizer` that does nothing to kernel data.
 
     See :class:`.KernelStandardizer` for more information about standardization.
@@ -75,7 +87,7 @@ class Identity(KernelStandardizer):
     >>> from pysnptools.kernelstandardizer import Identity as KS_Identity
     >>> from pysnptools.kernelreader import KernelNpz
     >>> from pysnptools.util import example_file # Download and return local file name
-    >>> 
+    >>>
     >>> kernel_file = example_file('pysnptools/examples/toydata.kernel.npz')
     >>> kerneldata1 = KernelNpz(kernel_file).read()
     >>> print(np.diag(kerneldata1.val).sum())
@@ -83,28 +95,34 @@ class Identity(KernelStandardizer):
     >>> kerneldata1 = kerneldata1.standardize(KS_Identity())
     >>> print(np.diag(kerneldata1.val).sum())
     5000000.0
-    '''
+    """
 
     def __init__(self):
         super(Identity, self).__init__()
 
-    def standardize(self, kerneldata, return_trained=False, force_python_only=False, num_threads=None):
+    def standardize(
+        self,
+        kerneldata,
+        return_trained=False,
+        force_python_only=False,
+        num_threads=None,
+    ):
         if return_trained:
             return kerneldata, self
         else:
             return kerneldata
 
-    def __repr__(self): 
+    def __repr__(self):
         return "{0}()".format(self.__class__.__name__)
 
-from pysnptools.standardizer import DiagKtoN #as SN_DiagKtoN
-from pysnptools.standardizer import DiagKtoNTrained #as SN_DiagKtoNTrained
 
+from pysnptools.standardizer import DiagKtoN  # as SN_DiagKtoN
+from pysnptools.standardizer import DiagKtoNTrained  # as SN_DiagKtoNTrained
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod(optionflags=doctest.ELLIPSIS)
 
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

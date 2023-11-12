@@ -15,6 +15,7 @@ import pysnptools.util as pstutil
 from pysnptools.distreader import DistReader
 from bed_reader import get_num_threads
 
+
 def default_iid_function(sample):
     """
     The default function for turning a Bgen sample into a
@@ -97,7 +98,7 @@ class Bgen(DistReader):
     The BGEN format is described `here <https://www.well.ox.ac.uk/~gav/bgen_format/>`__.
 
         **Tip:** The 'gen' in BGEN stands for 'genetic'. The 'gen' in :class:`DistGen` stands for generate, because it generates random (genetic) data.*
-   
+
     **Constructor:**
         :Parameters: * **filename** (string) -- The BGEN file to read.
                      * **iid_function** (optional, function) -- Function to turn a BGEN sample into a :attr:`DistReader.iid`.
@@ -137,7 +138,7 @@ class Bgen(DistReader):
         super(Bgen, self).__init__()
         self._ran_once = False
 
-        self.filename = filename
+        self.filename = str(filename)
         self._iid_function = iid_function
         self._sid_function = sid_function
         self._sample = sample
@@ -160,8 +161,7 @@ class Bgen(DistReader):
 
     @property
     def col_property(self):
-        """*same as* :attr:`pos`
-        """
+        """*same as* :attr:`pos`"""
         self._run_once()
         if self._fresh_properties and not self._col_property.flags["OWNDATA"]:
             self._col_property = self._col_property.copy()
@@ -171,7 +171,9 @@ class Bgen(DistReader):
         assert len(samples) > 0, "Expect at least one sample"
         if self._iid_function is not default_iid_function:
             if not self._fresh_properties:
-                logging.info("'fresh_properties' is False, but non-default iid_function is given, so allocating memory")
+                logging.info(
+                    "'fresh_properties' is False, but non-default iid_function is given, so allocating memory"
+                )
             return np.array(
                 [self._iid_function(sample) for sample in samples], dtype="str"
             )
@@ -216,8 +218,8 @@ class Bgen(DistReader):
         if self._col_property_key not in self._open_bgen._metadata2_memmaps:
             logging.info("Extending metadata file with PySnpTools metadata")
             assert (
-                self._default_iid_key not in self._open_bgen._metadata2_memmaps and 
-                self._default_sid_key not in self._open_bgen._metadata2_memmaps
+                self._default_iid_key not in self._open_bgen._metadata2_memmaps
+                and self._default_sid_key not in self._open_bgen._metadata2_memmaps
             ), "real assert"
             metadata2_temp = self._open_bgen._metadata2_path.parent / (
                 self._open_bgen._metadata2_path.name + ".temp"
@@ -261,11 +263,10 @@ class Bgen(DistReader):
                 except Exception:
                     # If that doesn't work, do something slow
                     with log_in_place(
-                        "converting chromosomes strings to numbers, one at a time", logging.INFO
+                        "converting chromosomes strings to numbers, one at a time",
+                        logging.INFO,
                     ) as updater:
-                        for i, val in enumerate(
-                            metadata2_memmaps["chromosomes"]
-                        ):
+                        for i, val in enumerate(metadata2_memmaps["chromosomes"]):
                             if i % 1000 == 0:
                                 updater(f"{i:,} of {len(col_property):,}")
                             try:
@@ -306,10 +307,9 @@ class Bgen(DistReader):
             self._open_bgen = open_bgen(self.filename, self._sample, verbose=verbose)
         else:
             assert (
-                self._default_iid_key in self._open_bgen._metadata2_memmaps and 
-                self._default_sid_key in self._open_bgen._metadata2_memmaps
+                self._default_iid_key in self._open_bgen._metadata2_memmaps
+                and self._default_sid_key in self._open_bgen._metadata2_memmaps
             ), "real assert"
-
 
         self._row = self._apply_iid_function(self._open_bgen.samples)
         self._col = self._apply_sid_function(self._open_bgen.ids, self._open_bgen.rsids)
@@ -333,12 +333,14 @@ class Bgen(DistReader):
             order = "F"
 
         num_threads = get_num_threads(
-                self._num_threads if num_threads is None else num_threads
-            )
-
+            self._num_threads if num_threads is None else num_threads
+        )
 
         val = self._open_bgen.read(
-            (iid_index_or_none, sid_index_or_none), dtype=dtype, order=order, num_threads=num_threads
+            (iid_index_or_none, sid_index_or_none),
+            dtype=dtype,
+            order=order,
+            num_threads=num_threads,
         )
         assert val.shape[-1] == 3, "Expect ploidy to be 2"
         return val
@@ -433,7 +435,7 @@ class Bgen(DistReader):
         # We need the +1 so that all three values will have enough precision to be very near 1
         # The max(3,..) is needed to even 1 bit will have enough precision in the gen file
         genfilename = os.path.splitext(filename)[0] + ".gen"
-        decimal_places = max(3, math.ceil(math.log(2 ** bits, 10)) + 1)
+        decimal_places = max(3, math.ceil(math.log(2**bits, 10)) + 1)
         Bgen.genwrite(
             genfilename,
             distreader,
@@ -789,7 +791,6 @@ class TestBgen(unittest.TestCase):
         os.chdir(old_dir)
 
     def test_read1(self):
-
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
@@ -935,8 +936,10 @@ class TestBgen(unittest.TestCase):
         from pysnptools.distreader import DistGen
 
         with example_filepath("example.32bits.bgen") as filepath:
-            bgen = Bgen(filepath,fresh_properties=False,iid_function=lambda sam:("X",sam))
-            assert bgen.iid[0,0]=="X"
+            bgen = Bgen(
+                filepath, fresh_properties=False, iid_function=lambda sam: ("X", sam)
+            )
+            assert bgen.iid[0, 0] == "X"
             metadata_filepath = bgen._open_bgen._metadata2_path
             metadata2_temp = metadata_filepath.parent / (
                 metadata_filepath.name + ".temp"
@@ -944,16 +947,16 @@ class TestBgen(unittest.TestCase):
             del bgen
             if metadata2_temp.exists():
                 metadata2_temp.unlink()
-            os.rename(metadata_filepath,metadata2_temp)
+            os.rename(metadata_filepath, metadata2_temp)
             bgen = Bgen(filepath)
-            assert bgen.iid[0,0]=="0"
-            bgen[0,0].read(order='A')
+            assert bgen.iid[0, 0] == "0"
+            bgen[0, 0].read(order="A")
             if not os.path.exists("temp"):
                 os.mkdir("temp")
             os.chdir("temp")
             file1x = "coverage.bgen"
-            Bgen.write(file1x, bgen[:100,:100])
-            Bgen.write(file1x, bgen[:100,:100])
+            Bgen.write(file1x, bgen[:100, :100])
+            Bgen.write(file1x, bgen[:100, :100])
             os.chdir("..")
 
         distgen0data = DistGen(seed=332, iid_count=10010, sid_count=5).read()
@@ -964,10 +967,9 @@ class TestBgen(unittest.TestCase):
             bits=8,
             compression="zlib",
             cleanup_temp_files=False,
-            sample_function = lambda fam,ind: f'{fam},{ind}'
+            sample_function=lambda fam, ind: f"{fam},{ind}",
         )
-        bed3.iid[0,0]='0'
-
+        bed3.iid[0, 0] = "0"
 
 
 def getTestSuite():
@@ -984,23 +986,30 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
 
     if False:
-        os.chdir(r'D:\OneDrive\programs\pstsgkit\doc\ipynb')
+        os.chdir(r"D:\OneDrive\programs\pstsgkit\doc\ipynb")
         from pysnptools.distreader import DistData
-        iid = [('0','iid0'),('0','iid1')]
-        sid = ['snp0','snp1','snp2']
-        pos = [[1,0,1],[1,0,2],[1,0,3]] #chromosome, genetic distance, basepair distance
-        val = np.array([[[0,0,1],[.5,.25,.25],[.95,.05,0]],
-                        [[1,0,0],[44,44,44],[np.nan,np.nan,np.nan]]
-                       ],dtype='float32')
-        distdata = DistData(iid=iid,sid=sid,pos=pos,val=val,name='in-memory sample')
-        distdata.val /= distdata.val.sum(axis=2,keepdims=True)
-        # if you ask try to read a file that isn't there, do you get a sensible error?
-        bgen = Bgen.write('2x3sample13.bgen',distdata,bits=23) #write it
-        bgen.read(dtype='float32').val #Read the data from disk
 
+        iid = [("0", "iid0"), ("0", "iid1")]
+        sid = ["snp0", "snp1", "snp2"]
+        pos = [
+            [1, 0, 1],
+            [1, 0, 2],
+            [1, 0, 3],
+        ]  # chromosome, genetic distance, basepair distance
+        val = np.array(
+            [
+                [[0, 0, 1], [0.5, 0.25, 0.25], [0.95, 0.05, 0]],
+                [[1, 0, 0], [44, 44, 44], [np.nan, np.nan, np.nan]],
+            ],
+            dtype="float32",
+        )
+        distdata = DistData(iid=iid, sid=sid, pos=pos, val=val, name="in-memory sample")
+        distdata.val /= distdata.val.sum(axis=2, keepdims=True)
+        # if you ask try to read a file that isn't there, do you get a sensible error?
+        bgen = Bgen.write("2x3sample13.bgen", distdata, bits=23)  # write it
+        bgen.read(dtype="float32").val  # Read the data from disk
 
     if False:
-
         import tracemalloc
         import logging
         import time
@@ -1011,7 +1020,7 @@ if __name__ == "__main__":
         start = time.time()
 
         filename = "M:/deldir/genbgen/good/merged_487400x220000.bgen"
-        #filename = "M:/deldir/genbgen/good/merged_487400x1100000.bgen"
+        # filename = "M:/deldir/genbgen/good/merged_487400x1100000.bgen"
         bgen = Bgen(filename, fresh_properties=False)
         val = bgen[:, 1000000:1000031].read().val
         # val = bgen[200000:200031, 100000:100031].read().val
@@ -1023,7 +1032,6 @@ if __name__ == "__main__":
         tracemalloc.stop()
 
     if False:
-
         # filename = r"M:\deldir\fakeuk450000x1000.bgen"
         # filename = "M:/deldir/genbgen/good/merged_487400x220000.bgen"
         filename = "M:/deldir/genbgen/good/merged_487400x1100000.bgen"
@@ -1056,7 +1064,7 @@ if __name__ == "__main__":
             )
             # print(os.path.getsize(filename))
 
-    # if False: #!!!c,l
+    # if False: # !!!c,l
     #    from pysnptools.distreader import Bgen
     #    bgen = Bgen(r'D:\OneDrive\programs\hide\bgen-reader-py\bgen_reader\_example\complex.23bits.no.samples.bgen',allow_complex=True)
     #    print(bgen.sid_count)
@@ -1101,7 +1109,9 @@ if __name__ == "__main__":
         from pysnptools.distreader import Bgen
 
         distgen = DistGen(seed=332, iid_count=iid_count, sid_count=sid_count)
-        Bgen.write("M:\deldir\{0}x{1}.bgen".format(iid_count, sid_count), distgen, bits)
+        Bgen.write(
+            r"M:\deldir\{0}x{1}.bgen".format(iid_count, sid_count), distgen, bits
+        )
     if False:
         from pysnptools.distreader import Bgen
 

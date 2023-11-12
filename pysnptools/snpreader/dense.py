@@ -6,28 +6,29 @@ import warnings
 from pysnptools.pstreader import PstData
 from pysnptools.pstreader import _OneShot
 
+
 def zero_family(s):
-    '''Given an input id from the file, returns 0 as the family id and that input id as the individual id.
-    '''
-    return "0",s
+    """Given an input id from the file, returns 0 as the family id and that input id as the individual id."""
+    return "0", s
+
 
 def zero_pos(s):
-    '''Given an input id from the file, return the input id as the sid and returns (0,0,0) as the chromosome, genetic distance, basepair distance.
-    '''
-    return 0,s,0,0
+    """Given an input id from the file, return the input id as the sid and returns (0,0,0) as the chromosome, genetic distance, basepair distance."""
+    return 0, s, 0, 0
+
 
 def just_case(iid):
-    '''Use just the individual id (ignoring the family id) in the file.
-    '''
+    """Use just the individual id (ignoring the family id) in the file."""
     return iid[1]
 
-def just_sid(sid,pos):
-    '''Use just the sid (ignoring the chromosome, genetic distance, and basepair distance) in the file.
-    '''
+
+def just_sid(sid, pos):
+    """Use just the sid (ignoring the chromosome, genetic distance, and basepair distance) in the file."""
     return sid
 
-class Dense(_OneShot,SnpReader):
-    '''
+
+class Dense(_OneShot, SnpReader):
+    """
     A :class:`.SnpReader` for reading \*.dense.txt (0,1,2 text files) from disk.
 
     See :class:`.SnpReader` for general examples of using SnpReaders.
@@ -60,48 +61,73 @@ class Dense(_OneShot,SnpReader):
 
     **Methods beyond** :class:`.SnpReader`
 
-    '''
-    def __init__(self, filename, extract_iid_function=zero_family, extract_sid_pos_function=zero_pos):
-        '''
+    """
+
+    def __init__(
+        self,
+        filename,
+        extract_iid_function=zero_family,
+        extract_sid_pos_function=zero_pos,
+    ):
+        """
         filename    : string of the name of the Dat file.
-        '''
+        """
         super(Dense, self).__init__()
-        self.filename = filename
+        self.filename = str(filename)
         self.extract_iid_function = extract_iid_function
         self.extract_sid_pos_function = extract_sid_pos_function
 
     def _read_pstdata(self):
         bim_list = []
         val_list_list = []
-        with open(self.filename,"r") as fp:
+        with open(self.filename, "r") as fp:
             header = fp.readline()
             iid_string_list = header.strip().split()[1:]
-            iid = np.array([self.extract_iid_function(iid_string) for iid_string in iid_string_list],dtype='str')
+            iid = np.array(
+                [
+                    self.extract_iid_function(iid_string)
+                    for iid_string in iid_string_list
+                ],
+                dtype="str",
+            )
             val_list = []
-            zerofloat = float('0'[0])
+            zerofloat = float("0"[0])
             missing_char = "?"[0]
-            for line_index,line in enumerate(fp):
+            for line_index, line in enumerate(fp):
                 if line_index % 1000 == 0:
-                    logging.info("reading sid and iid info from line {0} of file '{1}'".format(line_index, self.filename))
+                    logging.info(
+                        "reading sid and iid info from line {0} of file '{1}'".format(
+                            line_index, self.filename
+                        )
+                    )
                 sid_string_rest = line.strip().split()
                 sid_string = sid_string_rest[0]
-                rest = [] if len(sid_string_rest)==1 else sid_string_rest[1]
+                rest = [] if len(sid_string_rest) == 1 else sid_string_rest[1]
                 assert len(rest) == len(iid)
                 bim_list.append(self.extract_sid_pos_function(sid_string))
-                val_list = np.array([float(val)-zerofloat if val!=missing_char else np.NaN for val in rest])
+                val_list = np.array(
+                    [
+                        float(val) - zerofloat if val != missing_char else np.NaN
+                        for val in rest
+                    ]
+                )
                 val_list_list.append(val_list)
 
-        col = np.array([bim[1] for bim in bim_list],dtype='str')
-        col_property = np.array([[bim[0],bim[2],bim[3]] for bim in bim_list],dtype=np.float64)
+        col = np.array([bim[1] for bim in bim_list], dtype="str")
+        col_property = np.array(
+            [[bim[0], bim[2], bim[3]] for bim in bim_list], dtype=np.float64
+        )
 
-        val = np.zeros((len(iid),len(col)))
+        val = np.zeros((len(iid), len(col)))
         for col_index in range(len(col)):
-            val[:,col_index] = val_list_list[col_index]
+            val[:, col_index] = val_list_list[col_index]
 
-        return PstData(iid,col,val,col_property=col_property,name=self.filename)
+        return PstData(iid, col, val, col_property=col_property, name=self.filename)
 
     @staticmethod
-    def write(filename, snpdata, join_iid_function=just_case,join_sid_pos_function=just_sid):
+    def write(
+        filename, snpdata, join_iid_function=just_case, join_sid_pos_function=just_sid
+    ):
         """Writes a :class:`SnpData` to Dense format. The values must be 0,1,2 (or missing). Returns a :class:`.Dense` with the default extractors.
 
         :param filename: the name of the file to create
@@ -126,27 +152,41 @@ class Dense(_OneShot,SnpReader):
         Dense('tempdir/toydata10.dense.txt')
         """
 
-        if isinstance(filename,SnpData) and isinstance(snpdata,'S'): #For backwards compatibility, reverse inputs if necessary
-            warnings.warn("write statement should have filename before data to write", DeprecationWarning)
-            filename, snpdata = snpdata, filename 
+        if isinstance(filename, SnpData) and isinstance(
+            snpdata, "str"
+        ):  # For backwards compatibility, reverse inputs if necessary
+            warnings.warn(
+                "write statement should have filename before data to write",
+                DeprecationWarning,
+            )
+            filename, snpdata = snpdata, filename
 
         snpsarray = snpdata.val
-        with open(filename,"w") as filepointer:
+        with open(filename, "w") as filepointer:
             filepointer.write("var\t")
-            filepointer.write("\t".join((join_iid_function(iid_pair) for iid_pair in snpdata.iid)) + "\n")
+            filepointer.write(
+                "\t".join((join_iid_function(iid_pair) for iid_pair in snpdata.iid))
+                + "\n"
+            )
 
             for sid_index, sid in enumerate(snpdata.sid):
                 pos = snpdata.pos[sid_index]
                 if sid_index % 1000 == 0:
-                    logging.info("Writing snp # {0} to file '{1}'".format(sid_index, filename))
-                filepointer.write("%s\t" % join_sid_pos_function(sid,pos))
-                row = snpsarray[:,sid_index]
-                filepointer.write("".join((str(int(i)) if i==i else "?" for i in row)) + "\n")
+                    logging.info(
+                        "Writing snp # {0} to file '{1}'".format(sid_index, filename)
+                    )
+                filepointer.write("%s\t" % join_sid_pos_function(sid, pos))
+                row = snpsarray[:, sid_index]
+                filepointer.write(
+                    "".join((str(int(i)) if i == i else "?" for i in row)) + "\n"
+                )
         logging.info("Done writing " + filename)
         return Dense(filename)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod(optionflags=doctest.ELLIPSIS)

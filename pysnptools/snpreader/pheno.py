@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 from itertools import *
 import pandas as pd
@@ -8,17 +9,18 @@ import pysnptools.util.pheno as pstpheno
 import pysnptools.util as pstutil
 from pysnptools.pstreader import _OneShot
 
+
 class Pheno(_OneShot, SnpReader):
-    '''
+    """
     A :class:`.SnpReader` for reading "alternative" phenotype files from disk.
 
     See :class:`.SnpReader` for general examples of using SnpReaders.
 
     This text format is described `here <http://zzz.bwh.harvard.edu/plink/data.shtml#pheno>`__ and looks like::
 
-         FID    IID      qt1   bmi    site  
-         F1     1110     2.3   22.22  2     
-         F2     2202     34.12 18.23  1     
+         FID    IID      qt1   bmi    site
+         F1     1110     2.3   22.22  2
+         F2     2202     34.12 18.23  1
          ...
 
     where the heading row is optional.
@@ -46,56 +48,64 @@ class Pheno(_OneShot, SnpReader):
 
     **Methods beyond** :class:`.SnpReader`
 
-    '''
+    """
 
     def __init__(self, input, iid_if_none=None, missing=None):
-        '''
+        """
         input    : string of the name of the file or an in-memory dictionary
-        '''
+        """
         super(Pheno, self).__init__()
+
+        if isinstance(input, Path):
+            input = str(input)
 
         self.filename = input
         self._iid_if_none = iid_if_none
         self.missing = missing
 
     def _read_pstdata(self):
-        #LATER switch it, so the main code is here rather than in loadPhen
-        if isinstance(self.filename,str):
-            pheno_input = pstpheno.loadPhen(self.filename,missing=self.missing)
+        # LATER switch it, so the main code is here rather than in loadPhen
+        if isinstance(self.filename, str):
+            pheno_input = pstpheno.loadPhen(self.filename, missing=self.missing)
         elif self.filename is None:
-            assert self._iid_if_none is not None, "If input is None then iid_if_none be given"
+            assert (
+                self._iid_if_none is not None
+            ), "If input is None then iid_if_none be given"
             pheno_input = {
-            'header':np.empty((0),dtype='str'),
-            'vals': np.empty((len(self._iid_if_none), 0)),
-            'iid': self._iid_if_none
+                "header": np.empty((0), dtype="str"),
+                "vals": np.empty((len(self._iid_if_none), 0)),
+                "iid": self._iid_if_none,
             }
         else:
             pheno_input = self.filename
 
-
-        if len(pheno_input['vals'].shape) == 1:
+        if len(pheno_input["vals"].shape) == 1:
             pheno_input = {
-            'header' : pheno_input['header'],
-            'vals' : np.reshape(pheno_input['vals'],(-1,1)),
-            'iid' : pheno_input['iid']
+                "header": pheno_input["header"],
+                "vals": np.reshape(pheno_input["vals"], (-1, 1)),
+                "iid": pheno_input["iid"],
             }
 
-        if len(pheno_input['header']) > 0 and pheno_input['header'][0] is None:
-            pheno_input['header'] = ["pheno{0}".format(i) for i in range(len(pheno_input['header']))] #LATER move to reader?
-        elif len(pheno_input['header']) == 0:
-            pheno_input['header'] = ["pheno{0}".format(i) for i in range(pheno_input['vals'].shape[1])]
+        if len(pheno_input["header"]) > 0 and pheno_input["header"][0] is None:
+            pheno_input["header"] = [
+                "pheno{0}".format(i) for i in range(len(pheno_input["header"]))
+            ]  # LATER move to reader?
+        elif len(pheno_input["header"]) == 0:
+            pheno_input["header"] = [
+                "pheno{0}".format(i) for i in range(pheno_input["vals"].shape[1])
+            ]
 
-        row = pheno_input['iid']
-        col = np.array(pheno_input['header'],dtype='str')
-        col_property = np.empty((len(col),3))
+        row = pheno_input["iid"]
+        col = np.array(pheno_input["header"], dtype="str")
+        col_property = np.empty((len(col), 3))
         col_property.fill(np.nan)
-        val = pheno_input['vals']
+        val = pheno_input["vals"]
 
-        snpdata = SnpData(iid=row,sid=col,pos=col_property,val=val)
+        snpdata = SnpData(iid=row, sid=col, pos=col_property, val=val)
         return snpdata
 
     @staticmethod
-    def write(filename, snpdata, missing='NaN', sep='\t'):
+    def write(filename, snpdata, missing="NaN", sep="\t"):
         """Writes a :class:`SnpData` to Pheno format and returns the :class:`.Pheno`.
 
         :param filename: the name of the file to create
@@ -116,11 +126,11 @@ class Pheno(_OneShot, SnpReader):
         >>> Pheno.write("tempdir/toydata10.txt",snpdata)       # Write data in Pheno format
         Pheno('tempdir/toydata10.txt')
         """
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             for i in range(snpdata.iid_count):
-                tmpstr = snpdata.iid[i,0] + sep + snpdata.iid[i,1]
+                tmpstr = snpdata.iid[i, 0] + sep + snpdata.iid[i, 1]
                 for m in range(snpdata.sid_count):
-                    v = snpdata.val[i,m]
+                    v = snpdata.val[i, m]
                     if np.isnan(v):
                         vs = missing
                     else:
@@ -128,11 +138,12 @@ class Pheno(_OneShot, SnpReader):
                     tmpstr += sep + vs
                 tmpstr += "\n"
                 f.write(tmpstr)
-        return Pheno(filename,missing=missing)
+        return Pheno(filename, missing=missing)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
-    doctest.testmod(optionflags=doctest.ELLIPSIS)
 
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

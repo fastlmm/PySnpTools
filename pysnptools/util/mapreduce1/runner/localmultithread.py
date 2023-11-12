@@ -52,7 +52,7 @@ class LocalMultiThread(Runner):
 
         self.taskcount = taskcount
         self.just_one_process = just_one_process
-        if mkl_num_threads != None:
+        if mkl_num_threads is not None:
             os.environ["MKL_NUM_THREADS"] = str(mkl_num_threads)
 
     def _result_sequence(self, thread_list, priority_queue, shaped_distributable):

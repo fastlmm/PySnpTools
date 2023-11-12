@@ -1,18 +1,16 @@
 import numpy as np
 from itertools import *
-import pandas as pd
 import logging
 from bed_reader import open_bed, to_bed
 from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
-import math
 import warnings
-from pysnptools.pstreader import PstData
 
 
 plink_chrom_map = {"X": 23, "Y": 24, "XY": 25, "MT": 26}
 
-reverse_plink_chrom_map = {23:"X", 24:"Y", 25:"XY", 26:"MT"}
+reverse_plink_chrom_map = {23: "X", 24: "Y", 25: "XY", 26: "MT"}
+
 
 class Bed(SnpReader):
     """
@@ -23,7 +21,7 @@ class Bed(SnpReader):
     The format is described `here <http://zzz.bwh.harvard.edu/plink/binary.shtml>`__.
 
     **Constructor:**
-        :Parameters: * **filename** (*string*) -- The \*.bed file to read. The '.bed' suffix is optional. The related \*.bim and \*.fam files will also be read.
+        :Parameters: * **filename** (*string*) -- The `*.bed` file to read. The '.bed' suffix is optional. The related `*.bim` and `*.fam` files will also be read.
                      * **count_A1** (*bool*) -- Tells if it should count the number of A1 alleles (the PLINK standard) or the number of A2 alleles. False is the current default, but in the future the default will change to True.
 
                      *The following three options are never needed, but can be used to avoid reading large '.fam' and '.bim' files when their information is already known.*
@@ -36,8 +34,8 @@ class Bed(SnpReader):
                             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
                      * **skip_format_check** (*bool*) -- By default (False), checks that the '.bed' file starts with the expected bytes
                             the first time any file ('.bed', '.fam', or '.bim') is opened.
-                     * **fam_filename** (optional, *string*) -- The \*.fam file to read. Defaults to the bed filename with the suffix replaced.
-                     * **bim_filename** (optional, *string*) -- The \*.bim file to read. Defaults to the bed filename with the suffix replaced.
+                     * **fam_filename** (optional, *string*) -- The `*.fam` file to read. Defaults to the bed filename with the suffix replaced.
+                     * **bim_filename** (optional, *string*) -- The `*.bim` file to read. Defaults to the bed filename with the suffix replaced.
                      * **chrom_map** (optional, *dictionary*) -- A dictionary from non-numeric chromosome names to numbers. Defaults to the PLINK
                             mapping, namely, :data:`plink_chrom_map`.
 
@@ -83,13 +81,15 @@ class Bed(SnpReader):
         skip_format_check=False,
         fam_filename=None,
         bim_filename=None,
-        chrom_map = plink_chrom_map,
+        chrom_map=plink_chrom_map,
     ):
         super(Bed, self).__init__()
 
         self._ran_once = False
 
-        self.filename = SnpReader._name_of_other_file(filename,remove_suffix="bed", add_suffix="bed")
+        self.filename = SnpReader._name_of_other_file(
+            filename, remove_suffix="bed", add_suffix="bed"
+        )
         self.fam_filename = fam_filename
         self.bim_filename = bim_filename
         if count_A1 is None:
@@ -146,8 +146,7 @@ class Bed(SnpReader):
 
     @property
     def row(self):
-        """*same as* :attr:`iid`
-        """
+        """*same as* :attr:`iid`"""
         if not hasattr(self, "_row"):
             self._open_bed_if_needed()
 
@@ -159,8 +158,7 @@ class Bed(SnpReader):
 
     @property
     def col(self):
-        """*same as* :attr:`sid`
-        """
+        """*same as* :attr:`sid`"""
         if not hasattr(self, "_col"):
             self._open_bed_if_needed()
             self._col = self._open_bed.sid
@@ -168,15 +166,14 @@ class Bed(SnpReader):
 
     @property
     def col_property(self):
-        """*same as* :attr:`pos`
-        """
+        """*same as* :attr:`pos`"""
         if not hasattr(self, "_col_property"):
             self._open_bed_if_needed()
 
             chromosome = self._open_bed.chromosome
             intersection = self.chrom_map.keys() & chromosome
             for key in intersection:
-                chromosome[chromosome==key]=self.chrom_map[key]
+                chromosome[chromosome == key] = self.chrom_map[key]
 
             self._col_property = np.array(
                 [
@@ -185,11 +182,7 @@ class Bed(SnpReader):
                     self._open_bed.bp_position,
                 ]
             ).T  # LATER: Could copy in batches to use less memory
-            self._col_property[
-                self._col_property == 0
-            ] = (
-                np.nan
-            )
+            self._col_property[self._col_property == 0] = np.nan
 
         return self._col_property
 
@@ -234,7 +227,7 @@ class Bed(SnpReader):
         force_python_only=False,
         _require_float32_64=True,
         num_threads=None,
-        reverse_chrom_map = {},
+        reverse_chrom_map={},
     ):
         """Writes a :class:`SnpData` to Bed format and returns the :class:`.Bed`.
 
@@ -250,16 +243,16 @@ class Bed(SnpReader):
         :type _require_float32_64: bool
         :param num_threads: Maximum number of threads to use. Currently ignored and number of threads is 1.
         :type num_threads: int
-        :param reverse_chrom_map: Dictionary from chromosome number to chromsome string to write in the \*.bim file. Defaults to empty dictionary.
+        :param reverse_chrom_map: Dictionary from chromosome number to chromsome string to write in the `*.bim` file. Defaults to empty dictionary.
         :type reverse_chrom_map: dictionary
         :rtype: :class:`.Bed`
 
-        Any :attr:`pos` values of NaN will be written as 0, the PLINK standard for missing chromosome and position values. 
+        Any :attr:`pos` values of NaN will be written as 0, the PLINK standard for missing chromosome and position values.
 
         >>> from pysnptools.snpreader import Pheno, Bed
         >>> import pysnptools.util as pstutil
         >>> from pysnptools.util import example_file # Download and return local file name
-        >>> bed_fn = example_file("pysnptools/examples/toydata.5chrom.bed")
+        >>> bed_fn = example_file("pysnptools/examples/toydata.5chrom.*", "*.bed")
         >>> snpdata = Bed(bed_fn)[:,::2].read() # Read every-other SNP
         >>> pstutil.create_directory_if_necessary("tempdir/everyother.bed")
         >>> Bed.write("tempdir/everyother.bed",snpdata,count_A1=False)   # Write data in Bed format
@@ -288,14 +281,16 @@ class Bed(SnpReader):
             )
             count_A1 = False
 
-        filename = SnpReader._name_of_other_file(filename,remove_suffix="bed", add_suffix="bed")
+        filename = SnpReader._name_of_other_file(
+            filename, remove_suffix="bed", add_suffix="bed"
+        )
 
         chromosome = snpdata.pos[:, 0]
         intersection = reverse_chrom_map.keys() & chromosome
         if len(intersection) > 0:
             chromosome = chromosome.astype("object")
             for key in intersection:
-                chromosome[chromosome==key]=reverse_chrom_map[key]
+                chromosome[chromosome == key] = reverse_chrom_map[key]
 
         to_bed(
             filename,
@@ -339,7 +334,7 @@ class Bed(SnpReader):
             order=order,
             dtype=dtype,
             force_python_only=force_python_only,
-            num_threads=num_threads
+            num_threads=num_threads,
         )
 
         return val
@@ -423,7 +418,7 @@ if __name__ == "__main__":
         pheno_fn = example_file("pysnptools/examples/toydata.phe")
 
     if False:
-        from pysnptools.snpreader import Pheno, Bed
+        from pysnptools.snpreader import Bed
         import pysnptools.util as pstutil
         import os
 

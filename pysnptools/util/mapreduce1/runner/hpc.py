@@ -13,7 +13,7 @@ class HPC(Runner):
     Old code to run on a Microsoft Widows HPC Cluster. Not currently supported.
     """
 
-    #!!LATER make it (and Hadoop) work from root directories -- or give a clear error message
+    # !!LATER make it (and Hadoop) work from root directories -- or give a clear error message
     def __init__(
         self,
         taskcount,
@@ -71,7 +71,7 @@ class HPC(Runner):
         # Check that the local machine has python path set
         localpythonpath = os.environ.get(
             "PYTHONPATH"
-        )  #!!should it be able to work without pythonpath being set (e.g. if there was just one file)? Also, is None really the return or is it an exception.
+        )  # !!should it be able to work without pythonpath being set (e.g. if there was just one file)? Also, is None really the return or is it an exception.
         if localpythonpath is None:
             raise Exception("Expect local machine to have 'pythonpath' set")
 
@@ -331,7 +331,6 @@ class HPC(Runner):
         return xd_string
 
     def CopySource(self, localpythonpath, run_dir_abs):
-
         if self.update_remote_python_parent:
             remote_python_parent = self.remote_python_parent
         else:
@@ -456,7 +455,7 @@ class HPC(Runner):
 
     def check_remote_pythoninstall(self):
         remotepythoninstall = (
-            r"\\GCR\Scratch\RR1\escience\pythonInstallD"  #!!! don't hardwire this
+            r"\\GCR\Scratch\RR1\escience\pythonInstallD"  # !!! don't hardwire this
         )
         if not os.path.isdir(remotepythoninstall):
             raise Exception(
@@ -470,7 +469,7 @@ class HPC(Runner):
     def create_run_dir(self):
         username = os.environ["USERNAME"]
         localwd = os.getcwd()
-        #!!make an option to specify the full remote WD. Also what is the "\\\\" case for?
+        # !!make an option to specify the full remote WD. Also what is the "\\\\" case for?
         if localwd.startswith("\\\\"):
             remotewd = (
                 self.fileshare
@@ -485,7 +484,7 @@ class HPC(Runner):
                 + username
                 + os.path.sep
                 + "\\".join(localwd.split("\\")[4:])
-            )  #!!!const
+            )  # !!!const
         else:
             remotewd = (
                 self.fileshare + os.path.sep + username + os.path.splitdrive(localwd)[1]
@@ -495,7 +494,7 @@ class HPC(Runner):
                 + os.path.sep
                 + username
                 + os.path.splitdrive(localwd)[1]
-            )  #!!! const
+            )  # !!! const
         import datetime
 
         now = datetime.datetime.now()
