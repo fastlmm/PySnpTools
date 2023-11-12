@@ -1,7 +1,7 @@
 from setuptools import setup
 
 # Version number
-version = "0.5.11b2"
+version = "0.5.11"
 
 
 def readme():
@@ -19,7 +19,7 @@ install_requires = [
     "more-itertools>=8.7.0",
     "cbgen>= 1.0.4",
     "bgen-reader>=4.0.8",
-    "bed-reader>=1.0.0b4",  # cmk
+    "bed-reader>=1.0.0",
 ]
 
 # python setup.py sdist bdist_wininst upload
