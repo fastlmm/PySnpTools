@@ -39,7 +39,7 @@ Code
 
 * [PyPi](https://pypi.org/project/pysnptools/)
 * [GitHub](https://github.com/fastlmm/PySnpTools)
-* [Change Log](CHANGELOG.md)
+* [Change Log](https://github.com/fastlmm/PySnpTools/blob/master/CHANGELOG.md)
 
 Contacts
 --------
