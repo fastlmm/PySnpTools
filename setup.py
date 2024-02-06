@@ -10,7 +10,7 @@ def readme():
 
 
 install_requires = [
-    "scipy>=1.1.0",
+    "scipy>=1.12.0",
     "numpy>=1.17.0",
     "pandas>=1.1.1",
     "psutil>=5.6.3",
@@ -41,7 +41,6 @@ setup(
     },
     license="Apache 2.0",
     classifiers=[
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
