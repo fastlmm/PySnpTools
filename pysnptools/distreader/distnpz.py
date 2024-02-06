@@ -1,7 +1,7 @@
 from pysnptools.pstreader import PstNpz
 from pysnptools.distreader import DistReader
 import logging
-import scipy as np
+import numpy as np
 import warnings
 
 

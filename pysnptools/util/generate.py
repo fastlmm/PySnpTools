@@ -279,7 +279,7 @@ def _generate_phenotype(snp_data, causals, genetic_var, noise_var, seed=None):
     )  # Weight of each causal SNP
     XW = np.dot(X_causal, W)
     noise_std = np.sqrt(noise_var)
-    Z = noise_std * sp.randn(X_causal.shape[0], num_phenotypes)
+    Z = noise_std * np.random.randn(X_causal.shape[0], num_phenotypes)
     y = XW + Z
     y = y[:, 0]
 
