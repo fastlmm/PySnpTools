@@ -11,6 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Improved code formatting and linting.
 * Tested with bed-reader 1.0.0.
-* Removed depenenacy 'six'.
+* Removed dependency 'six'.
 * Fixed minor bug <https://github.com/fastlmm/PySnpTools/issues/5>
 * Updated sample `*.npz` and `*.memmap` files to Python 3 format.
