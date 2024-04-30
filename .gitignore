@@ -28,3 +28,9 @@ pysnptools/examples/example.bgen.metadata2.mmm
 pysnptools/examples/bits1.bgen.metadata2.mmm
 doc/ipynb/mergecache.npz
 build/*
+doc/ipynb/*.bgen
+doc/ipynb/*.bgen.metadata2.mmm
+doc/ipynb/deleteme*.*
+doc/ipynb/delme*.*
+doc/ipynb/example2.dist.memmap
+doc/ipynb/.ipynb_checkpoints/*
