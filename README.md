@@ -28,6 +28,10 @@ Install
 
     pip install pysnptools
 
+*If you need support for BGEN files, instead do:*
+
+    pip install pysnptools[bgen]
+
 Documentation
 -------------
 

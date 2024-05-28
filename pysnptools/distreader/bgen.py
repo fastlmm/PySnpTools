@@ -4,9 +4,13 @@ import numpy as np
 import unittest
 from pathlib import Path
 
-from bgen_reader import example_filepath
-from bgen_reader import open_bgen
-from bgen_reader._multimemmap import MultiMemMap
+try:
+    from bgen_reader import open_bgen
+    from bgen_reader._multimemmap import MultiMemMap
+
+    BGEN_READER_AVAILABLE = True
+except ImportError:
+    BGEN_READER_AVAILABLE = False
 from pysnptools.util import log_in_place
 import shutil
 import math
@@ -207,6 +211,9 @@ class Bgen(DistReader):
         )
         verbose = logging.getLogger().level <= logging.INFO
 
+        assert (
+            BGEN_READER_AVAILABLE
+        ), "To use Bgen, you must install the bgen feature of the pysnptools package. Try 'pip install pysnptools[bgen]'"
         self._open_bgen = open_bgen(self.filename, self._sample, verbose=verbose)
         assert (
             self._open_bgen.nvariants == 0 or self._open_bgen.nalleles[0] == 2
@@ -466,9 +473,11 @@ class Bgen(DistReader):
             samplefile,
             file,
             " -bgen-bits {0}".format(bits) if bits is not None else "",
-            " -bgen-compression {0}".format(compression)
-            if compression is not None
-            else "",
+            (
+                " -bgen-compression {0}".format(compression)
+                if compression is not None
+                else ""
+            ),
         )
         try:
             _ = subprocess.check_output(

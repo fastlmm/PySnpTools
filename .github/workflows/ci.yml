@@ -41,6 +41,7 @@ jobs:
         pip install -r requirements-dev.txt
         export PYTHONPATH=${GITHUB_WORKSPACE}
         python tests/test.py
+        # cmk test test_bgen2.py with pytest and test with and without [bgen] installed
 
     - name: Save SDist
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'

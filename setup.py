@@ -1,7 +1,7 @@
 from setuptools import setup
 
 # Version number
-version = "0.5.12"
+version = "0.5.12b1"
 
 
 def readme():
@@ -17,12 +17,17 @@ install_requires = [
     "h5py>=2.10.0",
     "cloudpickle>=2.2.0",
     "more-itertools>=8.7.0",
-    "cbgen>= 1.0.4",
-    "bgen-reader>=4.0.8",
     "bed-reader>=1.0.2",
 ]
 
-# python setup.py sdist bdist_wininst upload
+# Optional dependencies
+extras_require = {
+    "bgen": [
+        "cbgen>=1.0.4",
+        "bgen-reader>=4.0.8",
+    ],
+}
+
 setup(
     name="pysnptools",
     version=version,
@@ -67,4 +72,5 @@ setup(
         ]
     },
     install_requires=install_requires,
+    extras_require=extras_require,
 )

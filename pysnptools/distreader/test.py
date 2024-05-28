@@ -8,10 +8,14 @@ import os.path
 import time
 import sys
 
-
 from pysnptools.distreader.distmemmap import TestDistMemMap
-from bgen_reader import open_bgen
-from pysnptools.distreader.bgen import TestBgen
+
+try:
+    from bgen_reader.test.test_bgen_reader import nowrite_permission, noread_permission
+
+    BGEN_READER_AVAILABLE = True
+except ImportError:
+    BGEN_READER_AVAILABLE = False
 from pysnptools.distreader.distgen import TestDistGen
 from pysnptools.distreader import (
     DistNpz,
@@ -95,9 +99,9 @@ class TestDistReaders(unittest.TestCase):
             )
         )
 
-        distdata.val[
-            1, 2
-        ] = np.NaN  # Inject a missing value to test writing and reading missing values
+        distdata.val[1, 2] = (
+            np.NaN
+        )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/distreader/toydata10.dist.npz"
         create_directory_if_necessary(output)
         DistNpz.write(output, distdata)
@@ -488,6 +492,7 @@ class TestDistReaders(unittest.TestCase):
 
         logging.info("done with test")
 
+    @unittest.skipIf(not BGEN_READER_AVAILABLE, "bgen_reader is not available")
     def test_respect_read_inputs(self):
         from pysnptools.distreader import DistGen, DistHdf5, DistMemMap, DistNpz
         from pysnptools.distreader import Bgen
@@ -710,12 +715,16 @@ class TestDistNaNCNC(unittest.TestCase):
         force_python_only = self.force_python_only
         return "{0}(iid_index_list=[{1}], snp_index_list=[{2}], distreader={3}, dtype={4}, order='{5}', force_python_only=={6})".format(
             self.__class__.__name__,
-            ",".join([str(i) for i in iid_index_list])
-            if len(iid_index_list) < 10
-            else ",".join([str(i) for i in iid_index_list[0:10]]) + ",...",
-            ",".join([str(i) for i in snp_index_list])
-            if len(snp_index_list) < 10
-            else ",".join([str(i) for i in snp_index_list[0:10]]) + ",...",
+            (
+                ",".join([str(i) for i in iid_index_list])
+                if len(iid_index_list) < 10
+                else ",".join([str(i) for i in iid_index_list[0:10]]) + ",..."
+            ),
+            (
+                ",".join([str(i) for i in snp_index_list])
+                if len(snp_index_list) < 10
+                else ",".join([str(i) for i in snp_index_list[0:10]]) + ",..."
+            ),
             distreader,
             dtype,
             order,
@@ -757,9 +766,11 @@ class TestDistNaNCNC(unittest.TestCase):
                 np.allclose(
                     self.reference_snps,
                     snps,
-                    rtol=1e-04
-                    if dtype == np.float32 or self.reference_dtype == np.float32
-                    else 1e-12,
+                    rtol=(
+                        1e-04
+                        if dtype == np.float32 or self.reference_dtype == np.float32
+                        else 1e-12
+                    ),
                     equal_nan=True,
                 )
             )

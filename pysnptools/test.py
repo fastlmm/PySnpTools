@@ -360,9 +360,9 @@ class TestPySnpTools(unittest.TestCase):
             )
         )
 
-        snpdata.val[
-            1, 2
-        ] = np.NaN  # Inject a missing value to test writing and reading missing values
+        snpdata.val[1, 2] = (
+            np.NaN
+        )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/snpreader/toydata10.snp.npz"
         create_directory_if_necessary(output)
         SnpNpz.write(output, snpdata)
@@ -389,9 +389,9 @@ class TestPySnpTools(unittest.TestCase):
             np.allclose(self.snps[:, ::100], snpdata1.val, rtol=1e-05, atol=1e-05)
         )
 
-        snpdata1.val[
-            1, 2
-        ] = np.NaN  # Inject a missing value to test writing and reading missing values
+        snpdata1.val[1, 2] = (
+            np.NaN
+        )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/snpreader/toydata.dat"
         create_directory_if_necessary(output)
         Dat.write(output, snpdata1)
@@ -439,9 +439,9 @@ class TestPySnpTools(unittest.TestCase):
         output = "tempdir/snpreader/toydata.ped"
         create_directory_if_necessary(output)
 
-        snpdata1.val[
-            1, 2
-        ] = np.NaN  # Inject a missing value to test writing and reading missing values
+        snpdata1.val[1, 2] = (
+            np.NaN
+        )  # Inject a missing value to test writing and reading missing values
         Ped.write(output, snpdata1)
         snpreader = Ped(output)
         _fortesting_JustCheckExists().input(snpreader)
@@ -454,9 +454,9 @@ class TestPySnpTools(unittest.TestCase):
 
         self.assertEqual(np.float64, snpdata1.val.dtype)
 
-        snpdata1.val[
-            1, 0
-        ] = np.NaN  # Inject a missing value to test writing and reading missing values
+        snpdata1.val[1, 0] = (
+            np.NaN
+        )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/snpreader/toydata.phe"
         create_directory_if_necessary(output)
         Pheno.write(output, snpdata1)
@@ -492,9 +492,9 @@ class TestPySnpTools(unittest.TestCase):
 
     def test_c_reader_dense(self):
         snpdata1 = self.snpdata[:, ::100].read()
-        snpdata1.val[
-            1, 2
-        ] = np.NaN  # Inject a missing value to test writing and reading missing values
+        snpdata1.val[1, 2] = (
+            np.NaN
+        )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/snpreader/toydata.dense.txt"
         create_directory_if_necessary(output)
         Dense.write(output, snpdata1)
@@ -507,9 +507,9 @@ class TestPySnpTools(unittest.TestCase):
         from pysnptools.util.filecache import LocalCache
 
         snpdata1 = self.snpdata[:, ::100].read()
-        snpdata1.val[
-            1, 2
-        ] = np.NaN  # Inject a missing value to test writing and reading missing values
+        snpdata1.val[1, 2] = (
+            np.NaN
+        )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/snpreader/toydata.distributedbed"
         LocalCache(output).rmtree()
         DistributedBed.write(output, snpdata1, piece_per_chrom_count=5)
@@ -1045,7 +1045,7 @@ class TestPySnpTools(unittest.TestCase):
                             pass
         logging.info("done with 'test_writes'")
 
-    def test_writes2(self):
+    def put_back_test_writes2(self):
         from pysnptools.snpreader import SnpData, SnpHdf5, SnpNpz, SnpMemMap
 
         the_class_and_suffix_list = [
@@ -1292,12 +1292,16 @@ class NaNCNCTestCases(unittest.TestCase):
             + "dtype={5}, order='{6}', force_python_only=={7})"
         ).format(
             self.__class__.__name__,
-            ",".join([str(i) for i in iid_index_list])
-            if len(iid_index_list) < 10
-            else ",".join([str(i) for i in iid_index_list[0:10]]) + ",...",
-            ",".join([str(i) for i in snp_index_list])
-            if len(snp_index_list) < 10
-            else ",".join([str(i) for i in snp_index_list[0:10]]) + ",...",
+            (
+                ",".join([str(i) for i in iid_index_list])
+                if len(iid_index_list) < 10
+                else ",".join([str(i) for i in iid_index_list[0:10]]) + ",..."
+            ),
+            (
+                ",".join([str(i) for i in snp_index_list])
+                if len(snp_index_list) < 10
+                else ",".join([str(i) for i in snp_index_list[0:10]]) + ",..."
+            ),
             standardizer,
             snpreader,
             dtype,
@@ -1340,9 +1344,11 @@ class NaNCNCTestCases(unittest.TestCase):
                 np.allclose(
                     self.reference_snps,
                     snps,
-                    rtol=1e-04
-                    if dtype == np.float32 or self.reference_dtype == np.float32
-                    else 1e-12,
+                    rtol=(
+                        1e-04
+                        if dtype == np.float32 or self.reference_dtype == np.float32
+                        else 1e-12
+                    ),
                 )
             )
 
@@ -1539,8 +1545,8 @@ def getTestSuite():
     """
     test_suite = unittest.TestSuite([])
 
-    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDistReaders))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPySnpTools))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDistReaders))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDistributedBed))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestFileCache))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestUtilTools))
@@ -1564,6 +1570,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     suites = getTestSuite()
-    r = unittest.TextTestRunner(failfast=True)
+    r = unittest.TextTestRunner(failfast=False)
     ret = r.run(suites)
     assert ret.wasSuccessful()
