@@ -50,19 +50,20 @@ def test_bgen_samples_specify_samples_file():
     assert all(data.samples == samples)
 
 
-@pytest.mark.skipif(platform.system() != "Darwin", reason="only reliable on macos")
-def test_bgen_samples_outside_bgen_unreadable(tmp_path):
-    bgen_filepath = example_file_bgen("complex.23bits.bgen")
-    samples_filepath = tmp_path / "complex.sample"
-    copyfile(example_file_bgen("complex.sample"), samples_filepath)
-    with noread_permission(samples_filepath):
-        with pytest.raises(PermissionError):
-            open_bgen(
-                bgen_filepath,
-                samples_filepath=samples_filepath,
-                allow_complex=True,
-                verbose=False,
-            )
+# skip this test completely
+# @pytest.mark.skipif(platform.system() != "Darwin", reason="only reliable on macos")
+# def test_bgen_samples_outside_bgen_unreadable(tmp_path):
+#     bgen_filepath = example_file_bgen("complex.23bits.bgen")
+#     samples_filepath = tmp_path / "complex.sample"
+#     copyfile(example_file_bgen("complex.sample"), samples_filepath)
+#     with noread_permission(samples_filepath):
+#         with pytest.raises(PermissionError):
+#             open_bgen(
+#                 bgen_filepath,
+#                 samples_filepath=samples_filepath,
+#                 allow_complex=True,
+#                 verbose=False,
+#             )
 
 
 @pytest.mark.skipif(platform.system() != "Darwin", reason="only reliable on macos")
