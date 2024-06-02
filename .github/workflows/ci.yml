@@ -40,8 +40,8 @@ jobs:
         pip uninstall pysnptools --yes
         pip install -r requirements-dev.txt
         export PYTHONPATH=${GITHUB_WORKSPACE}
+        pytest pysnptools/distreader/test_bgen2.py
         python tests/test.py
-        pytest pysnptools\distreader\test_bgen2.py
 
     - name: Save SDist
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
