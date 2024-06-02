@@ -92,6 +92,21 @@ class TestPySnpTools(unittest.TestCase):
         self.snpdata = snpreader.read(order="F", force_python_only=True)
         self.snps = self.snpdata.val
 
+    # def test_bug_bed_reader_27(self):
+    #     from pysnptools.snpreader import Bed, SnpData
+    #     import pysnptools.util as pstutil
+    #     from pysnptools.util import example_file
+
+    #     bed_fn = example_file("pysnptools/examples/toydata.*", "*.bed")
+    #     bed = Bed(bed_fn, count_A1=False)
+    #     bed.pos[:, :] = np.nan
+
+    #     file_name = "tempdir/bug_bed_reader_27.bed"
+    #     pstutil.create_directory_if_necessary(file_name)
+    #     Bed.write(file_name, bed.read(), count_A1=False)
+    #     bed2 = Bed(file_name, count_A1=False).read()
+    #     assert np.all(np.isnan(bed2.pos))
+
     def test_write_bad_value_and_good(self):
         from pysnptools.snpreader import Pheno, Bed, SnpData
         import pysnptools.util as pstutil
@@ -1045,7 +1060,7 @@ class TestPySnpTools(unittest.TestCase):
                             pass
         logging.info("done with 'test_writes'")
 
-    def put_back_test_writes2(self):
+    def test_writes2(self):
         from pysnptools.snpreader import SnpData, SnpHdf5, SnpNpz, SnpMemMap
 
         the_class_and_suffix_list = [

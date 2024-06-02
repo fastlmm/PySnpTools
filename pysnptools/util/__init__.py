@@ -728,7 +728,7 @@ def get_array_module(a):
 
 
 from pysnptools.util.generate import snp_gen
-from pysnptools.util._example_file import example_file
+from pysnptools.util._example_file import example_file, example_file_bgen
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

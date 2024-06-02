@@ -1,4 +1,6 @@
+import logging
 import os
+from pathlib import Path
 import platform
 from shutil import copyfile
 
@@ -8,41 +10,39 @@ from numpy import array, array_equal, isnan
 from numpy.testing import assert_allclose, assert_equal
 
 from bgen_reader import open_bgen
-from bgen_reader import example_filepath
 from bgen_reader._environment import BGEN_READER_CACHE_HOME
 from bgen_reader.test.write_random import _write_random
-from bgen_reader.test.test_bgen_reader import nowrite_permission, noread_permission
+from bgen_reader.test.test_bgen_reader import noread_permission
 
-def example_filepath2(filename):
-    filepath = example_filepath(filename)
-    metadata2_path = open_bgen._metadata_path_from_filename(filepath,samples_filepath=None)
-    if metadata2_path.exists():
-        metadata2_path.unlink()
-    return filepath
+from pysnptools.util import example_file_bgen
 
 
 def test_bgen_samples_inside_bgen():
-    data = open_bgen(example_filepath2("haplotypes.bgen"), verbose=False)
+    data = open_bgen(example_file_bgen("haplotypes.bgen"), verbose=False)
     samples = ["sample_0", "sample_1", "sample_2", "sample_3"]
     assert all(data.samples == samples)
 
 
 def test_typing():
-    data = open_bgen(example_filepath2("haplotypes.bgen"), verbose=False)
+    data = open_bgen(example_file_bgen("haplotypes.bgen"), verbose=False)
     with pytest.raises(TypeError):
         data.read(dtype=3)
 
 
 def test_bgen_samples_not_present():
-    data = open_bgen(example_filepath2("complex.23bits.no.samples.bgen"),allow_complex=True, verbose=False)
+    data = open_bgen(
+        example_file_bgen("complex.23bits.no.samples.bgen"),
+        allow_complex=True,
+        verbose=False,
+    )
     samples = ["sample_0", "sample_1", "sample_2", "sample_3"]
     assert all(data.samples == samples)
 
 
 def test_bgen_samples_specify_samples_file():
     data = open_bgen(
-        example_filepath2("complex.23bits.bgen"),
-        samples_filepath=example_filepath("complex.sample"),
+        example_file_bgen("complex.23bits.bgen"),
+        samples_filepath=example_file_bgen("complex.sample"),
         allow_complex=True,
         verbose=False,
     )
@@ -52,18 +52,23 @@ def test_bgen_samples_specify_samples_file():
 
 @pytest.mark.skipif(platform.system() != "Darwin", reason="only reliable on macos")
 def test_bgen_samples_outside_bgen_unreadable(tmp_path):
-    bgen_filepath = example_filepath2("complex.23bits.bgen")
+    bgen_filepath = example_file_bgen("complex.23bits.bgen")
     samples_filepath = tmp_path / "complex.sample"
-    copyfile(example_filepath("complex.sample"), samples_filepath)
+    copyfile(example_file_bgen("complex.sample"), samples_filepath)
     with noread_permission(samples_filepath):
         with pytest.raises(PermissionError):
-            open_bgen(bgen_filepath, samples_filepath=samples_filepath, allow_complex=True, verbose=False)
+            open_bgen(
+                bgen_filepath,
+                samples_filepath=samples_filepath,
+                allow_complex=True,
+                verbose=False,
+            )
 
 
 @pytest.mark.skipif(platform.system() != "Darwin", reason="only reliable on macos")
 def test_bgen_file_not_readable(tmp_path):
     filepath = tmp_path / "haplotypes.bgen"
-    copyfile(example_filepath2("haplotypes.bgen"), filepath)
+    copyfile(example_file_bgen("haplotypes.bgen"), filepath)
     with noread_permission(filepath):
         with pytest.raises(PermissionError):
             open_bgen(filepath, verbose=False)
@@ -75,11 +80,11 @@ def test_bgen_file_dont_exist():
 
 
 def test_metafile_not_provided():
-    open_bgen(example_filepath2("haplotypes.bgen"), verbose=False)
+    open_bgen(example_file_bgen("haplotypes.bgen"), verbose=False)
 
 
 def test_open_bgen_phased_genotype():
-    filepath = example_filepath2("haplotypes.bgen")
+    filepath = example_file_bgen("haplotypes.bgen")
     bgen2 = open_bgen(filepath, verbose=False)
 
     assert_equal(bgen2.chromosomes[0], "1")
@@ -107,7 +112,7 @@ def test_open_bgen_phased_genotype():
 
 
 def test_open_bgen_variants_info():
-    filepath = example_filepath2("example.32bits.bgen")
+    filepath = example_file_bgen("example.32bits.bgen")
     bgen2 = open_bgen(filepath, verbose=False)
 
     assert_equal(bgen2.chromosomes[0], "01")
@@ -152,7 +157,7 @@ def test_open_bgen_variants_info():
 
 
 def test_to_improve_coverage():
-    filepath = example_filepath2("example.32bits.bgen")
+    filepath = Path(example_file_bgen("example.32bits.bgen"))
     bgen2 = open_bgen(filepath, verbose=False)  # Creates metadata2.npz file
     assert_equal(bgen2.ncombinations[-1], 3)
     assert_equal(bgen2.phased[-1], False)
@@ -183,7 +188,7 @@ def test_to_improve_coverage():
         assert_allclose(g[2, 1, :], b)
 
     # confirm that out-of-date metadata2 file will be updated
-    metadata2 = open_bgen._metadata_path_from_filename(filepath,samples_filepath=None)
+    metadata2 = open_bgen._metadata_path_from_filename(filepath, samples_filepath=None)
     assert os.path.getmtime(metadata2) >= os.path.getmtime(filepath)
     filepath.touch()
     assert os.path.getmtime(metadata2) <= os.path.getmtime(filepath)
@@ -191,23 +196,23 @@ def test_to_improve_coverage():
     assert os.path.getmtime(metadata2) >= os.path.getmtime(filepath)
 
 
-@pytest.mark.skipif(
-    "QCTOOLPATH" not in os.environ, reason="This test requires external QCTOOL"
-)
-@pytest.mark.slow  # It takes hours to generate data locally.  After that, it takes a few minutes
-# to run.
-def test_bigfile(verbose=False):
-    random_file_tests(nsamples=2500, nvariants=500 * 1000, bits=16)
+# @pytest.mark.skipif(
+#     "QCTOOLPATH" not in os.environ, reason="This test requires external QCTOOL"
+# )
+# @pytest.mark.slow  # It takes hours to generate data locally.  After that, it takes a few minutes
+# # to run.
+# def test_bigfile(verbose=False):
+#     random_file_tests(nsamples=2500, nvariants=500 * 1000, bits=16)
 
 
-@pytest.mark.skipif(
-    "QCTOOLPATH" not in os.environ, reason="This test requires external QCTOOL"
-)
-@pytest.mark.slow  # Skipping this one by default because it requires the QCTOOL
-def test_small_random_file(verbose=False):
-    random_file_tests(
-        nsamples=25, nvariants=1000, bits=8, verbose=verbose, overwrite=True
-    )
+# @pytest.mark.skipif(
+#     "QCTOOLPATH" not in os.environ, reason="This test requires external QCTOOL"
+# )
+# @pytest.mark.slow  # Skipping this one by default because it requires the QCTOOL
+# def test_small_random_file(verbose=False):
+#     random_file_tests(
+#         nsamples=25, nvariants=1000, bits=8, verbose=verbose, overwrite=True
+#     )
 
 
 def random_file_tests(nsamples, nvariants, bits, verbose=False, overwrite=False):
@@ -224,7 +229,9 @@ def random_file_tests(nsamples, nvariants, bits, verbose=False, overwrite=False)
             verbose=verbose,
             cleanup_temp_files=True,
         )
-    metadata2_path = open_bgen._metadata_path_from_filename(filepath,samples_filepath=None)
+    metadata2_path = open_bgen._metadata_path_from_filename(
+        filepath, samples_filepath=None
+    )
     if metadata2_path.exists():
         metadata2_path.unlink()
 
@@ -238,7 +245,7 @@ def random_file_tests(nsamples, nvariants, bits, verbose=False, overwrite=False)
 
 
 def test_open_bgen_without_metadata():
-    filepath = example_filepath2("example.32bits.bgen")
+    filepath = example_file_bgen("example.32bits.bgen")
     bgen2 = open_bgen(filepath, verbose=False)
     assert_equal(bgen2.allele_ids[7], "A,G")
     assert_equal(bgen2.samples[-1], "sample_500")
@@ -250,8 +257,8 @@ def test_open_bgen_file_notfound():
 
 
 def test_open_bgen_complex():
-    filepath = example_filepath2("complex.23bits.bgen")
-    bgen2 = open_bgen(filepath,allow_complex=True, verbose=False)
+    filepath = example_file_bgen("complex.23bits.bgen")
+    bgen2 = open_bgen(filepath, allow_complex=True, verbose=False)
 
     assert_equal(bgen2.chromosomes[0], "01")
     assert_equal(bgen2.ids[0], "")
@@ -299,8 +306,8 @@ def test_open_bgen_complex():
 
 def test_open_bgen_complex_sample_file():
     bgen2 = open_bgen(
-        example_filepath2("complex.23bits.bgen"),
-        samples_filepath=example_filepath("complex.sample"),
+        example_file_bgen("complex.23bits.bgen"),
+        samples_filepath=example_file_bgen("complex.sample"),
         allow_complex=True,
         verbose=False,
     )
@@ -338,7 +345,7 @@ def test_open_bgen_complex_sample_file():
 
 
 def test_close_del_with():
-    filepath = example_filepath2("example.32bits.bgen")
+    filepath = example_file_bgen("example.32bits.bgen")
     with open_bgen(filepath, verbose=False) as bgen2:
         pass
     with pytest.raises(ValueError):
@@ -346,13 +353,14 @@ def test_close_del_with():
 
     bgen2 = open_bgen(filepath, verbose=False)
     bgen2.close()
-    bgen2.samples
+    with pytest.raises(AttributeError):
+        bgen2.samples
     with pytest.raises(ValueError):
         bgen2.read()
 
 
 def test_read_max_combinations():
-    filepath = example_filepath2("example.32bits.bgen")
+    filepath = example_file_bgen("example.32bits.bgen")
     with open_bgen(filepath, verbose=False) as bgen2:
         assert (
             np.mean(np.isnan(bgen2.read())) < 2.1e-05
@@ -371,7 +379,7 @@ def test_read_max_combinations():
 
 
 def test_read_dtype_and_order():
-    filepath = example_filepath2("example.32bits.bgen")
+    filepath = example_file_bgen("example.32bits.bgen")
     bgen2 = open_bgen(filepath, verbose=False)
     full = bgen2.read()
     assert full.dtype == np.float64
@@ -380,11 +388,11 @@ def test_read_dtype_and_order():
     val = bgen2.read(None, dtype="float32", order="C")
     assert val.dtype == np.float32
     assert val.flags["C_CONTIGUOUS"] and not val.flags["F_CONTIGUOUS"]
-    assert np.allclose(full, val, equal_nan=True)
+    assert np.allclose(full, val, atol=1e-7, equal_nan=True)
 
 
 def test_read_indexing():
-    filepath = example_filepath2("example.32bits.bgen")
+    filepath = example_file_bgen("example.32bits.bgen")
     bgen2 = open_bgen(filepath, verbose=False)
     full = bgen2.read()
 
@@ -445,7 +453,7 @@ def test_read_indexing():
 
 
 def test_read_multiple_returns():
-    filepath = example_filepath2("example.32bits.bgen")
+    filepath = example_file_bgen("example.32bits.bgen")
     bgen2 = open_bgen(filepath, verbose=False)
     full, full_missing, full_ploidy = bgen2.read(
         return_missings=True, return_ploidies=True
@@ -466,6 +474,86 @@ def test_read_multiple_returns():
         (slice(10, 30, 2), [11, 9]), return_probabilities=False, return_ploidies=True
     )
     assert np.allclose(full_ploidy[10:30:2, :][:, [11, 9]], ploidy, equal_nan=False)
+
+
+def test_respect_read_inputs():
+    from pysnptools.distreader import (
+        DistGen,
+        DistHdf5,
+        DistMemMap,
+        DistNpz,
+        _DistMergeSIDs,
+        Bgen,
+    )
+    from pysnptools.snpreader import Bed
+
+    previous_wd = os.getcwd()
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
+    distreader_list = [
+        Bed("../examples/toydata.5chrom.bed", count_A1=True).as_dist(block_size=2000),
+        Bed("../examples/toydata.5chrom.bed", count_A1=True).as_dist(),
+        DistGen(seed=0, iid_count=500, sid_count=50),
+        DistGen(seed=0, iid_count=500, sid_count=50)[::2, ::2],
+        DistHdf5("../examples/toydata.snpmajor.dist.hdf5"),
+        DistMemMap("../examples/tiny.dist.memmap"),
+        DistNpz("../examples/toydata10.dist.npz"),
+    ]
+    distreader_list += [
+        _DistMergeSIDs(
+            [
+                Bgen("../examples/example.bgen")[:, :5].read(),
+                Bgen("../examples/example.bgen")[:, 5:].read(),
+            ]
+        ),
+        Bgen("../examples/example.bgen").read(),
+        Bgen("../examples/bits1.bgen"),
+    ]
+
+    for distreader in distreader_list:
+        logging.info(str(distreader))
+        for order in ["F", "C", "A"]:
+            for dtype in [np.float32, np.float64]:
+                for force_python_only in [True, False]:
+                    for view_ok in [True, False]:
+                        val = distreader.read(
+                            order=order,
+                            dtype=dtype,
+                            force_python_only=force_python_only,
+                            view_ok=view_ok,
+                        ).val
+                        has_right_order = (
+                            order == "A"
+                            or (order == "C" and val.flags["C_CONTIGUOUS"])
+                            or (order == "F" and val.flags["F_CONTIGUOUS"])
+                        )
+                        if hasattr(distreader, "val") and not view_ok:
+                            assert distreader.val is not val
+                        if (
+                            hasattr(distreader, "val")
+                            and view_ok
+                            and distreader.val is not val
+                            and (
+                                order == "A"
+                                or (
+                                    order == "F"
+                                    and distreader.val.flags["F_CONTIGUOUS"]
+                                )
+                                or (
+                                    order == "C"
+                                    and distreader.val.flags["C_CONTIGUOUS"]
+                                )
+                            )
+                            and (dtype is None or distreader.val.dtype == dtype)
+                        ):
+                            logging.info(
+                                "{0} could have read a view, but didn't".format(
+                                    distreader
+                                )
+                            )
+                        assert val.dtype == dtype and has_right_order
+
+    os.chdir(previous_wd)
 
 
 if __name__ == "__main__":

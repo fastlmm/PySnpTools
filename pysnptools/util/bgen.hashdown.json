@@ -1,0 +1,15 @@
+{
+    "url": "https://raw.githubusercontent.com/fastlmm/bgen-sample-files/7b1bc74f58b326ca19606fa5f3c6093d48367993",
+    "file_to_hash": {
+        "example.bgen": "b8d324a100ce3910ef359da0bd903398",
+        "complex.23bits.bgen": "003658bf19b17b61c8459495f6f78ef4",
+        "complex.23bits.no.samples.bgen": "e4ed6cd15287bf86927b7cfcb441a5f1",
+        "complex.bgen": "003658bf19b17b61c8459495f6f78ef4",
+        "complex.sample": "eda72703d937eb3b8a30164dc492333e",
+        "example.32bits.bgen": "b8d324a100ce3910ef359da0bd903398",
+        "haplotypes.bgen": "114418be3381207686231ada04dd1031",
+        "haplotypes.bgen.metadata.corrupted": "02768261a59da4d337a5d66eee745565",
+        "haplotypes.bgen.metadata.valid": "8bcacd2f2b7f637c64d20363f51ff884",
+        "wrong.metadata": "6c3a6d6a70b83ddd5bf67c370eb3eaa5"
+    }
+}

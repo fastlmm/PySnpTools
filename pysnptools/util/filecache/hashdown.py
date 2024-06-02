@@ -11,6 +11,7 @@ import tempfile
 import json
 from pysnptools.util import log_in_place
 
+
 # Based on an idea see in Danilo Horta's Bgen-reader-py
 class Hashdown(FileCache):
     """
@@ -105,9 +106,8 @@ class Hashdown(FileCache):
 
     @staticmethod
     def _get_large_file(url, file, trust_local_files, length=16 * 1024):
-        """https://stackoverflow.com/questions/1517616/stream-large-binary-files-with-urllib2-to-file
-        """
-        import pysnptools.util as pstutil # put here to avoid recursive nesting
+        """https://stackoverflow.com/questions/1517616/stream-large-binary-files-with-urllib2-to-file"""
+        import pysnptools.util as pstutil  # put here to avoid recursive nesting
 
         logging.info("Downloading'{0}'".format(url))
         if trust_local_files and os.path.exists(file):
@@ -128,8 +128,7 @@ class Hashdown(FileCache):
 
     @staticmethod
     def _get_hash(filename):
-        """https://stackoverflow.com/questions/16874598/how-do-i-calculate-the-md5-checksum-of-a-file-in-python
-        """
+        """https://stackoverflow.com/questions/16874598/how-do-i-calculate-the-md5-checksum-of-a-file-in-python"""
         logging.info("Find hash of '{0}'".format(filename))
         with open(filename, "rb") as f:
             file_hash = hashlib.md5()
@@ -210,7 +209,9 @@ class Hashdown(FileCache):
             else:
                 assert (
                     hash == local_hash
-                ), 'URL file has unexpected hash ("{0}")'.format(full_url)
+                ), 'URL file has unexpected hash ("{0}",{1}!={2})'.format(
+                    full_url, hash, local_hash
+                )
 
         yield full_file
 
@@ -259,7 +260,7 @@ class Hashdown(FileCache):
                 file = (
                     rel_file
                     if self._relative_directory is None
-                    else rel_file[len(self._relative_directory) + 1:]
+                    else rel_file[len(self._relative_directory) + 1 :]
                 )
                 if self.file_exists(file):
                     yield file
@@ -285,7 +286,7 @@ class Hashdown(FileCache):
         'per0 per0 0 0 2 0.408848'
 
         """
-        import pysnptools.util as pstutil # put here to avoid recursive nesting
+        import pysnptools.util as pstutil  # put here to avoid recursive nesting
 
         pstutil.create_directory_if_necessary(filename)
         dict0 = dict(self.__dict__)
@@ -349,7 +350,7 @@ class Hashdown(FileCache):
 
     @staticmethod
     def scan_local(local_directory, url=None, logging_level=logging.WARNING):
-        '''
+        """
         Bootstrap a Hashdown by recursively walking a local directory and finding the local MD5 hashes.
         (A local hash might be wrong if the files are out of date or have OS-dependent line endings.)
         Typically, you'll then want to save the result to a JSON file and then edit that JSON file
@@ -366,7 +367,7 @@ class Hashdown(FileCache):
 
         :rtype: :class:`.Hashdown`
 
-        '''
+        """
         from pysnptools.util.filecache import LocalCache
 
         file_to_hash = {}
@@ -382,6 +383,7 @@ class Hashdown(FileCache):
 
 if __name__ == "__main__":
     import doctest
+
     if False:
         hashdown_local = Hashdown.scan_local(
             r"D:\OneDrive\programs\fastlmm",

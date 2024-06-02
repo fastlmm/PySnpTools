@@ -11,12 +11,18 @@ pysnptools_hashdown = Hashdown.load_hashdown(
     directory=os.environ.get("PYSNPTOOLS_CACHE_HOME", None),
 )
 
+bgen_hashdown = Hashdown.load_hashdown(
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), "bgen.hashdown.json"),
+    directory=os.environ.get("PYSNPTOOLS_CACHE_HOME", None),
+)
+
+
 def example_file(pattern, endswith=None):
     """
     Returns the local location of a PySnpTools example file, downloading it
     if needed.
 
-    :param pattern: The name of the example file of interest. A 
+    :param pattern: The name of the example file of interest. A
         `file name pattern <https://docs.python.org/3.7/library/fnmatch.html>`__
         may be given. All matching files will be downloaded (if needed) and
         the name of one will be returned.
@@ -52,13 +58,26 @@ def example_file(pattern, endswith=None):
     return pysnptools_hashdown._example_file(pattern, endswith=endswith)
 
 
+def example_file_bgen(pattern, endswith=None):
+    """
+    Returns the local location of a PySnpTools BGEN example file, downloading it
+    if needed.
+
+    >>> from pysnptools.util import example_file_bgen # Download and return local file name
+    >>> # Download the phenotype file if necessary. Return its local location.
+    >>> bgen_fn = example_file_bgen("example.bgen")
+    >>> print('The local file name is ', bgen_fn)
+    The local file name is ...example.bgen
+
+    """
+    return bgen_hashdown._example_file(pattern, endswith=endswith)
+
+
 class TestExampleFile(unittest.TestCase):
     def test_doc_test(self):
         import pysnptools.util._example_file as example_mod
 
-        result = doctest.testmod(
-            example_mod, optionflags=doctest.ELLIPSIS
-        )
+        result = doctest.testmod(example_mod, optionflags=doctest.ELLIPSIS)
         assert result.failed == 0, "failed doc test: " + __file__
 
 
@@ -75,10 +94,23 @@ def getTestSuite():
 
 if __name__ == "__main__":
     # This creates a Json based on all files, but it may have the wrong line-endings and thus hash on Windows. It can be edited to files of interest
-    if True:
-        update = Hashdown(url=pysnptools_hashdown.url, file_to_hash=pysnptools_hashdown.file_to_hash, allow_unknown_files=True)
-        for file0 in list(os.walk(r'D:\OneDrive\programs\pysnptools\pysnptools\examples'))[0][2:][0]:
-            file = 'pysnptools/examples/'+file0
+    if False:
+        update = Hashdown(url=bgen_hashdown.url, allow_unknown_files=True)
+        for file in bgen_hashdown.file_to_hash:
+            print(file)
+            update.file_exists(file)
+        update.save_hashdown("deldir/updated.hashdown.json")
+
+    if False:
+        update = Hashdown(
+            url=pysnptools_hashdown.url,
+            file_to_hash=pysnptools_hashdown.file_to_hash,
+            allow_unknown_files=True,
+        )
+        for file0 in list(
+            os.walk(r"D:\OneDrive\programs\pysnptools\pysnptools\examples")
+        )[0][2:][0]:
+            file = "pysnptools/examples/" + file0
             print(file)
             update.file_exists(file)
         update.save_hashdown("deldir/updated.hashdown.json")
