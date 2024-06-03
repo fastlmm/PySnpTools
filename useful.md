@@ -12,8 +12,9 @@ pytest cmk/cmk/test_bgen2.py
 Create a local distribution"
 
 ```bash
-python setup.py sdist
 pip install twine
-twine upload dist/pysnptools-0.5.12b1.tar.gz
+
+python setup.py sdist
+twine upload dist/pysnptools-0.5.12b3.tar.gz
 
 ```

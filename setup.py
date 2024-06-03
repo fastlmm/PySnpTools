@@ -1,7 +1,7 @@
 from setuptools import setup
 
 # Version number
-version = "0.5.12b2"
+version = "0.5.12b4"
 
 
 def readme():
@@ -17,7 +17,7 @@ install_requires = [
     "h5py>=2.10.0",
     "cloudpickle>=2.2.0",
     "more-itertools>=8.7.0",
-    "bed-reader>=1.0.2",
+    "bed-reader[samples]>=1.0.4",
 ]
 
 # Optional dependencies
@@ -69,6 +69,7 @@ setup(
     package_data={
         "pysnptools": [
             "util/pysnptools.hashdown.json",
+            "util/bgen.hashdown.json",
             "tests/mintest.py",
         ]
     },
