@@ -100,7 +100,7 @@ class TestDistReaders(unittest.TestCase):
         )
 
         distdata.val[1, 2] = (
-            np.NaN
+            np.nan
         )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/distreader/toydata10.dist.npz"
         create_directory_if_necessary(output)
@@ -244,7 +244,7 @@ class TestDistReaders(unittest.TestCase):
                 val = np.random.random(size=[row_count, col_count, 3])
                 val /= val.sum(axis=2, keepdims=True)  # make probabilities sum to 1
 
-                val[val == 3] = np.NaN
+                val[val == 3] = np.nan
                 row = [("0", "0"), ("1", "1"), ("2", "2"), ("3", "3"), ("4", "4")][
                     :row_count
                 ]

@@ -376,7 +376,7 @@ class TestPySnpTools(unittest.TestCase):
         )
 
         snpdata.val[1, 2] = (
-            np.NaN
+            np.nan
         )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/snpreader/toydata10.snp.npz"
         create_directory_if_necessary(output)
@@ -405,7 +405,7 @@ class TestPySnpTools(unittest.TestCase):
         )
 
         snpdata1.val[1, 2] = (
-            np.NaN
+            np.nan
         )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/snpreader/toydata.dat"
         create_directory_if_necessary(output)
@@ -455,7 +455,7 @@ class TestPySnpTools(unittest.TestCase):
         create_directory_if_necessary(output)
 
         snpdata1.val[1, 2] = (
-            np.NaN
+            np.nan
         )  # Inject a missing value to test writing and reading missing values
         Ped.write(output, snpdata1)
         snpreader = Ped(output)
@@ -470,7 +470,7 @@ class TestPySnpTools(unittest.TestCase):
         self.assertEqual(np.float64, snpdata1.val.dtype)
 
         snpdata1.val[1, 0] = (
-            np.NaN
+            np.nan
         )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/snpreader/toydata.phe"
         create_directory_if_necessary(output)
@@ -508,7 +508,7 @@ class TestPySnpTools(unittest.TestCase):
     def test_c_reader_dense(self):
         snpdata1 = self.snpdata[:, ::100].read()
         snpdata1.val[1, 2] = (
-            np.NaN
+            np.nan
         )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/snpreader/toydata.dense.txt"
         create_directory_if_necessary(output)
@@ -523,7 +523,7 @@ class TestPySnpTools(unittest.TestCase):
 
         snpdata1 = self.snpdata[:, ::100].read()
         snpdata1.val[1, 2] = (
-            np.NaN
+            np.nan
         )  # Inject a missing value to test writing and reading missing values
         output = "tempdir/snpreader/toydata.distributedbed"
         LocalCache(output).rmtree()
@@ -1020,7 +1020,7 @@ class TestPySnpTools(unittest.TestCase):
         for row_count in [1]:
             for col_count in [4]:
                 val = np.random.randint(0, 4, size=(row_count, col_count)) * 1.0
-                val[val == 3] = np.NaN
+                val[val == 3] = np.nan
                 row = [("0", "0"), ("1", "1"), ("2", "2"), ("3", "3"), ("4", "4")][
                     :row_count
                 ]
@@ -1094,7 +1094,7 @@ class TestPySnpTools(unittest.TestCase):
         for row_count in [0, 5, 2, 1]:
             for col_count in [4, 2, 1, 0]:
                 val = np.random.randint(0, 4, size=(row_count, col_count)) * 1.0
-                val[val == 3] = np.NaN
+                val[val == 3] = np.nan
                 row = [("0", "0"), ("1", "1"), ("2", "2"), ("3", "3"), ("4", "4")][
                     :row_count
                 ]
@@ -1581,10 +1581,149 @@ def getTestSuite():
     return test_suite
 
 
+# cmk
+def test_writes2():
+    from pysnptools.snpreader import SnpData, SnpHdf5, SnpNpz, SnpMemMap
+
+    the_class_and_suffix_list = [
+        (DistributedBed, "distributed_bed", None, None),
+        (Dense, "dense", None, None),
+        (Bed, "bed", lambda filename: Bed(filename, count_A1=False), None),
+        (Dat, "dat", None, None),
+        (Ped, "ped", None, None),
+        (Pheno, "pheno", None, None),
+        (SnpHdf5, "hdf5", None, None),
+        (SnpNpz, "npz", None, None),
+        (SnpMemMap, "memmap", None, None),
+    ]
+    cant_do_col_prop_none_set = {"dense", "distributed_bed"}
+    cant_do_col_len_0_set = {"distributed_bed"}
+    cant_do_row_count_zero_set = {"dense", "ped", "pheno"}
+    can_swap_0_2_set = {"ped"}
+    can_change_col_names_set = {"pheno"}
+    ignore_fam_id_set = {"dense"}
+    ignore_pos_set = {"dense", "pheno"}
+    erase_any_write_dir = {"distributed_bed"}
+
+    # ===================================
+    #    Starting main function
+    # ===================================
+    logging.info("starting 'test_writes'")
+    np.random.seed(0)
+    output_template = "tempdir/snpreader/writes.{0}.{1}"
+    create_directory_if_necessary(output_template.format(0, "npz"))
+    i = 0
+    for row_count in [0, 5, 2, 1]:
+        for col_count in [4, 2, 1, 0]:
+            val = np.random.randint(0, 4, size=(row_count, col_count)) * 1.0
+            val[val == 3] = np.nan
+            row = [("0", "0"), ("1", "1"), ("2", "2"), ("3", "3"), ("4", "4")][
+                :row_count
+            ]
+            col = ["s0", "s1", "s2", "s3", "s4"][:col_count]
+            for is_none in [False, True]:
+                if is_none:
+                    col_prop = None
+                else:
+                    col_prop = [(x, x, x) for x in range(1, 6)][:col_count]
+                snpdata = SnpData(iid=row, sid=col, val=val, pos=col_prop, name=str(i))
+                for (
+                    the_class,
+                    suffix,
+                    constructor,
+                    writer,
+                ) in the_class_and_suffix_list:
+                    constructor = constructor or (lambda filename: the_class(filename))
+                    writer = writer or (
+                        lambda filename, _data: the_class.write(filename, _data)
+                    )
+
+                    if col_count == 0 and suffix in cant_do_col_len_0_set:
+                        continue
+                    if col_prop is None and suffix in cant_do_col_prop_none_set:
+                        continue
+                    if row_count == 0 and suffix in cant_do_row_count_zero_set:
+                        continue
+                    filename = output_template.format(i, suffix)
+                    logging.info(filename)
+                    i += 1
+                    if suffix in erase_any_write_dir and os.path.exists(filename):
+                        shutil.rmtree(filename)
+                    ret = writer(filename, snpdata)
+                    assert ret is not None
+                    for subsetter in [np.s_[::2, ::3], None]:
+                        reader = constructor(filename)
+                        _fortesting_JustCheckExists().input(reader)
+                        subreader = (
+                            reader
+                            if subsetter is None
+                            else reader[subsetter[0], subsetter[1]]
+                        )
+                        readdata = subreader.read(order="C")
+                        expected = (
+                            snpdata
+                            if subsetter is None
+                            else snpdata[subsetter[0], subsetter[1]].read()
+                        )
+                        if suffix not in can_swap_0_2_set:
+                            assert np.allclose(
+                                readdata.val, expected.val, equal_nan=True
+                            )
+                        else:
+                            for col_index in range(readdata.col_count):
+                                assert np.allclose(
+                                    readdata.val[:, col_index],
+                                    expected.val[:, col_index],
+                                    equal_nan=True,
+                                ) or np.allclose(
+                                    readdata.val[:, col_index] * -1 + 2,
+                                    expected.val[:, col_index],
+                                    equal_nan=True,
+                                )
+                        if suffix not in ignore_fam_id_set:
+                            assert np.array_equal(readdata.row, expected.row)
+                        else:
+                            assert np.array_equal(
+                                readdata.row[:, 1], expected.row[:, 1]
+                            )
+                        if suffix not in can_change_col_names_set:
+                            assert np.array_equal(readdata.col, expected.col)
+                        else:
+                            assert readdata.col_count == expected.col_count
+                        assert np.array_equal(
+                            readdata.row_property, expected.row_property
+                        ) or (
+                            readdata.row_property.shape[1] == 0
+                            and expected.row_property.shape[1] == 0
+                        )
+
+                        if suffix not in ignore_pos_set:
+                            assert np.allclose(
+                                readdata.col_property,
+                                expected.col_property,
+                                equal_nan=True,
+                            ) or (
+                                readdata.col_property.shape[1] == 0
+                                and expected.col_property.shape[1] == 0
+                            )
+                        else:
+                            assert len(readdata.col_property) == len(
+                                expected.col_property
+                            )
+                    try:
+                        os.remove(filename)
+                    except Exception:
+                        pass
+    logging.info("done with 'test_writes'")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
+    # cmk
+    test_writes2()
+
     suites = getTestSuite()
-    r = unittest.TextTestRunner(failfast=False)
+    r = unittest.TextTestRunner(failfast=True)  # cmk
     ret = r.run(suites)
     assert ret.wasSuccessful()

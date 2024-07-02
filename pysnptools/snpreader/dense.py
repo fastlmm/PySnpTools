@@ -107,7 +107,7 @@ class Dense(_OneShot, SnpReader):
                 bim_list.append(self.extract_sid_pos_function(sid_string))
                 val_list = np.array(
                     [
-                        float(val) - zerofloat if val != missing_char else np.NaN
+                        float(val) - zerofloat if val != missing_char else np.nan
                         for val in rest
                     ]
                 )

@@ -10,7 +10,8 @@ import warnings
 import time
 import pysnptools.util as pstutil
 
-class SnpData(PstData,SnpReader):
+
+class SnpData(PstData, SnpReader):
     """A :class:`.SnpReader` for holding SNP values (or similar values) in-memory, along with related iid and sid information.
     It is usually created by calling the :meth:`.SnpReader.read` method on another :class:`.SnpReader`, for example, :class:`.Bed`. It can also be constructed directly.
 
@@ -31,7 +32,7 @@ class SnpData(PstData,SnpReader):
 
         >>> from pysnptools.snpreader import SnpData
         >>> snpdata = SnpData(iid=[['fam0','iid0'],['fam0','iid1']], sid=['snp334','snp349','snp921'], val=[[0.,2.,0.],[0.,1.,2.]])
-        >>> print((snpdata.val[0,1], snpdata.iid_count, snpdata.sid_count))
+        >>> print((float(snpdata.val[0,1]), snpdata.iid_count, snpdata.sid_count))
         (2.0, 2, 3)
 
     **Equality:**
@@ -64,22 +65,54 @@ class SnpData(PstData,SnpReader):
 
     **Methods beyond** :class:`.SnpReader`
     """
-    def __init__(self, iid, sid, val, pos=None, name=None, parent_string=None, copyinputs_function=None, xp = None, _require_float32_64=True):
-        #We don't have a 'super(SnpData, self).__init__()' here because SnpData takes full responsibility for initializing both its superclasses
+
+    def __init__(
+        self,
+        iid,
+        sid,
+        val,
+        pos=None,
+        name=None,
+        parent_string=None,
+        copyinputs_function=None,
+        xp=None,
+        _require_float32_64=True,
+    ):
+        # We don't have a 'super(SnpData, self).__init__()' here because SnpData takes full responsibility for initializing both its superclasses
         xp = pstutil.array_module(xp)
         self._val = None
 
         if parent_string is not None:
-            warnings.warn("'parent_string' is deprecated. Use 'name'", DeprecationWarning)
-        self._row = PstData._fixup_input(iid,empty_creator=lambda ignore:np.empty([0,2],dtype='str'),dtype='str')
-        self._col = PstData._fixup_input(sid,empty_creator=lambda ignore:np.empty([0],dtype='str'),dtype='str')
-        self._row_property = PstData._fixup_input(None,count=len(self._row),empty_creator=lambda count:np.empty([count,0],dtype='str'),dtype='str')
-        self._col_property = PstData._fixup_input(pos,count=len(self._col),empty_creator=lambda count:np.full([count, 3], np.nan))
-        self._val = PstData._fixup_input_val(val,row_count=len(self._row),col_count=len(self._col),
-                                                empty_creator=lambda row_count,col_count:np.empty([row_count,col_count],dtype=np.float64),
-                                                _require_float32_64=_require_float32_64,
-                                                xp = xp
-                                                )
+            warnings.warn(
+                "'parent_string' is deprecated. Use 'name'", DeprecationWarning
+            )
+        self._row = PstData._fixup_input(
+            iid, empty_creator=lambda ignore: np.empty([0, 2], dtype="str"), dtype="str"
+        )
+        self._col = PstData._fixup_input(
+            sid, empty_creator=lambda ignore: np.empty([0], dtype="str"), dtype="str"
+        )
+        self._row_property = PstData._fixup_input(
+            None,
+            count=len(self._row),
+            empty_creator=lambda count: np.empty([count, 0], dtype="str"),
+            dtype="str",
+        )
+        self._col_property = PstData._fixup_input(
+            pos,
+            count=len(self._col),
+            empty_creator=lambda count: np.full([count, 3], np.nan),
+        )
+        self._val = PstData._fixup_input_val(
+            val,
+            row_count=len(self._row),
+            col_count=len(self._col),
+            empty_creator=lambda row_count, col_count: np.empty(
+                [row_count, col_count], dtype=np.float64
+            ),
+            _require_float32_64=_require_float32_64,
+            xp=xp,
+        )
         self._assert_iid_sid_pos(check_val=True)
         self._name = name or parent_string or ""
         self._std_string_list = []
@@ -100,13 +133,19 @@ class SnpData(PstData,SnpReader):
 
     @val.setter
     def val(self, new_value):
-        self._val = PstData._fixup_input_val(new_value,row_count=len(self._row),col_count=len(self._col),empty_creator=lambda row_count,col_count:np.empty([row_count,col_count],dtype=np.float64),
-                                             xp=self._xp)
+        self._val = PstData._fixup_input_val(
+            new_value,
+            row_count=len(self._row),
+            col_count=len(self._col),
+            empty_creator=lambda row_count, col_count: np.empty(
+                [row_count, col_count], dtype=np.float64
+            ),
+            xp=self._xp,
+        )
         self._assert_iid_sid_pos(check_val=True)
 
-
-    def allclose(self,value,equal_nan=True):
-        '''
+    def allclose(self, value, equal_nan=True):
+        """
         :param value: Other object with which to compare.
         :type value: :class:`SnpData`
         :param equal_nan: (Default: True) Tells if NaN in :attr:`SnpData.val` should be treated as regular values when testing equality.
@@ -120,29 +159,50 @@ class SnpData(PstData,SnpReader):
         >>> print(snpdata5.allclose(snpdata6,equal_nan=False)) #False, if we consider the NaN as special values, all the arrays are not equal.
         False
 
-        '''
-        return PstData.allclose(self,value,equal_nan=equal_nan)
+        """
+        return PstData.allclose(self, value, equal_nan=equal_nan)
 
-    def train_standardizer(self, apply_in_place, standardizer=Unit(), force_python_only=False,num_thread=None):
+    def train_standardizer(
+        self,
+        apply_in_place,
+        standardizer=Unit(),
+        force_python_only=False,
+        num_thread=None,
+    ):
         """
         .. deprecated:: 0.2.23
            Use :meth:`standardize` with return_trained=True instead.
         """
-        warnings.warn("train_standardizer is deprecated. standardize(...,return_trained=True,...) instead", DeprecationWarning)
+        warnings.warn(
+            "train_standardizer is deprecated. standardize(...,return_trained=True,...) instead",
+            DeprecationWarning,
+        )
         assert apply_in_place, "code assumes apply_in_place"
         self._std_string_list.append(str(standardizer))
-        _, trained_standardizer = standardizer.standardize(self, return_trained=True, force_python_only=force_python_only,num_threads=num_threads)
+        _, trained_standardizer = standardizer.standardize(
+            self,
+            return_trained=True,
+            force_python_only=force_python_only,
+            num_threads=num_threads,
+        )
         return trained_standardizer
 
-    #LATER should there be a single warning if Unit() finds and imputes NaNs?
-    def standardize(self, standardizer=Unit(), block_size=None, return_trained=False, force_python_only=False, num_threads=None):
+    # LATER should there be a single warning if Unit() finds and imputes NaNs?
+    def standardize(
+        self,
+        standardizer=Unit(),
+        block_size=None,
+        return_trained=False,
+        force_python_only=False,
+        num_threads=None,
+    ):
         """Does in-place standardization of the in-memory
         SNP data. By default, it applies 'Unit' standardization, that is: the values for each SNP will have mean zero and standard deviation 1.0.
         NaN values are then filled with zero, the mean (consequently, if there are NaN values, the final standard deviation will not be zero.
         Note that, for efficiency, this method works in-place, actually changing values in the ndarray. Although it works in place, for convenience
         it also returns the SnpData.
 
-        :param standardizer: optional -- Specify standardization to be applied. 
+        :param standardizer: optional -- Specify standardization to be applied.
              Any :class:`.Standardizer` may be used. Some choices include :class:`.Unit` (default, makes values for each SNP have mean zero and
              standard deviation 1.0) and :class:`.Beta`.
         :type standardizer: :class:`.Standardizer`
@@ -181,49 +241,81 @@ class SnpData(PstData,SnpReader):
         0.229416
         """
         self._std_string_list.append(str(standardizer))
-        _, trained = standardizer.standardize(self, return_trained=True, force_python_only=force_python_only, num_threads=num_threads)
+        _, trained = standardizer.standardize(
+            self,
+            return_trained=True,
+            force_python_only=force_python_only,
+            num_threads=num_threads,
+        )
         if return_trained:
             return self, trained
         else:
             return self
 
-    def _read_kernel(train, standardizer, block_size=None, order='A', dtype=np.float64, force_python_only=False, view_ok=False, return_trained=False, num_threads=None):
-        '''
+    def _read_kernel(
+        train,
+        standardizer,
+        block_size=None,
+        order="A",
+        dtype=np.float64,
+        force_python_only=False,
+        view_ok=False,
+        return_trained=False,
+        num_threads=None,
+    ):
+        """
         The method creates a kernel for the in-memory SNP data. It handles these cases
                 * No standardization is needed & everything is in memory  OR uses the FROM-DISK method
-        '''
+        """
         from pysnptools.pstreader import PstReader
+
         dtype = np.dtype(dtype)
 
-        #Just do a 'python' dot, if no standardization is needed and everything is the right type
-        if isinstance(standardizer,Identity) and train.val.dtype == dtype:
+        # Just do a 'python' dot, if no standardization is needed and everything is the right type
+        if isinstance(standardizer, Identity) and train.val.dtype == dtype:
             ts = time.time()
-            #is_worth_logging = train.val.shape[0] * train.val.shape[1] * test.val.shape[0] > 1e9
-            #if is_worth_logging: logging.info("  _read_kernel about to multiply train{0} x test{1}".format(train.val.shape,test.val.shape))
-            if order == 'F': #numpy's 'dot' always returns 'C' order
+            # is_worth_logging = train.val.shape[0] * train.val.shape[1] * test.val.shape[0] > 1e9
+            # if is_worth_logging: logging.info("  _read_kernel about to multiply train{0} x test{1}".format(train.val.shape,test.val.shape))
+            if order == "F":  # numpy's 'dot' always returns 'C' order
                 K = (train.val.dot(train.val.T)).T
             else:
                 K = train.val.dot(train.val.T)
-            assert PstReader._array_properties_are_ok(K,order,dtype), "internal error: K is not of the expected order or dtype"
-            #if is_worth_logging: logging.info("  _read_kernel took %.2f seconds" % (time.time()-ts))
+            assert PstReader._array_properties_are_ok(
+                K, order, dtype
+            ), "internal error: K is not of the expected order or dtype"
+            # if is_worth_logging: logging.info("  _read_kernel took %.2f seconds" % (time.time()-ts))
             if return_trained:
                 return K, standardizer
             else:
                 return K
-        else: #Do things the more general SnpReader way.
-            return SnpReader._read_kernel(train, standardizer, block_size=block_size, order=order, dtype=dtype, force_python_only=force_python_only,view_ok=view_ok, return_trained=return_trained, num_threads=num_threads)
+        else:  # Do things the more general SnpReader way.
+            return SnpReader._read_kernel(
+                train,
+                standardizer,
+                block_size=block_size,
+                order=order,
+                dtype=dtype,
+                force_python_only=force_python_only,
+                view_ok=view_ok,
+                return_trained=return_trained,
+                num_threads=num_threads,
+            )
 
     def __repr__(self):
         if self._name == "":
             if len(self._std_string_list) > 0:
-                s = "{0}({1})".format(self.__class__.__name__,",".join(self._std_string_list))
+                s = "{0}({1})".format(
+                    self.__class__.__name__, ",".join(self._std_string_list)
+                )
             else:
                 s = "{0}()".format(self.__class__.__name__)
         else:
             if len(self._std_string_list) > 0:
-                s = "{0}({1},{2})".format(self.__class__.__name__,self._name,",".join(self._std_string_list))
+                s = "{0}({1},{2})".format(
+                    self.__class__.__name__, self._name, ",".join(self._std_string_list)
+                )
             else:
-                s = "{0}({1})".format(self.__class__.__name__,self._name)
+                s = "{0}({1})".format(self.__class__.__name__, self._name)
         return s
 
 
@@ -231,5 +323,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     import doctest
+
     doctest.testmod(optionflags=doctest.ELLIPSIS)
     # There is also a unit test case in 'pysnptools\test.py' that calls this doc test

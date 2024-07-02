@@ -329,7 +329,7 @@ def sub_matrix(
     def create_sub_val(dtype):
         return np.full(
             (len(row_index_list), len(col_index_list), val_shape),
-            np.NAN,
+            np.nan,
             dtype=dtype,
             order=effective_order,
         )
@@ -458,7 +458,7 @@ def weighted_mean(ys, weights):
 
     >>> ys = np.array([103.664086,89.80645161,83.86888046,90.54141176])
     >>> weights = np.array([2.340862423,4.982888433,0.17522245,0.098562628])
-    >>> round(weighted_mean(ys, weights),5)
+    >>> float(round(weighted_mean(ys, weights),5))
     93.9487
     """
     mean = ys.dot(weights) / weights.sum()

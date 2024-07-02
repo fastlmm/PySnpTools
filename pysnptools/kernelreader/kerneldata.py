@@ -34,7 +34,7 @@ class KernelData(KernelReader, PstData):
 
         >>> from pysnptools.kernelreader import KernelData
         >>> kerneldata = KernelData(iid=[['fam0','iid0'],['fam0','iid1']], val=[[1.,.5],[.5,1.]])
-        >>> print((kerneldata.val[0,1], kerneldata.iid_count))
+        >>> print((float(kerneldata.val[0,1]), kerneldata.iid_count))
         (0.5, 2)
 
     **Equality:**
@@ -146,7 +146,7 @@ class KernelData(KernelReader, PstData):
 
         >>> from pysnptools.kernelreader import KernelData
         >>> kerneldata = KernelData(iid=[['fam0','iid0'],['fam0','iid1']], val=[[1.,.5],[.5,1.]])
-        >>> print((kerneldata.val[0,1], kerneldata.iid_count))
+        >>> print((float(kerneldata.val[0,1]), kerneldata.iid_count))
         (0.5, 2)
         """
         return self._val

@@ -38,7 +38,7 @@ class Standardizer(object):
     >>> print(trained_standardizer.stats[0,:]) #The mean and stddev of the 1st SNP on the training data # '...' for a possible space character
     [...1.94827586  0.22146953]
     >>> snp_test = snp_whole[test_idx,:].read().standardize(trained_standardizer)
-    >>> snp_test.val[0,0]
+    >>> float(snp_test.val[0,0])
     0.23354968324845735
 
     Standardize any Numpy array.
@@ -226,9 +226,7 @@ class Standardizer(object):
             # avoid div by 0 when standardizing
             # Don't need this warning because SNCs are still meaning full in QQ plots because they should be thought of as SNPs without enough data.
             # logging.warn("A least one snps has only one value, that is, its standard deviation is zero")
-            snp_std[
-                snp_std == 0.0
-            ] = (
+            snp_std[snp_std == 0.0] = (
                 xp.inf
             )  # We make the stdev infinity so that applying as a trained_standardizer will turn any input to 0. Thus if a variable has no variation in the training data, then it will be set to 0 in test data, too.
             stats[:, 0] = snp_mean

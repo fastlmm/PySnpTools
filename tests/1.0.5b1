@@ -1,0 +1,2 @@
+Requirement already satisfied: bed-reader in c:\users\carlk\onedrive\programs\pysnptools\.venv\lib\site-packages (1.0.4)
+Requirement already satisfied: numpy>=1.13.3 in c:\users\carlk\onedrive\programs\pysnptools\.venv\lib\site-packages (from bed-reader) (2.0.0)

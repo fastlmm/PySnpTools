@@ -17,7 +17,7 @@ install_requires = [
     "h5py>=2.10.0",
     "cloudpickle>=2.2.0",
     "more-itertools>=8.7.0",
-    "bed-reader[samples]>=1.0.4",
+    "bed-reader[samples]>=1.0.5b2",  # cmk
 ]
 
 # Optional dependencies

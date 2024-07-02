@@ -131,7 +131,7 @@ class _MergeCols(PstReader):
         result = []
         start = 0
         for reader_index in range(len(self.reader_list)):
-            stop = (
+            stop = int(
                 start + self.col_count_list[reader_index]
             )  # !!! shouldn't this be col_count (and check _mergerows, too)
             is_here = (col_index >= start) * (col_index < stop)
