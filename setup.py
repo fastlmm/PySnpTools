@@ -1,7 +1,7 @@
 from setuptools import setup
 
 # Version number
-version = "0.5.12"
+version = "0.5.13-beta.1"
 
 
 def readme():
@@ -23,7 +23,7 @@ install_requires = [
 # Optional dependencies
 extras_require = {
     "bgen": [
-        "cbgen>=1.0.4",
+        "cbgen>=1.0.6",
         "bgen-reader>=4.0.8",
     ],
 }

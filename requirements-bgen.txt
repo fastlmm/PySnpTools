@@ -9,5 +9,5 @@ bed-reader[samples]>=1.0.5b3 # cmk
 more-itertools>=8.7.0
 
 # Optional dependencies for BGEN support
-cbgen >= 1.0.4
+cbgen >= 1.0.6
 bgen-reader>=4.0.8
