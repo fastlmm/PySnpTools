@@ -1,7 +1,7 @@
 from setuptools import setup
 
 # Version number
-version = "0.5.13-beta.1"
+version = "0.5.13-beta.2"  # cmk
 
 
 def readme():
@@ -17,7 +17,7 @@ install_requires = [
     "h5py>=2.10.0",
     "cloudpickle>=2.2.0",
     "more-itertools>=8.7.0",
-    "bed-reader[samples]>=1.0.5b3",  # cmk
+    "bed-reader[samples]>=1.0.5b4",  # cmk
 ]
 
 # Optional dependencies
