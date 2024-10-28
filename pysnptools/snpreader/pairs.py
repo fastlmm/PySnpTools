@@ -546,8 +546,7 @@ if __name__ == "__main__":
 
     print("done")
 
-    from pysnptools.snpreader import Pheno, Bed
-    import pysnptools.util as pstutil
+    from pysnptools.snpreader import Bed
 
     if False:
         from pysnptools.snpreader import Bed
@@ -563,7 +562,7 @@ if __name__ == "__main__":
         print(subset.sid)
 
     if False:
-        data_file = "d:\OneDrive\programs\epiCornell\syndata.bed"
+        data_file = r"d:\OneDrive\programs\epiCornell\syndata.bed"
         if False:
             from pysnptools.snpreader import SnpData
             import numpy as np

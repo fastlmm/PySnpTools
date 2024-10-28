@@ -1,10 +1,6 @@
 import numpy as np
-import os.path
 from itertools import *
-import pandas as pd
 import logging
-import time
-import pysnptools.util as pstutil
 from pysnptools.pstreader import PstReader
 from pysnptools.kernelstandardizer import DiagKtoN
 

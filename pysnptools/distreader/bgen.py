@@ -94,7 +94,7 @@ def default_id_rsid_function(sid):
 
 
 class Bgen(DistReader):
-    """
+    r"""
     A :class:`.DistReader` for reading \*.bgen files from disk.
 
     See :class:`.DistReader` for general examples of using DistReaders.
@@ -359,7 +359,7 @@ class Bgen(DistReader):
         self.flush()
 
     def flush(self):
-        """Close the \*.bgen file for reading. (If values or properties are accessed again, the file will be reopened.)
+        r"""Close the \*.bgen file for reading. (If values or properties are accessed again, the file will be reopened.)
 
         >>> from pysnptools.distreader import Bgen
         >>> from pysnptools.util import example_file # Download and return local file name
@@ -391,7 +391,7 @@ class Bgen(DistReader):
         qctool_path=None,
         cleanup_temp_files=True,
     ):
-        """Writes a :class:`DistReader` to BGEN format and return a the :class:`.Bgen`. Requires access to the 3rd party QCTool.
+        r"""Writes a :class:`DistReader` to BGEN format and return a the :class:`.Bgen`. Requires access to the 3rd party QCTool.
 
         :param filename: the name of the file to create
         :type filename: string
@@ -507,7 +507,7 @@ class Bgen(DistReader):
         sample_function=default_sample_function,
         block_size=None,
     ):
-        """Writes a :class:`DistReader` to Gen format
+        r"""Writes a :class:`DistReader` to Gen format
 
         :param filename: the name of the file to create (will also create *filename_without_gen*.sample file.)
         :type filename: string

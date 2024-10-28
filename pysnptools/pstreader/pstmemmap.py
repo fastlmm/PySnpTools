@@ -11,7 +11,7 @@ _magic_number = 22891
 
 
 class PstMemMap(PstData):
-    """
+    r"""
     A :class:`.PstData` that keeps its data in a memory-mapped file. This allows data large than fits in main memory.
 
     See :class:`.PstData` for general examples of using PstData.

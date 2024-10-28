@@ -1,4 +1,3 @@
-import numpy as np
 import logging
 from pysnptools.standardizer import Standardizer
 
@@ -33,9 +32,9 @@ class Identity(Standardizer):
 
     @property
     def is_constant(self):
-        return True        
+        return True
 
-    def __repr__(self): 
+    def __repr__(self):
         return "{0}()".format(self.__class__.__name__)
 
     def _merge_trained(self, trained_list):

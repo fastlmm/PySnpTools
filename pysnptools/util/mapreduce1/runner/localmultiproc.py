@@ -2,8 +2,9 @@ from pysnptools.util.mapreduce1.runner import Runner, _JustCheckExists, _run_one
 import os
 import logging
 import cloudpickle as pickle
-import subprocess, sys, os.path
-import multiprocessing
+import subprocess
+import sys
+import os.path
 from pysnptools.util import create_directory_if_necessary, _datestamp
 
 
@@ -154,9 +155,6 @@ class LocalMultiProc(Runner):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    from pysnptools.util.mapreduce1 import (
-        map_reduce,
-    )  # Needed to work around thread local variable issue
 
     import doctest
 

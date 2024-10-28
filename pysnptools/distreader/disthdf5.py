@@ -2,10 +2,9 @@ import logging
 import numpy as np
 from pysnptools.distreader import DistReader
 from pysnptools.pstreader import PstHdf5
-import warnings
 
 class DistHdf5(PstHdf5,DistReader):
-    '''
+    r'''
     A :class:`.DistReader` for reading \*.dist.hdf5 files from disk.
 
     See :class:`.DistReader` for general examples of using DistReaders.

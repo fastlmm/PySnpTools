@@ -5,14 +5,13 @@ import numpy as np
 import unittest
 import doctest
 import pysnptools.util as pstutil
-from pysnptools.pstreader import PstData
 from pysnptools.pstreader import PstMemMap
-from pysnptools.distreader import DistReader, DistData
+from pysnptools.distreader import DistData
 from pysnptools.util import log_in_place
 
 
 class DistMemMap(PstMemMap, DistData):
-    """
+    r"""
     A :class:`.DistData` that keeps its data in a memory-mapped file. This allows data large than fits in main memory.
 
     See :class:`.DistData` for general examples of using DistData.
@@ -151,7 +150,7 @@ class DistMemMap(PstMemMap, DistData):
     def write(
         filename, distreader, order="A", dtype=None, block_size=None, num_threads=None
     ):
-        """Writes a :class:`DistReader` to :class:`DistMemMap` format.
+        r"""Writes a :class:`DistReader` to :class:`DistMemMap` format.
 
         :param filename: the name of the file to create
         :type filename: string

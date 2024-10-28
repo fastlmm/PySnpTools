@@ -5,7 +5,7 @@ import logging
 
 
 class KernelNpz(KernelReader,PstNpz):
-    '''
+    r'''
     A :class:`.KernelReader` for reading \*.kernel.npz files from disk.
 
     See :class:`.KernelReader` for general examples of using KernelReaders.

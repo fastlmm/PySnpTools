@@ -1,12 +1,6 @@
 import numpy as np
-import subprocess, sys, os.path
 from itertools import *
-import pandas as pd
-import logging
 from pysnptools.pstreader import PstReader
-from pysnptools.pstreader.pstdata import PstData
-import pysnptools.util as pstutil
-import warnings
 
 class _OneShot(PstReader):
     '''
@@ -21,7 +15,7 @@ class _OneShot(PstReader):
 
         self._ran_once = False
 
-    def __repr__(self): 
+    def __repr__(self):
         if hasattr(self,"filename"):
             return "{0}('{1}')".format(self.__class__.__name__,self.filename)
         else:

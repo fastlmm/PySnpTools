@@ -189,7 +189,6 @@ class Standardizer(object):
                     "Array type is not float64 or float32, so will standardize with python only instead of C++"
                 )
 
-        import pysnptools.standardizer as stdizer
 
         if is_beta:
             Standardizer._standardize_beta_python(

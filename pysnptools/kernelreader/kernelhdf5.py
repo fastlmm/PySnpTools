@@ -2,10 +2,9 @@ import logging
 import numpy as np
 from pysnptools.kernelreader import KernelReader
 from pysnptools.pstreader import PstHdf5
-import warnings
 
 class KernelHdf5(PstHdf5,KernelReader):
-    '''
+    r'''
     A :class:`.KernelReader` for reading \*.kernel.hdf5 files from disk.
 
     See :class:`.KernelReader` for general examples of using KernelReaders.

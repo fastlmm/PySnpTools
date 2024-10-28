@@ -36,7 +36,7 @@ class TestUtilTools(unittest.TestCase):
                return sum(sequence)
             return map_reduce(range(n),mapper=mapper1,reducer=reducer1,runner=runner)
         assert 328350 == holder1(100,Local())
-        
+
     def test_localinparts(self):
         from pysnptools.util.mapreduce1 import map_reduce
         from pysnptools.util.mapreduce1.runner import LocalInParts
@@ -73,7 +73,7 @@ class TestUtilTools(unittest.TestCase):
                return sum(sequence)
             return map_reduce(range(n),mapper=mapper1,reducer=reducer1,runner=runner)
         assert 328350 == holder1(100,LocalMultiThread(4))
-        
+
     def test_localinparts_with_weights(self):
         from pysnptools.util.mapreduce1 import map_reduce
         from pysnptools.util.mapreduce1.runner import LocalInParts

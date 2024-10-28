@@ -2,11 +2,10 @@ from pysnptools.pstreader import PstNpz
 from pysnptools.snpreader import SnpReader
 import logging
 import numpy as np
-import warnings
 
 
 class SnpNpz(PstNpz, SnpReader):
-    """
+    r"""
     A :class:`.SnpReader` for reading \*.snp.npz files from disk.
 
     See :class:`.SnpReader` for general examples of using SnpReaders.

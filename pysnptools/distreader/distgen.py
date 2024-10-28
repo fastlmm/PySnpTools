@@ -7,7 +7,7 @@ from pysnptools.distreader import DistReader
 
 
 class DistGen(DistReader):
-    """
+    r"""
     A :class:`.DistReader` that generates -- on the fly -- deterministic "random" distributions over SNP data..
 
     See :class:`.DistReader` for general examples of using DistReader.

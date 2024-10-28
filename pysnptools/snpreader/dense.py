@@ -28,7 +28,7 @@ def just_sid(sid, pos):
 
 
 class Dense(_OneShot, SnpReader):
-    """
+    r"""
     A :class:`.SnpReader` for reading \*.dense.txt (0,1,2 text files) from disk.
 
     See :class:`.SnpReader` for general examples of using SnpReaders.

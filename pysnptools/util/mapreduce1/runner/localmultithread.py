@@ -7,10 +7,8 @@ from pysnptools.util.mapreduce1.runner import (
 )
 import os
 import logging
-import cloudpickle as pickle
-import subprocess, sys, os.path
+import os.path
 import threading
-import pysnptools.util as util
 from six.moves.queue import PriorityQueue
 
 

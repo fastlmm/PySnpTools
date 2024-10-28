@@ -30,7 +30,7 @@ class LocalCache(FileCache):
         self.directory =  os.path.normpath(directory).replace('\\','/')
         if os.path.exists(self.directory): assert not os.path.isfile(self.directory), "A directory cannot exist where a file already exists."
 
-    def __repr__(self): 
+    def __repr__(self):
         return "{0}('{1}')".format(self.__class__.__name__,self.directory)
 
     @property
@@ -96,8 +96,8 @@ class LocalCache(FileCache):
         if os.path.exists(directory): assert not os.path.isfile(directory), "Can't treat an existing file as a directory"
         return LocalCache(directory)
 
-            
-            
+
+
 
     def _simple_walk(self):
         for root, dirs, files in os.walk(self.directory):

@@ -2,8 +2,9 @@ import logging
 from pysnptools.util.mapreduce1.runner import *
 import os
 import pickle
-import subprocess, sys, os.path
-import multiprocessing
+import subprocess
+import sys
+import os.path
 import pysnptools.util as pstutil
 from collections import defaultdict
 import tarfile as tarfileLibrary
@@ -332,7 +333,7 @@ class Hadoop(Runner):
             pstutil.create_directory_if_necessary(batfilename_rel, isfile=True)
             with open(batfilename_rel, "w") as batfile:
                 batfile.write(
-                    "@set path={0};{0}\Scripts;%path%\n".format(r"c:\GCD\esciencepy")
+                    "@set path={0};{0}\\Scripts;%path%\n".format(r"c:\GCD\esciencepy")
                 )
                 batfile.write("@set PYTHONPATH={0}\n".format(remotepythonpath))
                 batfile.write("@set home=%cd%\n")
@@ -592,7 +593,7 @@ class HadoopCopier(object):  # Implements ICopier
         if (
             not skipcheck
             and os.path.exists(tgzName)
-            and not [] in subsubItemList1
+            and [] not in subsubItemList1
             and not filter_hidden
         ):
             if not os.path.isfile(tgzName):

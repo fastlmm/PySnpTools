@@ -1,11 +1,8 @@
 import numpy as np
-import scipy as sp
 import logging
 import doctest
 import unittest
 import os.path
-import time
-import sys
 import tempfile
 from pysnptools.pstreader import PstData, PstNpz, PstHdf5, PstMemMap
 from pysnptools.util import create_directory_if_necessary

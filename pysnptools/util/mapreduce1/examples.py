@@ -1,5 +1,4 @@
 import math
-import os
 import logging
 
 def is_prime(n):

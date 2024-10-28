@@ -2,11 +2,10 @@ from pysnptools.pstreader import PstNpz
 from pysnptools.distreader import DistReader
 import logging
 import numpy as np
-import warnings
 
 
 class DistNpz(PstNpz, DistReader):
-    """
+    r"""
     A :class:`.DistReader` for reading \*.dist.npz files from disk.
 
     See :class:`.DistReader` for general examples of using DistReaders.

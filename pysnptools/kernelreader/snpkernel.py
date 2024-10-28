@@ -1,8 +1,6 @@
 import numpy as np
 from itertools import *
-import pandas as pd
 import logging
-from pysnptools.standardizer import Unit, Standardizer, UnitTrained, BetaTrained
 from pysnptools.standardizer import Identity as SS_Identity
 from pysnptools.kernelreader import KernelReader
 from pysnptools.kernelreader import KernelData

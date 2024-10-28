@@ -55,7 +55,7 @@ class Unit(Standardizer):
         stats = np.concatenate([trained.stats for trained in trained_list])
         return UnitTrained(sid, stats)
 
-        
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 

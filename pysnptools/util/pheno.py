@@ -4,8 +4,6 @@
 '''
 
 import logging
-import sys
-import scipy as sp
 import numpy as np
 
 def loadOnePhen(filename,  i_pheno = 0, missing = '-9', vectorize = False):
@@ -94,7 +92,7 @@ def loadPhen(filename, missing = '-9',famid='FID', sampid='ID'):
         iid = data[:,0:2]
         valsStr = data[:,2:]
 
-    
+
     if missing is not None:
         valsStr[valsStr==missing] = "NaN"
     vals = np.array(valsStr,dtype = 'float')

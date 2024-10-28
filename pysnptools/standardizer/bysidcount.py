@@ -1,5 +1,3 @@
-import numpy as np
-import logging
 from pysnptools.standardizer import Standardizer
 import warnings
 

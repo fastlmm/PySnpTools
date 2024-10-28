@@ -1,12 +1,9 @@
 import numpy as np
-import scipy as sp
 import logging
 import doctest
 import shutil
 import unittest
 import os.path
-import time
-import sys
 
 from pysnptools.distreader.distmemmap import TestDistMemMap
 
@@ -22,12 +19,10 @@ from pysnptools.distreader import (
     DistHdf5,
     DistMemMap,
     DistData,
-    _DistMergeSIDs,
 )
 from pysnptools.util import create_directory_if_necessary
 from pysnptools.snpreader import SnpNpz, Bed
 from pysnptools.kernelreader.test import _fortesting_JustCheckExists
-from pysnptools.pstreader import PstData
 from pysnptools.snpreader import SnpData
 
 
@@ -298,7 +293,7 @@ class TestDistReaders(unittest.TestCase):
                                 if subsetter is None
                                 else distdata[subsetter[0], subsetter[1]].read()
                             )
-                            if not suffix in can_swap_0_2_set:
+                            if suffix not in can_swap_0_2_set:
                                 assert np.allclose(
                                     readdata.val, expected.val, equal_nan=True
                                 )
@@ -313,13 +308,13 @@ class TestDistReaders(unittest.TestCase):
                                         expected.val[:, col_index],
                                         equal_nan=True,
                                     )
-                            if not suffix in ignore_fam_id_set:
+                            if suffix not in ignore_fam_id_set:
                                 assert np.array_equal(readdata.row, expected.row)
                             else:
                                 assert np.array_equal(
                                     readdata.row[:, 1], expected.row[:, 1]
                                 )
-                            if not suffix in can_change_col_names_set:
+                            if suffix not in can_change_col_names_set:
                                 assert np.array_equal(readdata.col, expected.col)
                             else:
                                 assert readdata.col_count == expected.col_count
@@ -339,7 +334,7 @@ class TestDistReaders(unittest.TestCase):
                                     readdata.col_property.shape[1] == 0
                                     and expected.col_property.shape[1] == 0
                                 )
-                            elif not suffix in ignore_pos_set:
+                            elif suffix not in ignore_pos_set:
                                 assert np.allclose(
                                     readdata.col_property,
                                     expected.col_property,
@@ -375,8 +370,6 @@ class TestDistReaders(unittest.TestCase):
         np.testing.assert_array_almost_equal(snpdata0.val, snpdata1.val, decimal=10)
 
     def test_block_size_Snp2Dist(self):
-        from pysnptools.snpreader import SnpData
-        from pysnptools.distreader._snp2dist import _Snp2Dist
 
         np.random.seed(0)
         sid_count = 20

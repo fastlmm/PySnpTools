@@ -1,12 +1,10 @@
 from pathlib import Path
 import numpy as np
 from itertools import *
-import pandas as pd
 import logging
 from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
 import pysnptools.util.pheno as pstpheno
-import pysnptools.util as pstutil
 from pysnptools.pstreader import _OneShot
 
 

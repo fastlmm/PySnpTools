@@ -6,10 +6,8 @@ import logging
 import unittest
 from pysnptools.snpreader import _MergeSIDs
 from pysnptools.snpreader import SnpReader, Bed
-from pysnptools.pstreader import PstReader
 from pysnptools.util import _multiopen
 from pysnptools.snpreader import _snps_fixup
-from pysnptools.util import log_in_place
 from pysnptools.util.mapreduce1 import map_reduce
 from pysnptools.util.filecache import FileCache
 

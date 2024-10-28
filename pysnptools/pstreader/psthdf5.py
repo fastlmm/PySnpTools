@@ -3,16 +3,14 @@ try:
 except Exception:
     pass
 
-import os
 import logging
 import numpy as np
 from pysnptools.pstreader import PstReader
 from pysnptools.pstreader.pstdata import PstData
-import warnings
 
 
 class PstHdf5(PstReader):
-    """
+    r"""
     A :class:`.PstReader` for reading \*.pst.hdf5 files from disk.
 
     See :class:`.PstReader` for general examples of using PstReaders.

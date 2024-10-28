@@ -1,14 +1,11 @@
 import numpy as np
-import os.path
 from itertools import *
-import pandas as pd
 import logging
-import time
 import pysnptools.util as pstutil
 import numbers
 
 try:
-    from builtins import int
+    pass
 except Exception:
     pass
 

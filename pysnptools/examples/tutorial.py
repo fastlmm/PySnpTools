@@ -217,7 +217,7 @@
 # # Every read gives fresh data (possible exception: view_ok=True)
 # # The result of reading is a SnpData which is a SnpReader with a .val attribute
 
- 
+
 # #Topic more properties and attributes of SnpReaders
 
 # #read() supports both memory layouts and 8 byte or 4 byte floats
@@ -265,7 +265,7 @@
 # #[[   5 4000 4000]
 # # [   5 4001 4001]
 # # [   5 4002 4002]
-# # ..., 
+# # ...,
 # # [   5 4997 4997]
 # # [   5 4998 4998]
 # # [   5 4999 4999]]

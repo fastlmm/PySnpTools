@@ -92,12 +92,12 @@ class _MapReduce(object): #implements IDistributable
         result = _run_all_in_memory(work)
         return result
 
-   
+
     # required by IDistributable
     @property
     def tempdirectory(self):
         return ".work_directory.{0}".format(self.name)
-        
+
 
     def copyinputs(self, copier):
         for fn in self.input_files:
@@ -125,7 +125,7 @@ class _MapReduce(object): #implements IDistributable
 
 def _is_in_nested():
     return hasattr(_MapReduce.dyn,"is_in_nested") and _MapReduce.dyn.is_in_nested
-    
+
 def map_reduce(input_seq, mapper=_identity, reducer=list, input_files=None, output_files=None, name=None, runner=None, nested=None):
     """
     Runs a function on sequence of inputs and runs a second function on the results. Can be nested and clusterized.
@@ -201,10 +201,9 @@ def map_reduce(input_seq, mapper=_identity, reducer=list, input_files=None, outp
 
     result = runner.run(dist)
     return result
-    
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    from pysnptools.util.mapreduce1 import map_reduce #Needed to work around thread local variable issue
     import doctest
     doctest.testmod(optionflags=doctest.ELLIPSIS)

@@ -8,7 +8,7 @@ from pysnptools.snpreader import SnpReader
 
 
 class SnpGen(SnpReader):
-    """
+    r"""
     A :class:`.SnpReader` that generates deterministic "random" SNP data on the fly.
 
     See :class:`.SnpReader` for general examples of using SnpReader.

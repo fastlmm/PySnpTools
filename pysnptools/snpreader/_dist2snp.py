@@ -1,10 +1,8 @@
 import numpy as np
 from itertools import *
-import pandas as pd
 import logging
 import time
 from pysnptools.snpreader import SnpReader
-from pysnptools.snpreader import SnpData
 
 
 class _Dist2Snp(SnpReader):

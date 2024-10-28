@@ -6,15 +6,14 @@ import unittest
 import doctest
 from pathlib import Path
 import pysnptools.util as pstutil
-from pysnptools.pstreader import PstData
 from pysnptools.pstreader import PstMemMap
-from pysnptools.snpreader import SnpReader, SnpData
+from pysnptools.snpreader import SnpData
 from pysnptools.standardizer import Identity
 from pysnptools.util import log_in_place
 
 
 class SnpMemMap(PstMemMap, SnpData):
-    """
+    r"""
     A :class:`.SnpData` that keeps its data in a memory-mapped file. This allows data large than fits in main memory.
 
     See :class:`.SnpData` for general examples of using SnpData.

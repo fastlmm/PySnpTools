@@ -1,6 +1,5 @@
 import numpy as np
 from itertools import *
-import pandas as pd
 import logging
 import time
 from pysnptools.distreader import DistReader

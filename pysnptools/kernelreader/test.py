@@ -3,7 +3,6 @@ import logging
 import doctest
 import unittest
 import os.path
-import time
 
 from pysnptools.kernelreader import *
 from pysnptools.snpreader import Bed
@@ -177,7 +176,6 @@ class TestKernelReader(unittest.TestCase):
         logging.info("done with 'test_cpp_std'")
 
     def test_intersection(self):
-        from pysnptools.standardizer import Unit
         from pysnptools.kernelreader import SnpKernel
         from pysnptools.snpreader import Pheno
         from pysnptools.kernelreader._subset import _KernelSubset

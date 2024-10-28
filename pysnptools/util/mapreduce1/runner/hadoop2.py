@@ -2,9 +2,9 @@ import logging
 from pysnptools.util.mapreduce1.runner import *
 import os
 import pickle
-import subprocess, sys, os.path
-import multiprocessing
-import pysnptools.util as util
+import subprocess
+import sys
+import os.path
 from collections import defaultdict
 import tarfile as tarfileLibrary
 import ctypes
@@ -357,7 +357,7 @@ class Hadoop2(Runner):
             pstutil.create_directory_if_necessary(batfilename_rel, isfile=True)
             with open(batfilename_rel, "w") as batfile:
                 batfile.write(
-                    "@set path={0};{0}\Scripts;%path%\n".format("c:\GCD\esciencepy4")
+                    "@set path={0};{0}\\Scripts;%path%\n".format(r"c:\GCD\esciencepy4")
                 )
                 batfile.write("@set PYTHONPATH={0}\n".format(remotepythonpath))
                 batfile.write("@set home=%cd%\n")
@@ -626,7 +626,7 @@ class HadoopCopier(object):  # Implements ICopier
             )
             return tgzName
 
-        if os.path.exists(tgzName) and not [] in subsubItemList1 and not filter_hidden:
+        if os.path.exists(tgzName) and [] not in subsubItemList1 and not filter_hidden:
             if not os.path.isfile(tgzName):
                 raise Exception("Expect '{0}' to be a file.".format(tgzName))
             logging.info("Making list of any files already in {0}".format(tgzName))

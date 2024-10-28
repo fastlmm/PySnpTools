@@ -9,9 +9,9 @@ See SamplePi.py for examples.
 
 
 import os
-import logging
 import cloudpickle as pickle
-import subprocess, sys, os.path
+import sys
+import os.path
 from pysnptools.util.mapreduce1.runner import *
 
 

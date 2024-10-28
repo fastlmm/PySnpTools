@@ -6,7 +6,8 @@ See SamplePi.py for examples.
 
 from unittest.mock import patch
 from pysnptools.util.mapreduce1.runner import Runner, _run_all_in_memory
-import os, sys
+import os
+import sys
 import logging
 
 class Local(Runner):
@@ -53,7 +54,7 @@ class _JustCheckExists(object): #Implements ICopier
 
     def __init__(self,doPrintOutputNames=False):
         self.doPrintOutputNames = doPrintOutputNames
-    
+
     def input(self,item):
         if isinstance(item, str):
             if not os.path.exists(item): raise Exception("Missing input file '{0}'".format(item))

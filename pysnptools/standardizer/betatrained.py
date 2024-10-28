@@ -37,12 +37,12 @@ class BetaTrained(Standardizer):
         self.sid=sid
         self.stats=stats
 
-    def __repr__(self): 
+    def __repr__(self):
         return "{0}(a={1},b={2},stats={3},sid={4})".format(self.__class__.__name__,self.a,self.b,self.stats,self.sid)
 
     @property
     def is_constant(self):
-        return True        
+        return True
 
     def standardize(self, snps, block_size=None, return_trained=False, force_python_only=False, num_threads=None):
         if block_size is not None:

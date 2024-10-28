@@ -1,21 +1,13 @@
 import numpy as np
-import os
-import os.path
 from itertools import *
-import pandas as pd
 import logging
-import time
-import pysnptools.util as pstutil
 from pysnptools.pstreader import PstReader
-from pysnptools.snpreader import SnpData
-import warnings
-import pysnptools.standardizer as stdizer
 from pysnptools.snpreader._dist2snp import _Dist2Snp
 
 
 # !!why do the examples use ../tests/datasets instead of "examples"?
 class DistReader(PstReader):
-    """A DistReader is one of three things:
+    r"""A DistReader is one of three things:
 
     * A class such as :class:`.Bgen` for you to specify a file with data. For example,
 
@@ -386,7 +378,6 @@ class DistReader(PstReader):
         """
         Like 'read' except won't read if already a DistData
         """
-        from pysnptools.distreader import DistData  # must import here to avoid cycles
 
         dtype = np.dtype(dtype)
 

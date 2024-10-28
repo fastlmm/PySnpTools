@@ -1,11 +1,8 @@
 import numpy as np
-import subprocess, sys, os.path
 from itertools import *
-import pandas as pd
 import logging
 from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
-import numpy as np
 import warnings
 from pysnptools.pstreader import _OneShot
 
@@ -96,7 +93,7 @@ class Ped(_OneShot,SnpReader):
 
         if isinstance(filename,SnpData) and isinstance(snpdata,str): #For backwards compatibility, reverse inputs if necessary
             warnings.warn("write statement should have filename before data to write", DeprecationWarning)
-            filename, snpdata = snpdata, filename 
+            filename, snpdata = snpdata, filename
 
         SnpReader._write_map_or_bim(snpdata, filename, remove_suffix="ped", add_suffix="map")
 

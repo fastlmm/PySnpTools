@@ -1,6 +1,5 @@
 import numpy as np
 from itertools import *
-import pandas as pd
 import logging
 from pysnptools.snpreader import SnpReader
 from pysnptools.standardizer import Unit

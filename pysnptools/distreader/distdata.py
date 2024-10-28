@@ -1,13 +1,8 @@
 import numpy as np
 from itertools import *
-import pandas as pd
 import logging
 from pysnptools.distreader import DistReader
-from pysnptools.standardizer import Unit
-from pysnptools.standardizer import Identity
 from pysnptools.pstreader import PstData
-import warnings
-import time
 
 
 class DistData(PstData, DistReader):

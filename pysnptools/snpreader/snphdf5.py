@@ -2,11 +2,10 @@ import logging
 import numpy as np
 from pysnptools.snpreader import SnpReader
 from pysnptools.pstreader import PstHdf5
-import warnings
 
 
 class SnpHdf5(PstHdf5, SnpReader):
-    """
+    r"""
     A :class:`.SnpReader` for reading \*.snp.hdf5 files from disk.
 
     See :class:`.SnpReader` for general examples of using SnpReaders.

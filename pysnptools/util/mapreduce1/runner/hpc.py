@@ -1,9 +1,9 @@
 from pysnptools.util.mapreduce1.runner import *
 import os
-import subprocess, sys, os.path
-import multiprocessing
+import subprocess
+import sys
+import os.path
 import pysnptools.util as pstutil
-import pdb
 import logging
 import cloudpickle as pickle
 
@@ -288,7 +288,6 @@ class HPC(Runner):
                 )
             )
         assert batfilename_rel[-8:] == "dist.bat", "real assert"
-        import subprocess
 
         proc = subprocess.Popen(
             ["powershell.exe", "-ExecutionPolicy", "Unrestricted", psfilename_abs],
@@ -479,7 +478,7 @@ class HPC(Runner):
                 + "\\".join(localwd.split("\\")[4:])
             )
             nodelocalwd = (
-                "d:\scratch\escience"
+                r"d:\scratch\escience"
                 + os.path.sep
                 + username
                 + os.path.sep
@@ -490,7 +489,7 @@ class HPC(Runner):
                 self.fileshare + os.path.sep + username + os.path.splitdrive(localwd)[1]
             )  # using '+' because 'os.path.join' isn't work with shares
             nodelocalwd = (
-                "d:\scratch\escience"
+                r"d:\scratch\escience"
                 + os.path.sep
                 + username
                 + os.path.splitdrive(localwd)[1]
@@ -572,12 +571,12 @@ class HPCCopierNodeLocal(object):  # Implements ICopier
         if isinstance(item, str):
             itemnorm = os.path.normpath(item)
             dirname = os.path.dirname(itemnorm)
-            self.fileprep.write("if not exist %t%\{0} mkdir %t%\{0}\n".format(dirname))
+            self.fileprep.write("if not exist %t%\\{0} mkdir %t%\\{0}\n".format(dirname))
             self.fileprep.write(
-                "xcopy /d /e /s /c /h /y %f%\{0} %t%\{1}\\\n".format(itemnorm, dirname)
+                "xcopy /d /e /s /c /h /y %f%\\{0} %t%\\{1}\\\n".format(itemnorm, dirname)
             )
             if self.clean_up:
-                self.filerelease.write("del %t%\{0}\n".format(itemnorm))
+                self.filerelease.write("del %t%\\{0}\n".format(itemnorm))
         elif hasattr(item, "copyinputs"):
             item.copyinputs(self)
         # else -- do nothing
@@ -587,10 +586,10 @@ class HPCCopierNodeLocal(object):  # Implements ICopier
             itemnorm = os.path.normpath(item)
             dirname = os.path.dirname(itemnorm)
             self.filerelease.write(
-                "xcopy /d /e /s /c /h /y %t%\{0} %f%\{1}\\\n".format(itemnorm, dirname)
+                "xcopy /d /e /s /c /h /y %t%\\{0} %f%\\{1}\\\n".format(itemnorm, dirname)
             )
             if self.clean_up:
-                self.filerelease.write("del %t%\{0}\n".format(itemnorm))
+                self.filerelease.write("del %t%\\{0}\n".format(itemnorm))
         elif hasattr(item, "copyoutputs"):
             item.copyoutputs(self)
         # else -- do nothing
