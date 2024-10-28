@@ -1,6 +1,0 @@
-#include *.rst
-#recursive-include doc *
-#recursive-include tests *
-include LICENSE.md
-include AUTHORS.txt
-include README.md

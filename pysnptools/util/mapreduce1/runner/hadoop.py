@@ -1,11 +1,10 @@
 import logging
 from pysnptools.util.mapreduce1.runner import *
 import os
-import cPickle as pickle
+import pickle
 import subprocess, sys, os.path
 import multiprocessing
 import pysnptools.util as pstutil
-import pdb
 from collections import defaultdict
 import tarfile as tarfileLibrary
 import ctypes

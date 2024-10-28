@@ -34,3 +34,6 @@ doc/ipynb/deleteme*.*
 doc/ipynb/delme*.*
 doc/ipynb/example2.dist.memmap
 doc/ipynb/.ipynb_checkpoints/*
+localcache*/*
+peertopeer*/*
+uv.lock
