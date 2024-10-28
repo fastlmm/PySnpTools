@@ -67,14 +67,14 @@ class LocalMultiProc(Runner):
     def run(self, distributable):
         _JustCheckExists().input(distributable)
 
-        localpath = os.environ["PATH"]
+        os.environ["PATH"]
         localwd = os.getcwd()
 
         import datetime
 
-        now = datetime.datetime.now()
+        datetime.datetime.now()
         run_dir_rel = os.path.join("runs", _datestamp(appendrandom=True))
-        run_dir_abs = os.path.join(localwd, run_dir_rel)
+        os.path.join(localwd, run_dir_rel)
         create_directory_if_necessary(run_dir_rel, isfile=False)
 
         distributablep_filename = os.path.join(run_dir_rel, "distributable.p")

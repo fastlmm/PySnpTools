@@ -101,25 +101,26 @@ def intersect_apply(
     for data in data_list:
         if data is None:
             iid = None
-            reindex = lambda data, iididx: None
+            def reindex(data, iididx):
+                return None
         elif intersect_before_standardize and isinstance(data, SnpKernel):
             iid = data.iid1 if is_test else data.iid0
-            reindex = lambda data, iididx, is_test=is_test: _reindex_snpkernel(
-                data, iididx, is_test
-            )
+            def reindex(data, iididx, is_test=is_test):
+                return _reindex_snpkernel(data, iididx, is_test)
         elif intersect_before_standardize and isinstance(data, IdentityKernel):
             iid = data.iid1 if is_test else data.iid0
-            reindex = lambda data, iididx, is_test=is_test: _reindex_identitykernel(
-                data, iididx, is_test
-            )
+            def reindex(data, iididx, is_test=is_test):
+                return _reindex_identitykernel(data, iididx, is_test)
         else:
             try:  # pheno dictionary
                 iid = data["iid"]
-                reindex = lambda data, iididx: _reindex_phen_dict(data, iididx)
+                def reindex(data, iididx):
+                    return _reindex_phen_dict(data, iididx)
             except Exception:
                 if hasattr(data, "iid1") and is_test:  # test kernel
                     iid = data.iid1
-                    reindex = lambda data, iididx: data[:, iididx]
+                    def reindex(data, iididx):
+                        return data[:, iididx]
                 else:
                     try:
                         iid = data.iid
@@ -127,14 +128,18 @@ def intersect_apply(
                             if (
                                 iid is data.col
                             ):  # If the 'iid' shares memory with the 'col', then it's a square-kernel-like thing and should be processed with just once index
-                                reindex = lambda data, iididx: data[iididx]
+                                def reindex(data, iididx):
+                                    return data[iididx]
                             else:
-                                reindex = lambda data, iididx: data[iididx, :]
+                                def reindex(data, iididx):
+                                    return data[iididx, :]
                         except Exception:
-                            reindex = lambda data, iididx: data[iididx, :]
+                            def reindex(data, iididx):
+                                return data[iididx, :]
                     except AttributeError:  # tuple of (val,iid)
                         iid = data[1]
-                        reindex = lambda data, iididx: _testtest(data, iididx)
+                        def reindex(data, iididx):
+                            return _testtest(data, iididx)
 
         iid_list.append(iid)
         reindex_list.append(reindex)

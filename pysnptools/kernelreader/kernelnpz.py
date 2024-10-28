@@ -12,7 +12,7 @@ class KernelNpz(KernelReader,PstNpz):
 
     The general NPZ format is described `here <http://docs.scipy.org/doc/numpy/reference/generated/numpy.savez.html>`__. The KernelNpz format stores
     val, iid0, and iid1 information in NPZ format.
-   
+
     **Constructor:**
         :Parameters: * **filename** (*string*) -- The KernelNpz file to read.
 

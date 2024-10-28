@@ -455,7 +455,7 @@ class TestPstMemMap(unittest.TestCase):
             order="F",
             dtype=np.float64,
         )
-        pstdata = a.read(order="C", view_ok=True)
+        a.read(order="C", view_ok=True)
         os.chdir(old_dir)
 
 

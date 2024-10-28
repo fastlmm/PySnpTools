@@ -272,7 +272,7 @@ class SnpData(PstData, SnpReader):
 
         # Just do a 'python' dot, if no standardization is needed and everything is the right type
         if isinstance(standardizer, Identity) and train.val.dtype == dtype:
-            ts = time.time()
+            time.time()
             # is_worth_logging = train.val.shape[0] * train.val.shape[1] * test.val.shape[0] > 1e9
             # if is_worth_logging: logging.info("  _read_kernel about to multiply train{0} x test{1}".format(train.val.shape,test.val.shape))
             if order == "F":  # numpy's 'dot' always returns 'C' order

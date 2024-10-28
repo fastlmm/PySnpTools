@@ -11,7 +11,7 @@ class DistHdf5(PstHdf5,DistReader):
 
     The general HDF5 format is described `here <http://www.hdfgroup.org/HDF5/>`__. The DistHdf5 format stores
     val, iid, sid, and pos information in Hdf5 format.
-   
+
     **Constructor:**
         :Parameters: * **filename** (*string*) -- The DistHdf5 file to read.
 

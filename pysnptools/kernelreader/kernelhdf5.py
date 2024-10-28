@@ -11,7 +11,7 @@ class KernelHdf5(PstHdf5,KernelReader):
 
     The general HDF5 format is described in `here <http://www.hdfgroup.org/HDF5/>`__. The KernelHdf5 format stores
     val, iid, sid, and pos information in Hdf5 format.
-   
+
     **Constructor:**
         :Parameters: * **filename** (*string*) -- The KernelHdf5 file to read.
 

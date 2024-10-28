@@ -125,7 +125,6 @@ def _work_sequence_for_one_index(distributable, taskAndWorkcount, taskindex):
 
 def doMainWorkForOneIndex(distributable, taskAndWorkcount, taskindex, workdirectory):
     task_file_name = create_task_file_name(workdirectory, taskindex, taskAndWorkcount)
-    workDone = False
     with open(task_file_name, mode="wb") as f:
         for work in _work_sequence_for_one_index(
             distributable, taskAndWorkcount, taskindex

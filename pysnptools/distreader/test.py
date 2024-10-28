@@ -44,7 +44,7 @@ class TestDistReaders(unittest.TestCase):
         val_shape = 3
         val = np.random.random((row_count, col_count, val_shape))
         val /= val.sum(axis=2, keepdims=True)  # make probabilities sum to 1
-        distdata = DistData(
+        DistData(
             val=val,
             iid=[["iid{0}".format(i)] * 2 for i in range(row_count)],
             sid=["sid{0}".format(s) for s in range(col_count)],
@@ -245,7 +245,6 @@ class TestDistReaders(unittest.TestCase):
                 ]
                 col = ["s0", "s1", "s2", "s3", "s4"][:col_count]
                 for is_none in [True, False]:
-                    row_prop = None
                     col_prop = (
                         None if is_none else [(x, x, x) for x in range(5)][:col_count]
                     )
@@ -449,7 +448,7 @@ class TestDistReaders(unittest.TestCase):
         logging.info("in test_dist_snp2")
         distreader = DistNpz(self.currentFolder + "/../examples/toydata.dist.npz")
         dist2snp = distreader.as_snp(max_weight=33)
-        s = str(dist2snp)
+        str(dist2snp)
         _fortesting_JustCheckExists().input(dist2snp)
 
     def test_snp_dist2(self):
@@ -458,7 +457,7 @@ class TestDistReaders(unittest.TestCase):
             self.currentFolder + "/../examples/toydata.5chrom.bed", count_A1=False
         )
         snp2dist = snpreader.as_dist(max_weight=2)
-        s = str(snp2dist)
+        str(snp2dist)
         _fortesting_JustCheckExists().input(snp2dist)
 
     def test_subset_Dist2Snp(self):
@@ -504,7 +503,7 @@ class TestDistReaders(unittest.TestCase):
                     for max_weight in [1.0, 2.0]:
                         weights = np.array([0, 0.5, 1]) * max_weight
                         for distreader0 in [distdataX, distdataX[:, 1:]]:
-                            distreader1 = distreader0[1:, :]
+                            distreader0[1:, :]
                             refdata0 = distreader0.read()
                             refval0 = (refdata0.val * weights).sum(axis=-1)
                             for dtype_goal, decimal_goal in [
@@ -528,7 +527,7 @@ class TestDistReaders(unittest.TestCase):
         logging.info("in test_npz")
         distreader = DistNpz(self.currentFolder + "/../examples/toydata.dist.npz")
         snpdata1 = distreader.as_snp(max_weight=1.0).read()
-        s = str(snpdata1)
+        str(snpdata1)
         output = "tempdir/distreader/toydata.snp.npz"
         create_directory_if_necessary(output)
         SnpNpz.write(output, snpdata1)
@@ -564,13 +563,12 @@ class TestDistNaNCNC(unittest.TestCase):
 
     @staticmethod
     def factory_iterator():
-        snp_reader_factory_distnpz = lambda: DistNpz("../examples/toydata.dist.npz")
-        snp_reader_factory_snpmajor_hdf5 = lambda: DistHdf5(
-            "../examples/toydata.snpmajor.dist.hdf5"
-        )
-        snp_reader_factory_iidmajor_hdf5 = lambda: DistHdf5(
-            "../examples/toydata.iidmajor.dist.hdf5"
-        )
+        def snp_reader_factory_distnpz():
+            return DistNpz("../examples/toydata.dist.npz")
+        def snp_reader_factory_snpmajor_hdf5():
+            return DistHdf5("../examples/toydata.snpmajor.dist.hdf5")
+        def snp_reader_factory_iidmajor_hdf5():
+            return DistHdf5("../examples/toydata.iidmajor.dist.hdf5")
 
         previous_wd = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))

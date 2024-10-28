@@ -20,7 +20,7 @@ class TestPstReader(unittest.TestCase):
         create_directory_if_necessary(output)
         PstNpz.write(output, pstdata)
         pstnpz = PstNpz(output)
-        pstdata1 = pstnpz[::2, ::4].read()
+        pstnpz[::2, ::4].read()
         pstdata2 = pstnpz.read(order="A")
         assert pstdata2.val.flags["C_CONTIGUOUS"]
 
@@ -42,7 +42,7 @@ class TestPstReader(unittest.TestCase):
         create_directory_if_necessary(output)
         PstNpz.write(output, pstdata)
         pstnpz = PstNpz(output)
-        pstdata1 = pstnpz[::2, ::4].read()
+        pstnpz[::2, ::4].read()
         pstdata2 = pstnpz.read(order="A")
         assert pstdata2.val.flags["C_CONTIGUOUS"]
 
@@ -237,7 +237,7 @@ class TestPstReader(unittest.TestCase):
             col_property=col_property,
         )
         assert pstdata.col_to_index([("B", "b")])[0] == 1
-        s = str(pstdata)
+        str(pstdata)
 
     def test_read(self):
         np.random.seed(0)
@@ -369,7 +369,7 @@ class TestPstReader(unittest.TestCase):
         logging.info("done with test")
 
     def test_flush(self):
-        previous_wd = os.getcwd()
+        os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
         reader = PstHdf5("../examples/toydata.kernel.hdf5")

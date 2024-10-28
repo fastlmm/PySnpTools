@@ -58,7 +58,7 @@ class Hadoop(Runner):
         localpythonpath = os.environ.get(
             "PYTHONPATH"
         )  # !!should it be able to work without pythonpath being set (e.g. if there was just one file)? Also, is None really the return or is it an exception.
-        if localpythonpath == None:
+        if localpythonpath is None:
             raise Exception("Expect local machine to have 'pythonpath' set")
 
         remotewd, run_dir_abs, run_dir_rel = self.create_run_dir()
@@ -294,7 +294,7 @@ class Hadoop(Runner):
 
         outFileList = Hadoop.RecursivelyGetAllOutputs(distributable)
 
-        distributablep_filename_rel = self.create_distributablep(
+        self.create_distributablep(
             distributable, run_dir_abs, run_dir_rel
         )
 
@@ -585,7 +585,7 @@ class HadoopCopier(object):  # Implements ICopier
     def CheckUpdateTgz(
         directory0, subsubItemList1=None, skipcheck=False, filter_hidden=True
     ):
-        if subsubItemList1 == None:
+        if subsubItemList1 is None:
             subsubItemList1 = [[]]
         directory = os.path.normpath(directory0)
         tgzName = directory + ".tgz"

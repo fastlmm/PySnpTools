@@ -1,6 +1,6 @@
 '''
 .. deprecated::
-    Use :class:`.Pheno` instead.    
+    Use :class:`.Pheno` instead.
 '''
 
 import logging
@@ -9,7 +9,7 @@ import numpy as np
 def loadOnePhen(filename,  i_pheno = 0, missing = '-9', vectorize = False):
     '''
     .. deprecated::
-       Use :class:`.Pheno` instead.    
+       Use :class:`.Pheno` instead.
 
     Load one column of a phenotype file. Remove any rows with missing data
 
@@ -55,7 +55,7 @@ def loadOnePhen(filename,  i_pheno = 0, missing = '-9', vectorize = False):
 def loadPhen(filename, missing = '-9',famid='FID', sampid='ID'):
     '''
     .. deprecated::
-       Use :class:`.Pheno` instead.    
+       Use :class:`.Pheno` instead.
 
     Load a phenotype or covariate file. Covariates have the same file format.
 

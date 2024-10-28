@@ -17,7 +17,7 @@ class Local(Runner):
     **Constructor:**
         :Parameters: * **mkl_num_threads** (*number*) -- (default None) Limit on the number threads used by the NumPy MKL library.
         :Parameters: * **logging_handler** (*stream*) --  (default stdout) Where to output logging messages.
-        
+
         :Example:
 
         >>> from pysnptools.util.mapreduce1 import map_reduce

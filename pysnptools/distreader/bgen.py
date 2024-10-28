@@ -831,7 +831,8 @@ class TestBgen(unittest.TestCase):
             assert np.array_equal(bgen.iid[0], ["sample_001", "sample_001"])
             assert bgen.sid[0] == "RSID_2"
 
-            sid_function = lambda id, rsid: "{0},{1}".format(id, rsid)
+            def sid_function(id, rsid):
+                return "{0},{1}".format(id, rsid)
             bgen = Bgen(file_to, iid_function, sid_function=sid_function)
             assert bgen.sid[0] == "SNPID_2,RSID_2"
 
@@ -840,7 +841,8 @@ class TestBgen(unittest.TestCase):
         )
         del bgen
         os.remove(metafile)
-        sid_function = lambda id, rsid: "{0},{1}".format(id, rsid)
+        def sid_function(id, rsid):
+            return "{0},{1}".format(id, rsid)
         bgen = Bgen(file_to, iid_function, sid_function=sid_function)
         assert bgen.sid[0] == "SNPID_2,RSID_2"
 

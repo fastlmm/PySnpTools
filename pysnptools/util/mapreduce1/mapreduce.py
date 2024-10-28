@@ -88,7 +88,8 @@ class _MapReduce(object): #implements IDistributable
     def dowork(self, i, input_arg):
         #logging.info("{0}, {1}".format(len(train_snp_idx), len(test_snp_idx)))
         #logging.debug("\nexecuting {0}".format(input_arg))
-        work = lambda : self.mapper(input_arg)
+        def work():
+            return self.mapper(input_arg)
         result = _run_all_in_memory(work)
         return result
 
@@ -154,7 +155,7 @@ def map_reduce(input_seq, mapper=_identity, reducer=list, input_files=None, outp
         If not given, the function is run locally.
     :type runner: :class:`.Runner`
 
-    :param nested: a mapper function that is itself a map_reduce. Some runners can efficiently clusterize such nested mappers. 
+    :param nested: a mapper function that is itself a map_reduce. Some runners can efficiently clusterize such nested mappers.
     :type nested: a function
 
     :rtype: The results from the reducer.
@@ -165,7 +166,7 @@ def map_reduce(input_seq, mapper=_identity, reducer=list, input_files=None, outp
     Square the numbers 0 to 99 and report their sum, locally:
 
         >>> from pysnptools.util.mapreduce1 import map_reduce
-        >>> map_reduce(range(100), 
+        >>> map_reduce(range(100),
         ...        mapper=lambda x: x*x,
         ...        reducer=sum)
         328350

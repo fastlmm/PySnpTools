@@ -318,7 +318,7 @@ class Hadoop2(Runner):
 
         outFileList = Hadoop2.RecursivelyGetAllOutputs(distributable)
 
-        distributablep_filename_rel = self.create_distributablep(
+        self.create_distributablep(
             distributable, run_dir_abs, run_dir_rel
         )
 

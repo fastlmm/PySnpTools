@@ -264,7 +264,6 @@ class PstHdf5(PstReader):
         if order == "A":
             order = "F" if self.is_col_major else "C"
 
-        opposite_order = "C" if order == "F" else "F"
 
         if row_index_or_none is not None:
             row_index_count = len(row_index_or_none)

@@ -210,7 +210,7 @@ class HPC(Runner):
             excluded_nodes = ""
 
         # create the Powershell file
-        psfilename_rel = os.path.join(run_dir_rel, "dist.ps1")
+        os.path.join(run_dir_rel, "dist.ps1")
         psfilename_abs = os.path.join(run_dir_abs, "dist.ps1")
         pstutil.create_directory_if_necessary(psfilename_abs, isfile=True)
         with open(psfilename_abs, "w") as psfile:
@@ -411,13 +411,13 @@ class HPC(Runner):
         batfilename_rel = os.path.join(run_dir_rel, "dist.bat")
         batfilename_abs = os.path.join(run_dir_abs, "dist.bat")
         pstutil.create_directory_if_necessary(batfilename_abs, isfile=True)
-        matplotlibfilename_rel = os.path.join(run_dir_rel, ".matplotlib")
+        os.path.join(run_dir_rel, ".matplotlib")
         matplotlibfilename_abs = os.path.join(run_dir_abs, ".matplotlib")
         pstutil.create_directory_if_necessary(matplotlibfilename_abs, isfile=False)
         pstutil.create_directory_if_necessary(
             matplotlibfilename_abs + "/tex.cache", isfile=False
         )
-        ipythondir_rel = os.path.join(run_dir_rel, ".ipython")
+        os.path.join(run_dir_rel, ".ipython")
         ipythondir_abs = os.path.join(run_dir_abs, ".ipython")
         pstutil.create_directory_if_necessary(ipythondir_abs, isfile=False)
         with open(batfilename_abs, "w") as batfile:
@@ -496,7 +496,7 @@ class HPC(Runner):
             )  # !!! const
         import datetime
 
-        now = datetime.datetime.now()
+        datetime.datetime.now()
         run_dir_rel = os.path.join("runs", pstutil._datestamp(appendrandom=True))
         run_dir_abs = os.path.join(remotewd, run_dir_rel)
         pstutil.create_directory_if_necessary(run_dir_abs, isfile=False)

@@ -139,17 +139,14 @@ class _Pairs(SnpReader):
         sid_count_in = self.sid_count
 
         if iid_index_or_none is not None:
-            iid_count_out = len(iid_index_or_none)
-            iid_index = iid_index_or_none
+            len(iid_index_or_none)
         else:
-            iid_count_out = iid_count_in
-            iid_index = range(iid_count_in)
+            range(iid_count_in)
 
         if sid_index_or_none is not None:
-            sid_count_out = len(sid_index_or_none)
+            len(sid_index_or_none)
             sid_index = sid_index_or_none
         else:
-            sid_count_out = sid_count_in
             sid_index = range(sid_count_in)
 
         sid_index_inner_0 = self.index0_list[
@@ -274,9 +271,6 @@ class _Pairs2(SnpReader):
             assert (
                 self.col_count < self.sid_materialize_limit
             ), "{:,} is too many sids to materialize".format(self.col_count)
-            snpreader1 = (
-                self.snpreader1 if self.snpreader1 is not None else self.snpreader0
-            )
             # !!!self.index0_list = self.snpreader0.sid_to_index((sid0 for sid0,sid1 in self._utilpairs[:])) # !!! can we do without these?
             # !!!self.index1_list = snpreader1.sid_to_index(sid1 for sid0,sid1 in self._utilpairs[:])# !!!can we do without these?
             self._col = np.array(list(",".join(pair) for pair in self._utilpairs[:]))
@@ -319,20 +313,16 @@ class _Pairs2(SnpReader):
         self.run_once()
 
         iid_count_in = self.iid_count
-        sid_count_in = self.sid_count
 
         if iid_index_or_none is not None:
-            iid_count_out = len(iid_index_or_none)
-            iid_index_out = iid_index_or_none
+            len(iid_index_or_none)
         else:
-            iid_count_out = iid_count_in
-            iid_index_out = range(iid_count_in)
+            range(iid_count_in)
 
         if sid_index_or_none is not None:
-            sid_count_out = len(sid_index_or_none)
+            len(sid_index_or_none)
             sid_index_out = sid_index_or_none
         else:
-            sid_count_out = sid_count_in
             sid_index_out = splice(None)  # !!! test this
 
         pair_array = np.array(

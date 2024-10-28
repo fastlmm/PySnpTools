@@ -15,8 +15,8 @@ class Ped(_OneShot,SnpReader):
 
     This format is described `here <http://zzz.bwh.harvard.edu/plink/data.shtml#ped>`__ and looks like::
 
-         FAM001  1  0 0  1  2  A A  G G  A C 
-         FAM001  2  0 0  1  2  A A  A G  0 0 
+         FAM001  1  0 0  1  2  A A  G G  A C
+         FAM001  2  0 0  1  2  A A  A G  0 0
          ...
 
     the direction of the encoding from allele pair to 0,1,2 is arbitrary. That is, if the alleles are "A" and "G", then "G G" could be 0 and "A A" could be 2 or visa versa. The pair "A G" will always be 1.

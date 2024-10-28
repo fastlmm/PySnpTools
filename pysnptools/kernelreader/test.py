@@ -305,7 +305,7 @@ class TestKernelReader(unittest.TestCase):
                             refdata1 = snpreader1.read().standardize(
                                 trained_standardizer, force_python_only=True
                             )  # LATER why aren't these used?
-                            refval1 = refdata0.val.dot(
+                            refdata0.val.dot(
                                 refdata1.val.T
                             )  # LATER why aren't these used?
                             for dtype_goal, decimal_goal in [
@@ -331,7 +331,7 @@ class TestKernelReader(unittest.TestCase):
     def test_fail(self):
         did_fail = True
         try:
-            kd = KernelData(
+            KernelData(
                 iid=[["0"], ["1"], ["2"]], val=[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
             )  # Wrong iid shape
             did_fail = False
@@ -363,7 +363,7 @@ class TestKernelReader(unittest.TestCase):
             self.currentFolder + "/../examples/toydata.5chrom.bed", count_A1=False
         )
         snpkernel = SnpKernel(snpreader, standardizer=stdizer.Beta(1, 25))
-        s = str(snpkernel)
+        str(snpkernel)
         _fortesting_JustCheckExists().input(snpkernel)
 
     def test_npz(self):
@@ -372,7 +372,7 @@ class TestKernelReader(unittest.TestCase):
             self.currentFolder + "/../examples/toydata.5chrom.bed", count_A1=False
         )
         kerneldata1 = snpreader.read_kernel(standardizer=stdizer.Unit())
-        s = str(kerneldata1)
+        str(kerneldata1)
         output = "tempdir/kernelreader/toydata.kernel.npz"
         create_directory_if_necessary(output)
         KernelNpz.write(output, kerneldata1)
