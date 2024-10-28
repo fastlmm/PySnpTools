@@ -1,7 +1,15 @@
 # Useful
 
 ```bash
-set PROMPT=$P$G
+export QCTOOLPATH="/mnt/c/Users/carlk/OneDrive/Projects/Science/virginia/qctool/qctool"
+set QCTOOLPATH=ubuntu run /mnt/c/Users/carlk/OneDrive/Projects/Science/virginia/qctool/qctool
+
+uv sync --all-extras
+pytest
+```
+
+```bash
+set PROMP
 set pythonpath=%cd%
 cd tests
 python tests.py

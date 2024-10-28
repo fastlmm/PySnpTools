@@ -83,9 +83,16 @@ select = ["E", "F", "W"]
 [tool.pytest.ini_options]
 addopts = "--doctest-modules --doctest-glob=*.rst --doctest-glob=*.md"
 doctest_optionflags = ["ELLIPSIS", "NORMALIZE_WHITESPACE"]
+filterwarnings = [
+    "ignore:Converting float64 to float32 can cause loss of information:UserWarning",
+    "ignore:'count_A1' was not set.*will default to 'False':FutureWarning",
+    "ignore:standardizing an ndarray instead of a SnpData is deprecated:DeprecationWarning",
+    "ignore:.*\\.kernel.*deprecated.*read_kernel.*val:DeprecationWarning",
+    "ignore:'parent_string' is deprecated. Use 'name':DeprecationWarning",
+]
 
 [tool.uv]
-dev-dependencies = ["twine>=5.1.1"]
+dev-dependencies = ["pytest-xdist>=3.6.1", "twine>=5.1.1"]
 
 
 [tool.setuptools]

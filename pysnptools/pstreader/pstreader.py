@@ -638,10 +638,14 @@ class PstReader(object):
         if (
             len(indexer) == 0
         ):  # If it's zero length, the type is unreliable and unneeded.
-            return np.zeros((0), dtype=np.integer)
+            return np.zeros((0), dtype=np.intp)
         if indexer.dtype == bool:
-            return np.arange(len(indexer), dtype=np.integer)[indexer]
-        assert np.issubdtype(indexer.dtype, np.integer), "Indexer of unknown type"
+            return np.arange(len(indexer), dtype=np.intp)[indexer]
+        assert (np.issubdtype(indexer.dtype, np.intp) or
+               np.issubdtype(indexer.dtype, np.int64) or
+               np.issubdtype(indexer.dtype, np.int32) or
+               np.issubdtype(indexer.dtype, np.uint64) or
+               np.issubdtype(indexer.dtype, np.uint32)), "Indexer of unknown type"
         return indexer
 
     @staticmethod
