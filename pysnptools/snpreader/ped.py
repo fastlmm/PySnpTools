@@ -1,5 +1,5 @@
 import numpy as np
-from itertools import *
+from itertools import *  # noqa: F403
 import logging
 from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
@@ -9,7 +9,7 @@ from pysnptools.pstreader import _OneShot
 
 class Ped(_OneShot,SnpReader):
     '''
-    A :class:`.SnpReader` for reading Ped-formated (and the related Map-formated) files from disk.
+    A :class:`.SnpReader` for reading Ped-formatted (and the related Map-formatted) files from disk.
 
     See :class:`.SnpReader` for general examples of using SnpReaders.
 

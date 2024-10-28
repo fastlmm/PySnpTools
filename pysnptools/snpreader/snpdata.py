@@ -1,5 +1,5 @@
 import numpy as np
-from itertools import *
+from itertools import *  # noqa: F403
 import logging
 from pysnptools.snpreader import SnpReader
 from pysnptools.standardizer import Unit
@@ -182,7 +182,7 @@ class SnpData(PstData, SnpReader):
             self,
             return_trained=True,
             force_python_only=force_python_only,
-            num_threads=num_threads,
+            num_threads=num_thread,
         )
         return trained_standardizer
 

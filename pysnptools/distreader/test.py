@@ -7,12 +7,6 @@ import os.path
 
 from pysnptools.distreader.distmemmap import TestDistMemMap
 
-try:
-    from bgen_reader.test.test_bgen_reader import nowrite_permission, noread_permission
-
-    BGEN_READER_AVAILABLE = True
-except ImportError:
-    BGEN_READER_AVAILABLE = False
 from pysnptools.distreader.distgen import TestDistGen
 from pysnptools.distreader import (
     DistNpz,
@@ -743,6 +737,7 @@ def getTestSuite():
     """
     set up composite test suite
     """
+    from pysnptools.distreader.bgen import TestBgen
 
     test_suite = unittest.TestSuite([])
 

@@ -1,5 +1,5 @@
 import numpy as np
-from itertools import *
+from itertools import *  # noqa: F403
 import logging
 from pysnptools.pstreader import PstReader
 from pysnptools.snpreader._dist2snp import _Dist2Snp
@@ -39,7 +39,7 @@ class DistReader(PstReader):
         >>> from pysnptools.util import example_file # Download and return local file name
         >>> bgen_file = example_file("pysnptools/examples/2500x100.bgen")
         >>> dist_on_disk = Bgen(bgen_file)
-        >>> subset_on_disk = dist_on_disk[[3,4],::2] # specification for a subset of the data on disk. No SNP distriubtion values are read yet.
+        >>> subset_on_disk = dist_on_disk[[3,4],::2] # specification for a subset of the data on disk. No SNP distribution values are read yet.
         >>> print(subset_on_disk.sid_count) # prints the number of sids in this subset (but still doesn't read any SNP distribution values)
         50
         >>> print(subset_on_disk) #prints a specification of 'subset_on_disk'
@@ -47,7 +47,7 @@ class DistReader(PstReader):
         >>> distdata_subset = subset_on_disk.read() # efficiently reads the specified subset of values from the disk
         >>> print(distdata_subset) # prints the specification of the in-memory SNP distribution information
         DistData(Bgen('...pysnptools/examples/2500x100.bgen')[[3,4],::2])
-        >>> print((int(distdata_subset.val.shape[0]), int(distdata_subset.val.shape[1]))) # The dimensions of the ndarray of SNP distriubtion values
+        >>> print((int(distdata_subset.val.shape[0]), int(distdata_subset.val.shape[1]))) # The dimensions of the ndarray of SNP distribution values
         (2, 50)
 
     The DistReaders Classes
@@ -248,7 +248,7 @@ class DistReader(PstReader):
             if practical and reading from a :class:`DistData`, will return a new
             :class:`DistData` with a ndarray shares memory with the original :class:`DistData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
-            Use these parameters with care because any change to either ndarraywill effect
+            Use these parameters with care because any change to either ndarray will effect
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
             share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
         :type view_ok: bool

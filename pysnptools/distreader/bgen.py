@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 try:
-    from bgen_reader import open_bgen
+    from bgen_reader import open_bgen, example_filepath
     from bgen_reader._multimemmap import MultiMemMap
 
     BGEN_READER_AVAILABLE = True
@@ -110,7 +110,7 @@ class Bgen(DistReader):
                      * **sid_function** (optional, function or string) -- Function to turn a BGEN (SNP) id and rsid into a :attr:`DistReader.sid`.
                        (Default: :meth:`bgen.default_sid_function`.) Can also be the string 'id' or 'rsid', which is faster than using a function.
                      * **sample** (optional, string) -- A GEN sample file. If given, overrides information in \*.bgen file.
-                     * **num_threads** (optinal, int) -- The number of threads with which to read data. Defaults to all available processors.
+                     * **num_threads** (optional, int) -- The number of threads with which to read data. Defaults to all available processors.
                             Can also be set with these environment variables (listed in priority order):
                             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
                      * **fresh_properties** (optional, bool) -- When true (default), memory will be allocated for the iid, sid, and

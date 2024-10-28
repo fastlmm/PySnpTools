@@ -57,14 +57,16 @@ class _JustCheckExists(object): #Implements ICopier
 
     def input(self,item):
         if isinstance(item, str):
-            if not os.path.exists(item): raise Exception("Missing input file '{0}'".format(item))
+            if not os.path.exists(item):
+                raise Exception("Missing input file '{0}'".format(item))
         elif hasattr(item,"copyinputs"):
             item.copyinputs(self)
         # else -- do nothing
 
     def output(self,item):
         if isinstance(item, str):
-            if not os.path.exists(item): raise Exception("Missing output file '{0}'".format(item))
+            if not os.path.exists(item):
+                raise Exception("Missing output file '{0}'".format(item))
             if self.doPrintOutputNames:
                 print(item)
         elif hasattr(item,"copyoutputs"):
