@@ -2,7 +2,9 @@ name: CI
 on:
   push:
   schedule:
-    - cron: '0 0 1 * *'   
+    - cron: '0 0 1 * *'
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   ci:
@@ -10,49 +12,40 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-2022, macos-13, macos-14]
-        python-version: [3.9, "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set up Miniconda ${{ matrix.python-version }}
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-          auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-          miniconda-version: "latest"
-    - name: Install Prerequisites
-      shell: bash -l {0}
-      run: |
-        pip install -r requirements.txt
+    - name: Install the latest version of uv
+      uses: astral-sh/setup-uv@v3
+    - name: Install Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
 
-    - name: Install Project
-      shell: bash -l {0}
+    - name: Setup, Lint, and Test Python (Linux/macOS)
+      if: runner.os != 'Windows'
       run: |
-        python --version
-        pip install .
-        python setup.py sdist
-
-    - name: Test Main
-      shell: bash -l {0}
+        cd pysnptools
+        uvx ruff@0.7.1 check .
+        uvx ruff@latest check . || echo "Ignoring warnings from the latest version of ruff"
+        uv sync --all-extras
+        source ../.venv/bin/activate
+        pytest
+        uv build
+    - name: Setup, Lint, and Test Python (Windows)
+      if: runner.os == 'Windows'
       run: |
-        pip uninstall pysnptools --yes
-        pip install -r requirements-dev.txt
-        export PYTHONPATH=${GITHUB_WORKSPACE}
-        python tests/test.py
-
-    - name: Test Bgen
-      shell: bash -l {0}
-      run: |
-          pip uninstall pysnptools --yes
-          pip install -r requirements-dev.txt
-          export PYTHONPATH=${GITHUB_WORKSPACE}
-          pip install bgen-reader
-          pytest pysnptools/distreader/test_bgen2.py
+        cd pysnptools
+        uvx ruff@0.7.1 check .
+        uvx ruff@latest check . || echo "Ignoring warnings from the latest version of ruff"
+        uv sync --all-extras
+        ../.venv/Scripts/activate
+        pytest .
+        uv build
   
     - name: Save SDist
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
       uses: actions/upload-artifact@v2
       with:
         name: wheels
