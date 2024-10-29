@@ -46,7 +46,7 @@ jobs:
   
     - name: Save SDist
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: wheels
         path: dist/*.tar.gz
