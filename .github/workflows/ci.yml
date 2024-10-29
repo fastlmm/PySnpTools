@@ -29,11 +29,11 @@ jobs:
         uvx ruff@0.7.1 check
         uvx ruff@latest check || echo "Ignoring warnings from the latest version of ruff"
         uv sync --extra dev
-        source ../.venv/bin/activate
+        source .venv/bin/activate
         python tests/test.py
         uv sync --all-extras
-        source ../.venv/bin/activate
-        pytest distreader/test_bgen2.py
+        source .venv/bin/activate
+        pytest pysnptools/distreader/test_bgen2.py
         uv build
     - name: Setup, Lint, and Test Python (Windows)
       if: runner.os == 'Windows'
