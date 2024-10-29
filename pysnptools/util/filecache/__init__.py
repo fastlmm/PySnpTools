@@ -135,10 +135,10 @@ class _DibLib(object):
         return priority
 
 
-from pysnptools.util.filecache.filecache import FileCache  # noqa: F401
-from pysnptools.util.filecache.hashdown import Hashdown  # noqa: F401
-from pysnptools.util.filecache.localcache import LocalCache  # noqa: F401
-from pysnptools.util.filecache.peertopeer import PeerToPeer  # noqa: F401
+from pysnptools.util.filecache.filecache import FileCache  # noqa: E402, F401
+from pysnptools.util.filecache.hashdown import Hashdown   # noqa: E402, F401
+from pysnptools.util.filecache.localcache import LocalCache   # noqa: E402, F401
+from pysnptools.util.filecache.peertopeer import PeerToPeer   # noqa: E402, F401
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

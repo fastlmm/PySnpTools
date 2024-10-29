@@ -1,5 +1,5 @@
 import numpy as np
-from itertools import *
+from itertools import *  # noqa: F403
 from pysnptools.pstreader import PstReader
 
 class _OneShot(PstReader):
@@ -8,7 +8,7 @@ class _OneShot(PstReader):
     '''
 
     def _read_pstdata():
-        raise NotImplementedError("{0} needs to define its own _read_pstdata".format(self.__class__.__name__))
+        raise NotImplementedError("_OneShot needs to define its own _read_pstdata")
 
     def __init__(self):
         super(_OneShot, self).__init__()

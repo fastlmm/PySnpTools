@@ -1,4 +1,4 @@
-from pysnptools.util.mapreduce1.runner import *
+from pysnptools.util.mapreduce1.runner import *  # noqa: F403
 import logging
 import unittest
 import io

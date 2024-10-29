@@ -28,7 +28,8 @@ class LocalCache(FileCache):
     def __init__(self,directory):
         super(LocalCache, self).__init__()
         self.directory =  os.path.normpath(directory).replace('\\','/')
-        if os.path.exists(self.directory): assert not os.path.isfile(self.directory), "A directory cannot exist where a file already exists."
+        if os.path.exists(self.directory):
+            assert not os.path.isfile(self.directory), "A directory cannot exist where a file already exists."
 
     def __repr__(self):
         return "{0}('{1}')".format(self.__class__.__name__,self.directory)
@@ -93,7 +94,8 @@ class LocalCache(FileCache):
 
     def _simple_join(self,path):
         directory = self.directory + "/" + path
-        if os.path.exists(directory): assert not os.path.isfile(directory), "Can't treat an existing file as a directory"
+        if os.path.exists(directory):
+            assert not os.path.isfile(directory), "Can't treat an existing file as a directory"
         return LocalCache(directory)
 
 

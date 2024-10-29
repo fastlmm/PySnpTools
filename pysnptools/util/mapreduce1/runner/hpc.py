@@ -1,4 +1,4 @@
-from pysnptools.util.mapreduce1.runner import *
+from pysnptools.util.mapreduce1.runner import *  # noqa: F403
 import os
 import subprocess
 import sys
@@ -8,7 +8,7 @@ import logging
 import cloudpickle as pickle
 
 
-class HPC(Runner):
+class HPC(Runner):  # noqa: F405
     """
     Old code to run on a Microsoft Widows HPC Cluster. Not currently supported.
     """
@@ -256,7 +256,7 @@ class HPC(Runner):
            $j.Refresh()
         {11}
 
-        """.format(
+        """.format(  # noqa: F523
                     self.clustername,  # 0
                     self.taskcount - 1,  # 1
                     stdout_dir_rel,  # 2

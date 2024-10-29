@@ -82,15 +82,9 @@ class SnpData(PstData, SnpReader):
         self._val = None
 
         if parent_string is not None:
-            warnings.warn(
-                "'parent_string' is deprecated. Use 'name'", DeprecationWarning
-            )
-        self._row = PstData._fixup_input(
-            iid, empty_creator=lambda ignore: np.empty([0, 2], dtype="str"), dtype="str"
-        )
-        self._col = PstData._fixup_input(
-            sid, empty_creator=lambda ignore: np.empty([0], dtype="str"), dtype="str"
-        )
+            warnings.warn("'parent_string' is deprecated. Use 'name'", DeprecationWarning)
+        self._row = PstData._fixup_input(iid, empty_creator=lambda ignore: np.empty([0, 2], dtype="str"), dtype="str")
+        self._col = PstData._fixup_input(sid, empty_creator=lambda ignore: np.empty([0], dtype="str"), dtype="str")
         self._row_property = PstData._fixup_input(
             None,
             count=len(self._row),
@@ -106,9 +100,7 @@ class SnpData(PstData, SnpReader):
             val,
             row_count=len(self._row),
             col_count=len(self._col),
-            empty_creator=lambda row_count, col_count: np.empty(
-                [row_count, col_count], dtype=np.float64
-            ),
+            empty_creator=lambda row_count, col_count: np.empty([row_count, col_count], dtype=np.float64),
             _require_float32_64=_require_float32_64,
             xp=xp,
         )
@@ -136,9 +128,7 @@ class SnpData(PstData, SnpReader):
             new_value,
             row_count=len(self._row),
             col_count=len(self._col),
-            empty_creator=lambda row_count, col_count: np.empty(
-                [row_count, col_count], dtype=np.float64
-            ),
+            empty_creator=lambda row_count, col_count: np.empty([row_count, col_count], dtype=np.float64),
             xp=self._xp,
         )
         self._assert_iid_sid_pos(check_val=True)
@@ -279,9 +269,7 @@ class SnpData(PstData, SnpReader):
                 K = (train.val.dot(train.val.T)).T
             else:
                 K = train.val.dot(train.val.T)
-            assert PstReader._array_properties_are_ok(
-                K, order, dtype
-            ), "internal error: K is not of the expected order or dtype"
+            assert PstReader._array_properties_are_ok(K, order, dtype), "internal error: K is not of the expected order or dtype"
             # if is_worth_logging: logging.info("  _read_kernel took %.2f seconds" % (time.time()-ts))
             if return_trained:
                 return K, standardizer
@@ -303,16 +291,12 @@ class SnpData(PstData, SnpReader):
     def __repr__(self):
         if self._name == "":
             if len(self._std_string_list) > 0:
-                s = "{0}({1})".format(
-                    self.__class__.__name__, ",".join(self._std_string_list)
-                )
+                s = "{0}({1})".format(self.__class__.__name__, ",".join(self._std_string_list))
             else:
                 s = "{0}()".format(self.__class__.__name__)
         else:
             if len(self._std_string_list) > 0:
-                s = "{0}({1},{2})".format(
-                    self.__class__.__name__, self._name, ",".join(self._std_string_list)
-                )
+                s = "{0}({1},{2})".format(self.__class__.__name__, self._name, ",".join(self._std_string_list))
             else:
                 s = "{0}({1})".format(self.__class__.__name__, self._name)
         return s

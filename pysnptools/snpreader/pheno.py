@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from itertools import *
+from itertools import *  # noqa: F403
 import logging
 from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData

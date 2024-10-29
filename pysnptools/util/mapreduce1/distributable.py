@@ -12,7 +12,7 @@ import os
 import cloudpickle as pickle
 import sys
 import os.path
-from pysnptools.util.mapreduce1.runner import *
+from pysnptools.util.mapreduce1.runner import *  # noqa: F403
 
 
 class IDistributable(object):
@@ -80,4 +80,4 @@ if __name__ == "__main__":
 
     runner_string = sys.argv[2]
     exec("runner = " + runner_string)
-    runner.run(distributable)
+    runner.run(distributable)  # type: ignore # noqa: F405

@@ -1,4 +1,5 @@
 import logging
+import warnings
 from pysnptools.standardizer import Standardizer
 
 class Identity(Standardizer):

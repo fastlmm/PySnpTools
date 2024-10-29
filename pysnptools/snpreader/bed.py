@@ -1,5 +1,5 @@
 import numpy as np
-from itertools import *
+from itertools import *  # noqa: F403
 import logging
 from bed_reader import open_bed, to_bed
 from pysnptools.snpreader import SnpReader

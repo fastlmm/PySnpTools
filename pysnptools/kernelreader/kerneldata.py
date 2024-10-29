@@ -1,5 +1,6 @@
+import warnings
 import numpy as np
-from itertools import *
+from itertools import *  # noqa: F403
 import logging
 from pysnptools.kernelreader import KernelReader
 from pysnptools.pstreader import PstData

@@ -1,5 +1,5 @@
 import numpy as np
-from itertools import *
+from itertools import *  # noqa: F403
 import pandas as pd
 import logging
 from pysnptools.snpreader import SnpReader

@@ -14,9 +14,9 @@
 #     region_max_length = int(2000000*scale) #2 million
 
 #     np.random.seed(seed)
-#     for range_index in xrange(range_count):
+#     for range_index in range(range_count):
 #         length = int(np.exp(np.random.random()*np.log(region_max_length)))
-#         start = randlong(position_count-length) #does randint really go up to 3 billin?
+#         start = randlong(position_count-length) #does randint really go up to 3 billon?
 #         stop = start+length
 #         yield start,stop
 
@@ -61,7 +61,7 @@
 # #What is snpdata?
 # # SnpData(Bed("all.bed"))
 
-# #What do the iids and sid of snprdata look like?
+# #What do the iids and sid of snpdata look like?
 # print snpdata.iid_count, snpdata.sid_count
 # print snpdata.iid[:3]
 # print snpdata.sid[:3]
@@ -250,7 +250,7 @@
 # # [   5 4999 4999]]
 
 # # chromosome, genetic distance, basepair distance
-# # Accessable without a SNP data read.
+# # Accessible without a SNP data read.
 
 # # So, using Python fancy indexing, how to we read all SNPs at Chrom 5?
 # snpreader = Bed("all.bed")
@@ -342,7 +342,7 @@
 # from pysnptools.snpreader import SnpNpz
 # SnpNpz.write("deleteme1010.snp.npz", snpdata1010)
 
-# # Use SnpHdf5 for random-access reads, good speed and size, and compatiblity outside Python
+# # Use SnpHdf5 for random-access reads, good speed and size, and compatibility outside Python
 # from pysnptools.snpreader import SnpHdf5
 # SnpHdf5.write("deleteme1010.snp.hdf5", snpdata1010)
 
@@ -407,7 +407,7 @@
 # # [  7.40112054e-01   7.15532756e-01  -5.02003205e-04 ...,   4.40649336e-03   -1.34519756e-05   1.87525732e-01]
 # # ...
 
-# # To create an kernel (the relateness of each iid pair as the dot product of their standardized SNP values)
+# # To create an kernel (the relatedness of each iid pair as the dot product of their standardized SNP values)
 # from pysnptools.standardizer import Unit
 # kerneldata = Bed("all.bed").read_kernel(standardizer=Unit())
 # print kerneldata.val

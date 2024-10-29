@@ -1,5 +1,5 @@
 import logging
-from pysnptools.util.mapreduce1.runner import *
+from pysnptools.util.mapreduce1.runner import *  # noqa: F403
 import os
 import pickle
 import subprocess
@@ -13,7 +13,7 @@ import datetime
 from tempfile import TemporaryFile
 
 
-class Hadoop(Runner):
+class Hadoop(Runner):  # noqa: F405
 
     """
     Old code to run on Hadoop. Not currently supported.
@@ -156,7 +156,7 @@ class Hadoop(Runner):
         with open(
             taskIndexDir + os.path.sep + "taskIndexList.txt", "w"
         ) as taskIndexListFile:
-            for taskIndex in xrange(self.taskcount):
+            for taskIndex in range(self.taskcount):
                 taskIndexListFile.write(
                     "{0}\n".format(taskIndex)
                 )  # str(taskIndex).zfill(zgoal)))
@@ -259,7 +259,7 @@ class Hadoop(Runner):
             skipcheck=False,
             filter_hidden=False,
         )
-        hdfstgz = "hdfs:{3}/{2}.{1}/{2}.tgz".format(
+        hdfstgz = "hdfs:{3}/{2}.{1}/{2}.tgz".format(  # noqa: F523
             None,
             str(datetime.datetime.fromtimestamp(os.path.getmtime(tgzName)))[:19]
             .replace(" ", "_")
@@ -465,12 +465,12 @@ class Hadoop(Runner):
             directory_name = os.path.dirname(name)
         else:
             directory_name = name
-        hadoop_makedirs(directory_name)
+        hadoop_makedirs(directory_name)  # type: ignore # noqa: F405
 
     # !! what if already is there?
     @staticmethod
     def hadoop_makedirs(directory_name):
-        hadoop_command("fs -mkdir {0}".format(directory_name))
+        hadoop_command("fs -mkdir {0}".format(directory_name))  # type: ignore # noqa: F405
 
     @staticmethod
     def hadoop_command(command_string):
@@ -675,7 +675,7 @@ class HadoopCopier(object):  # Implements ICopier
         if len(subsubItem1) == len(subsubItem2) and index1 > index2:
             return False
         if len(subsubItem1) >= len(subsubItem2):
-            for i in xrange(len(subsubItem2)):
+            for i in range(len(subsubItem2)):
                 if subsubItem1[i] != subsubItem2[i]:
                     return False
             return True
@@ -860,7 +860,7 @@ class HadoopCopier(object):  # Implements ICopier
     @staticmethod
     def has_hidden_attribute(filepath):
         try:
-            attrs = ctypes.windll.kernel32.GetFileAttributesW(unicode(filepath))
+            attrs = ctypes.windll.kernel32.GetFileAttributesW(str(filepath))
             assert attrs != -1
             result = bool(attrs & 2)
         except (AttributeError, AssertionError):

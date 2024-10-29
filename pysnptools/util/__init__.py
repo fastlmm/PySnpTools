@@ -8,7 +8,7 @@ import datetime
 from types import ModuleType
 import inspect
 import warnings
-from pysnptools.util.intrangeset import IntRangeSet
+from pysnptools.util.intrangeset import IntRangeSet  # noqa: F401
 from bed_reader import get_num_threads, subset_f64_f64, subset_f32_f64, subset_f32_f32
 
 
@@ -684,7 +684,7 @@ def array_module(xp=None):
 
     if xp == "cupy":
         try:
-            import cupy as cp
+            import cupy as cp # type: ignore
 
             return cp
         except ModuleNotFoundError as e:
@@ -732,8 +732,8 @@ def get_array_module(a):
     return xp
 
 
-from pysnptools.util.generate import snp_gen
-from pysnptools.util._example_file import example_file, example_file_bgen
+from pysnptools.util.generate import snp_gen  # noqa: E402, F401
+from pysnptools.util._example_file import example_file, example_file_bgen  # noqa: E402, F401
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

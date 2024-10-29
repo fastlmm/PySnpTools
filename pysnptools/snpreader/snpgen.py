@@ -55,6 +55,7 @@ class SnpGen(SnpReader):
         self._sid_count = sid_count
         self._chrom_count = chrom_count
         if sid_batch_size is not None:
+            import warnings
             warnings.warn(
                 "'sid_batch_size' is deprecated. Use 'block_size'", DeprecationWarning
             )

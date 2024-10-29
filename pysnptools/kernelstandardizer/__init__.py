@@ -1,8 +1,6 @@
 # !!!move these to their own files
 
-import numpy as np
-import logging
-
+import numpy as np  # noqa: F401
 
 class KernelStandardizer(object):
     """
@@ -116,13 +114,14 @@ class Identity(KernelStandardizer):
         return "{0}()".format(self.__class__.__name__)
 
 
-from pysnptools.standardizer import DiagKtoN  # as SN_DiagKtoN
-from pysnptools.standardizer import DiagKtoNTrained  # as SN_DiagKtoNTrained
+from pysnptools.standardizer import DiagKtoN  # as SN_DiagKtoN  # noqa E402, F401
+from pysnptools.standardizer import DiagKtoNTrained  # as SN_DiagKtoNTrained  # noqa E402, F401
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-
+    import logging
     import doctest
+
+    logging.basicConfig(level=logging.INFO)
 
     doctest.testmod(optionflags=doctest.ELLIPSIS)

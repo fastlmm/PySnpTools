@@ -33,10 +33,17 @@ class _MapReduce(object): #implements IDistributable
             self.output_files = output_files
 
 
-    def __str__(self):
-        return "map_reduce(name='{0}',...)".format(self.name)
+    # def __str__(self):
+    #     return "map_reduce(name='{0}',...)".format(self.name)
     def __repr__(self):
         return str(self)
+    #optional override -- the str name of the instance is used by the cluster as the job name
+    def __str__(self):
+        if self.name is None:
+            return "map_reduce()"
+        else:
+            return self.name
+
 
 
 #start of IDistributable interface--------------------------------------
@@ -77,12 +84,7 @@ class _MapReduce(object): #implements IDistributable
         return self.reducer(output_seq)
 
 
-    #optional override -- the str name of the instance is used by the cluster as the job name
-    def __str__(self):
-        if self.name is None:
-            return "map_reduce()"
-        else:
-            return self.name
+
  #end of IDistributable interface---------------------------------------
 
     def dowork(self, i, input_arg):
@@ -131,7 +133,7 @@ def map_reduce(input_seq, mapper=_identity, reducer=list, input_files=None, outp
     """
     Runs a function on sequence of inputs and runs a second function on the results. Can be nested and clusterized.
 
-    :param input_seq: a sequence of inputs. The sequence must support the len function and be indexable. e.g. a list, xrange(100)
+    :param input_seq: a sequence of inputs. The sequence must support the len function and be indexable. e.g. a list, range(100)
     :type input_seq: a sequence
 
     :param mapper: A function to apply to each set of inputs (optional). Defaults to the identity function.

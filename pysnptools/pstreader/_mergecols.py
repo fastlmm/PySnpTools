@@ -44,6 +44,8 @@ class _MergeCols(PstReader):
                 self._row_property = data["_row_property"]
 
     def _run_once(self):
+        from pysnptools.snpreader.snpreader import SnpReader
+
         if hasattr(self, "_has_run_once"):
             return
         from pysnptools.snpreader import Bed
@@ -54,17 +56,17 @@ class _MergeCols(PstReader):
         if self.skip_check and all(
             isinstance(reader, Bed) for reader in self.reader_list
         ):  # Special code if all Bed readers
-            l = [
+            col_data_list = [
                 SnpReader._read_map_or_bim(
                     reader.filename, remove_suffix="bed", add_suffix="bim"
                 )
                 for reader in self.reader_list
             ]
-            self.col_count_list = np.array([len(ll[0]) for ll in l])
+            self.col_count_list = np.array([len(ll[0]) for ll in col_data_list])
             self._row = self.reader_list[0].row
             self._row_property = self.reader_list[0].row_property
-            self._col = np.concatenate([ll[0] for ll in l])
-            self._col_property = np.concatenate([ll[1] for ll in l])
+            self._col = np.concatenate([ll[0] for ll in col_data_list])
+            self._col_property = np.concatenate([ll[1] for ll in col_data_list])
         else:
             col_list = []
             col_property_list = []

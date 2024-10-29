@@ -4,7 +4,8 @@ import doctest
 import unittest
 import os.path
 
-from pysnptools.kernelreader import *
+from pysnptools.kernelreader import *  # noqa: F403
+from pysnptools.kernelreader import Identity, KernelData, KernelNpz, SnpKernel
 from pysnptools.snpreader import Bed
 from pysnptools.util import create_directory_if_necessary
 from pysnptools.pstreader import PstReader
@@ -267,7 +268,7 @@ class TestKernelReader(unittest.TestCase):
                             ):
                                 logging.info(
                                     "{0} could have read a view, but didn't".format(
-                                        distreader
+                                        distreader  # noqa: F405 # type: ignore
                                     )
                                 )
                             assert val.dtype == dtype and has_right_order

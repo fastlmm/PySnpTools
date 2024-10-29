@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import os
 import cloudpickle
 import pysnptools.util as pstutil
-from itertools import *
+from itertools import *  # noqa: F403
 from unittest.mock import patch
 
 
@@ -28,7 +28,11 @@ def _run_all_in_memory(work):
     else:
         assert hasattr(
             work, "work_sequence"
-        ), "Your work item doesn't have a work_sequence. This can be caused by having 'map_reduce(nested=something,...)' where you should have 'map_reduce(mapper=something,...)' because the 'something' is not a nested 'map_reduce'. The exception can also be caused by giving a 'runner' on an inner, nested map_reduce."
+        ), (
+            "Your work item doesn't have a work_sequence. This can be caused by having 'map_reduce(nested=something,...)' "
+            "where you should have 'map_reduce(mapper=something,...)' because the 'something' is not a nested 'map_reduce'. "
+            "The exception can also be caused by giving a 'runner' on an inner, nested map_reduce."
+        )
         work_sequence = work.work_sequence()
         result_sequence = work_sequence_to_result_sequence(work_sequence)
         return work.reduce(result_sequence)
@@ -191,7 +195,7 @@ class BatchUpWork(object):  # implements IDistributable
         return self._workcount
 
     def work_sequence(self):
-        return work_sequence_range(0, self._workcount)
+        return work_sequence_range(0, self._workcount)  # type: ignore # noqa: F405
 
     def work_sequence_range(self, start, stop):
         assert 0 <= start <= stop <= self._workcount, "real assert"
@@ -343,7 +347,7 @@ class ExpandWork(object):  # implements IDistributable
         if hasattr(self.sub_distributable, "work_sequence_range"):
             return self.sub_distributable.work_sequence_range(start, stop)
         else:
-            return islice(self.sub_distributable.work_sequence(), start, stop)
+            return islice(self.sub_distributable.work_sequence(), start, stop)  # noqa: F405
 
     def _work_sequence_range(self, start, stop):
         sub_start = self.index_to_sub_index(start)
@@ -419,13 +423,13 @@ class ExpandWork(object):  # implements IDistributable
                     workIndex += 1
             sub_workIndex += 1
         if sub_workIndex != self.sub_workcount:
-            raise Excpetion("Assert:  expect len(result_sequence) to match workcount")
+            raise Exception("Assert:  expect len(result_sequence) to match workcount")
         if workIndex != self._workcount:
             raise Exception("Assert: expect len(result_sequence) to match workcount")
         try:
             next(
                 result_sequence
-            )  # should get an StopIternation here, which will be ignored.
+            )  # should get an StopIteration here, which will be ignored.
             raise Exception(
                 "Assert: expect len(result_sequence) to match workcount. This can be caused by a 'reducer' that doesn't pull every input from its input sequence."
             )
@@ -491,8 +495,8 @@ class SubGen:
             raise StopIteration()
 
 
-from pysnptools.util.mapreduce1.runner.runner import Runner
-from pysnptools.util.mapreduce1.runner.local import Local, _JustCheckExists
-from pysnptools.util.mapreduce1.runner.localmultiproc import LocalMultiProc
-from pysnptools.util.mapreduce1.runner.localmultithread import LocalMultiThread
-from pysnptools.util.mapreduce1.runner.localinparts import LocalInParts
+from pysnptools.util.mapreduce1.runner.runner import Runner  # noqa: E402, F401
+from pysnptools.util.mapreduce1.runner.local import Local, _JustCheckExists # noqa: E402, F401
+from pysnptools.util.mapreduce1.runner.localmultiproc import LocalMultiProc # noqa: E402, F401
+from pysnptools.util.mapreduce1.runner.localmultithread import LocalMultiThread # noqa: E402, F401
+from pysnptools.util.mapreduce1.runner.localinparts import LocalInParts # noqa: E402, F401

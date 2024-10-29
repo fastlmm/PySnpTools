@@ -1,5 +1,5 @@
 import logging
-from pysnptools.util.mapreduce1.runner import *
+from pysnptools.util.mapreduce1.runner import *  # noqa: F403
 import os
 import pickle
 import subprocess
@@ -13,7 +13,7 @@ from tempfile import TemporaryFile
 
 
 # !!! currently any output files should be in the home directory, e.g. "aric.depnet.txt" not r"tempout\aric.depnet.txt". Fix this.
-class Hadoop2(Runner):
+class Hadoop2(Runner):  # noqa: F405
 
     """
     Old code to run on Hadoop. Not currently supported.
@@ -156,13 +156,13 @@ class Hadoop2(Runner):
         filesString = ",".join(batfilename_rel_list + fileInWorkingDirectoryList)
 
         taskIndexDir = run_dir_rel + os.path.sep + "input"
-        pstutil.create_directory_if_necessary(taskIndexDir, isfile=False)
+        pstutil.create_directory_if_necessary(taskIndexDir, isfile=False)  # noqa: F405
 
         # zgoal = int(SP.ceil(SP.log(self.taskcount)/SP.log(10)))
         with open(
             taskIndexDir + os.path.sep + "taskIndexList.txt", "w"
         ) as taskIndexListFile:
-            for taskIndex in xrange(self.taskcount):
+            for taskIndex in range(self.taskcount):
                 taskIndexListFile.write(
                     "{0}\n".format(taskIndex)
                 )  # str(taskIndex).zfill(zgoal)))
@@ -283,7 +283,7 @@ class Hadoop2(Runner):
             skipcheck=False,
             filter_hidden=False,
         )
-        hdfstgz = "hdfs:{3}/{2}.{1}/{2}.tgz".format(
+        hdfstgz = "hdfs:{3}/{2}.{1}/{2}.tgz".format(  # noqa: F523
             None,
             str(datetime.datetime.fromtimestamp(os.path.getmtime(tgzName)))[:19]
             .replace(" ", "_")
@@ -298,7 +298,7 @@ class Hadoop2(Runner):
         logging.info("Hadoop2 runner is pickling distributable")
         distributablep_filename_rel = os.path.join(run_dir_rel, "distributable.p")
         # distributablep_filename_abs = os.path.join(run_dir_abs, "distributable.p")
-        pstutil.create_directory_if_necessary(distributablep_filename_rel)
+        pstutil.create_directory_if_necessary(distributablep_filename_rel)  # noqa: F405
         with open(distributablep_filename_rel, mode="wb") as f:
             pickle.dump(distributable, f)
         logging.info("Done: Hadoop2 runner is pickling distributable")
@@ -354,7 +354,7 @@ class Hadoop2(Runner):
                 run_dir_abs, "dist{0}.bat".format(part)
             ).replace("\\", "/")
             batfilename_abs_list.append(batfilename_abs)
-            pstutil.create_directory_if_necessary(batfilename_rel, isfile=True)
+            pstutil.create_directory_if_necessary(batfilename_rel, isfile=True)  # noqa: F405
             with open(batfilename_rel, "w") as batfile:
                 batfile.write(
                     "@set path={0};{0}\\Scripts;%path%\n".format(r"c:\GCD\esciencepy4")
@@ -471,8 +471,8 @@ class Hadoop2(Runner):
                 self.fileshare + os.path.sep + username + os.path.splitdrive(localwd)[1]
             )  # using '+' because 'os.path.join' isn't work with shares
         remotewd = remotewd.replace("\\", "/")
-        run_dir_rel = os.path.join("runs", pstutil._datestamp(appendrandom=True))
-        pstutil.create_directory_if_necessary("runs", isfile=False)
+        run_dir_rel = os.path.join("runs", pstutil._datestamp(appendrandom=True))  # noqa: F405
+        pstutil.create_directory_if_necessary("runs", isfile=False)  # noqa: F405
         if not os.path.isfile(".ignoreTgzChange"):
             with open("runs" + os.path.sep + ".ignoreTgzChange", "w") as ignoreFile:
                 ignoreFile.write("\n")
@@ -706,7 +706,7 @@ class HadoopCopier(object):  # Implements ICopier
         if len(subsubItem1) == len(subsubItem2) and index1 > index2:
             return False
         if len(subsubItem1) >= len(subsubItem2):
-            for i in xrange(len(subsubItem2)):
+            for i in range(len(subsubItem2)):
                 if subsubItem1[i] != subsubItem2[i]:
                     return False
             return True
@@ -891,7 +891,7 @@ class HadoopCopier(object):  # Implements ICopier
     @staticmethod
     def has_hidden_attribute(filepath):
         try:
-            attrs = ctypes.windll.kernel32.GetFileAttributesW(unicode(filepath))
+            attrs = ctypes.windll.kernel32.GetFileAttributesW(str(filepath))
             assert attrs != -1
             result = bool(attrs & 2)
         except (AttributeError, AssertionError):

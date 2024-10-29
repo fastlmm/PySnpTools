@@ -59,10 +59,10 @@ class _Pairs(SnpReader):
                 col_list = []
                 self.index0_list = []  # !!!should be _index0_list, etc
                 self.index1_list = []
-                for index0 in xrange(self.snpreader0.col_count):
+                for index0 in range(self.snpreader0.col_count):
                     # logging.info("index0={0} of {1}".format(index0,self.snpreader0.col_count))# !!!
                     start1 = index0 if self._include_single_times_single else index0 + 1
-                    for index1 in xrange(start1, self.snpreader0.col_count):
+                    for index1 in range(start1, self.snpreader0.col_count):
                         col_list.append("{0},{1}".format(col_0[index0], col_0[index1]))
                         self.index0_list.append(index0)
                         self.index1_list.append(index1)
@@ -78,9 +78,9 @@ class _Pairs(SnpReader):
                 col_list = []
                 self.index0_list = []
                 self.index1_list = []
-                for index0 in xrange(self.snpreader0.col_count):
+                for index0 in range(self.snpreader0.col_count):
                     # logging.info("index0={0} of {1}".format(index0,self.snpreader0.col_count))# !!!
-                    for index1 in xrange(self.snpreader1.col_count):
+                    for index1 in range(self.snpreader1.col_count):
                         col_list.append("{0},{1}".format(col_0[index0], col_1[index1]))
                         self.index0_list.append(index0)
                         self.index1_list.append(index1)
@@ -221,7 +221,7 @@ class _Pairs(SnpReader):
 def split_on_sids(snpreader, part_count):
     sid_count = snpreader.sid_count
     start = 0
-    for part_index in xrange(1, part_count + 1):
+    for part_index in range(1, part_count + 1):
         end = part_index * sid_count // part_count
         yield snpreader[:, start:end]
         start = end
@@ -323,7 +323,8 @@ class _Pairs2(SnpReader):
             len(sid_index_or_none)
             sid_index_out = sid_index_or_none
         else:
-            sid_index_out = splice(None)  # !!! test this
+            raise NotImplementedError("TODO: This branch has not been implemented yet")
+            # sid_index_out = splice(None)  # !!! test this
 
         pair_array = np.array(
             list(self._utilpairs[sid_index_out])
@@ -392,13 +393,6 @@ class _Pairs2(SnpReader):
 # !!! keep these?
 
 
-def split_on_sids(snpreader, part_count):
-    sid_count = snpreader.sid_count
-    start = 0
-    for part_index in range(1, part_count + 1):
-        end = part_index * sid_count // part_count
-        yield snpreader[:, start:end]
-        start = end
 
 
 def epi_reml(
@@ -414,7 +408,7 @@ def epi_reml(
     from pysnptools.kernelreader import SnpKernel
     from pysnptools.standardizer import Unit
     import datetime
-    from fastlmm.association import single_snp
+    from fastlmm.association import single_snp # type: ignore
 
     part_list = list(split_on_sids(pair_snps, part_count))
     part_pair_count = (part_count * part_count + part_count) / 2
@@ -562,7 +556,7 @@ if __name__ == "__main__":
             # goal 1500 individuals x 27000 SNP
             snpdata1 = bed1.read()
             iid = bed1.iid
-            sid = ["sid{0}".format(i) for i in xrange(27000)]
+            sid = ["sid{0}".format(i) for i in range(27000)]
             val = np.tile(snpdata1.val, (3, 6))[:, :27000].copy()
             # snpdata = Pheno('pysnptools/examples/toydata.phe').read()         # Read data from Pheno format
             snpdata2 = SnpData(iid, sid, val)
@@ -594,8 +588,9 @@ if __name__ == "__main__":
         )
 
         if False:
-            for i, synbed_part_i in enumerate(synbed_part_list):
-                for j, synbed_part_j in enumerate(synbed_part_list):
+            import pandas as pd
+            for i, synbed_part_i in enumerate(synbed_part_list):  # noqa: F821
+                for j, synbed_part_j in enumerate(synbed_part_list):  # noqa: F821
                     if j < i:
                         continue  # not break
                     print("Looking at pair {0},{1}".format(i, j))

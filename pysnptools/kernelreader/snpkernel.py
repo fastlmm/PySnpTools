@@ -1,5 +1,5 @@
 import numpy as np
-from itertools import *
+from itertools import *  # noqa: F403
 import logging
 from pysnptools.standardizer import Identity as SS_Identity
 from pysnptools.kernelreader import KernelReader
