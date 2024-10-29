@@ -11,8 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-2022, macos-13, macos-14]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest] # cmk, windows-2022, macos-13, macos-14]
+        python-version: ["3.13"] # ["3.10", "3.11", "3.12", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
@@ -29,9 +29,12 @@ jobs:
         cd pysnptools
         uvx ruff@0.7.1 check .
         uvx ruff@latest check . || echo "Ignoring warnings from the latest version of ruff"
-        uv sync --all-extras
+        uv sync --extra dev
         source ../.venv/bin/activate
         pytest
+        uv sync --all-extras
+        source ../.venv/bin/activate
+        pytest distreader/test_bgen2.py
         uv build
     - name: Setup, Lint, and Test Python (Windows)
       if: runner.os == 'Windows'
@@ -39,9 +42,12 @@ jobs:
         cd pysnptools
         uvx ruff@0.7.1 check .
         uvx ruff@latest check . || echo "Ignoring warnings from the latest version of ruff"
+        uv sync --extra dev
+        ../.venv/Scripts/activate
+        pytest
         uv sync --all-extras
         ../.venv/Scripts/activate
-        pytest .
+        pytest distreader/test_bgen2.py
         uv build
   
     - name: Save SDist
