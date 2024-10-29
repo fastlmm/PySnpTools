@@ -17,7 +17,7 @@ class DistributedBed(SnpReader):
     A class that implements the :class:`SnpReader` interface. It stores :class:`.Bed`-like data in pieces on storage. When you request data, it retrieves only the needed pieces.
 
     **Constructor:**
-        :Parameters: **storage** (string or :class:`.FileCache`) -- Tells where the DistirubtedBed data is stored.
+        :Parameters: **storage** (string or :class:`.FileCache`) -- Tells where the DistributedBed data is stored.
                       A string can be given and will be interpreted as the path to a directory.
                       A :class:`.FileCache` instance can be given, which provides a method to specify cluster-distributed storage.
         :type storage: string or :class:`.FileCache`
@@ -151,7 +151,7 @@ class DistributedBed(SnpReader):
         :type snpreader: :class:`.SnpReader`
 
         :param piece_per_chrom_count: The number of pieces in which to store the data from each chromosome. Data is split across
-            SNPs. For exmple, if `piece_per_chrom_count` is set to 100 and 22 chromosomes are uploaded, then data will be stored in 2200 pieces. Later, when data is requested
+            SNPs. For example, if `piece_per_chrom_count` is set to 100 and 22 chromosomes are uploaded, then data will be stored in 2200 pieces. Later, when data is requested
             only the pieces necessary for the request will be downloaded to local storage.
         :type piece_per_chrom_count: A number
 
