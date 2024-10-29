@@ -26,12 +26,11 @@ jobs:
     - name: Setup, Lint, and Test Python (Linux/macOS)
       if: runner.os != 'Windows'
       run: |
-        cd pysnptools
-        uvx ruff@0.7.1 check .
-        uvx ruff@latest check . || echo "Ignoring warnings from the latest version of ruff"
+        uvx ruff@0.7.1 check
+        uvx ruff@latest check || echo "Ignoring warnings from the latest version of ruff"
         uv sync --extra dev
         source ../.venv/bin/activate
-        pytest
+        python tests/test.py
         uv sync --all-extras
         source ../.venv/bin/activate
         pytest distreader/test_bgen2.py
@@ -39,11 +38,10 @@ jobs:
     - name: Setup, Lint, and Test Python (Windows)
       if: runner.os == 'Windows'
       run: |
-        cd pysnptools
-        uvx ruff@0.7.1 check .
-        uvx ruff@latest check . || echo "Ignoring warnings from the latest version of ruff"
+        uvx ruff@0.7.1 check
+        uvx ruff@latest check || echo "Ignoring warnings from the latest version of ruff"
         uv sync --extra dev
-        ../.venv/Scripts/activate
+        .venv\Scripts\activate
         pytest
         uv sync --all-extras
         ../.venv/Scripts/activate

@@ -5,6 +5,7 @@ export QCTOOLPATH="/mnt/c/Users/carlk/OneDrive/Projects/Science/virginia/qctool/
 set QCTOOLPATH=ubuntu run /mnt/c/Users/carlk/OneDrive/Projects/Science/virginia/qctool/qctool
 
 uv sync --all-extras
+python tests/test.py
 pytest
 ```
 
