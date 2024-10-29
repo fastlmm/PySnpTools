@@ -11,8 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest] # cmk, windows-2022, macos-13, macos-14]
-        python-version: ["3.13"] # ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest, windows-2022, macos-13, macos-14]
+        python-version: ["3.13", "3.10", "3.11", "3.12", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
@@ -42,10 +42,10 @@ jobs:
         uvx ruff@latest check || echo "Ignoring warnings from the latest version of ruff"
         uv sync --extra dev
         .venv\Scripts\activate
-        pytest
+        python tests/test.py
         uv sync --all-extras
-        ../.venv/Scripts/activate
-        pytest distreader/test_bgen2.py
+        .venv/Scripts/activate
+        pytest pysnptools/distreader/test_bgen2.py
         uv build
   
     - name: Save SDist
