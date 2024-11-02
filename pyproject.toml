@@ -1,10 +1,10 @@
 [build-system]
-requires = ["numpy>=1.17.0", "setuptools"]
+requires = ["numpy>=1.22.0", "setuptools>=42"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pysnptools"
-version = "0.5.14-alpha.1"
+version = "0.5.14"
 description = "PySnpTools"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -42,7 +42,7 @@ dependencies = [
     "h5py>=3.12.1",
     "cloudpickle>=3.1.0",
     "wheel>=0.44.0",
-    "bed-reader[samples]>=1.0.6a1", # cmk
+    "bed-reader[samples]>=1.0.6",
     "more-itertools>=10.5.0",
 ]
 
@@ -63,8 +63,8 @@ dev = [
     "limix-sphinx-theme>=0.0.4",
     "pytest-sphinx>=0.2.2",
     "sphinx>=6.2.1",
-    "sphinx_rtd_theme>=0.4.3",
-    "ruff>=0.1.0",
+    "sphinx_rtd_theme>=3.0.1",
+    "ruff>=0.7.2",
 ]
 
 

@@ -17,6 +17,13 @@ xcopy /c /e /s /h build\html ..\docs
 cd ..
 ```
 
+* Download and extract wheel artifacts from GitHub.
+
+```bash
+cd /d "C:\Users\carlk\Downloads\wheels (43)"
+twine upload pysnptools*
+```
+
 Create a local distribution"
 
 ```bash

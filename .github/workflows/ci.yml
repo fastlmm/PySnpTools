@@ -23,31 +23,36 @@ jobs:
     - name: Install Python ${{ matrix.python-version }}
       run: uv python install ${{ matrix.python-version }}
 
-    - name: Setup, Lint, and Test Python (Linux/macOS)
-      if: runner.os != 'Windows'
+
+    - name: Pinned Ruff
+      run:  uvx ruff@0.7.1 check
+    - name: Lastest Ruff (just to check for warnings)
+      run: uvx ruff@latest check || echo "Ignoring warnings from the latest version of ruff"
+    - name: Install minimal dependencies
+      run: uv sync --extra dev
+    - name: Run min test
+      shell: bash
       run: |
-        uvx ruff@0.7.1 check
-        uvx ruff@latest check || echo "Ignoring warnings from the latest version of ruff"
-        uv sync --extra dev
-        source .venv/bin/activate
+        if [[ "$RUNNER_OS" != "Windows" ]]; then
+          source .venv/bin/activate
+        else
+          source .venv/Scripts/activate
+        fi
         python tests/test.py
-        uv sync --all-extras
-        source .venv/bin/activate
-        pytest pysnptools/distreader/test_bgen2.py
-        uv build
-    - name: Setup, Lint, and Test Python (Windows)
-      if: runner.os == 'Windows'
+    - name: Install all dependencies
+      run: uv sync --all-extras
+    - name: Run all tests
+      shell: bash
       run: |
-        uvx ruff@0.7.1 check
-        uvx ruff@latest check || echo "Ignoring warnings from the latest version of ruff"
-        uv sync --extra dev
-        .venv\Scripts\activate
-        python tests/test.py
-        uv sync --all-extras
-        .venv/Scripts/activate
+        if [[ "$RUNNER_OS" != "Windows" ]]; then
+          source .venv/bin/activate
+        else
+          source .venv/Scripts/activate
+        fi
         pytest pysnptools/distreader/test_bgen2.py
-        uv build
-  
+
+    - name: Build
+      run: uv build        
     - name: Save SDist
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
       uses: actions/upload-artifact@v4
