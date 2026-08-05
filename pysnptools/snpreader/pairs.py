@@ -534,9 +534,9 @@ if __name__ == "__main__":
 
     if False:
         from pysnptools.snpreader import Bed
-        from pysnptools.util import example_file  # Download and return local file name
+        from pysnptools.util import example_file_synth
 
-        bed_file = example_file("doc/ipynb/all.*", "*.bed")
+        bed_file = example_file_synth("all.*", "*.bed")
         bed = Bed(bed_file, count_A1=False)
         print(f"{bed.sid_count:,}")
         pairs = _Pairs(bed)

@@ -66,24 +66,28 @@ and must not use `continue-on-error`.
 
 ## Tutorial Data and Hashdown Integrity
 
-Resolve issue #10 before release:
+Resolve issue #10 using this implementation:
 
-1. Identify the intended source of truth for the tutorial BED/BIM/FAM files.
-2. Restore the files at an immutable accessible location or update the tutorial
-   and manifest to a replacement dataset with equivalent documented behavior.
-3. Pin the manifest to an immutable source revision. Do not use a moving branch
-   URL.
-4. Recompute hashes from the exact served bytes and verify them on Linux,
-   Windows, and macOS where line-ending behavior could matter.
-5. Check all changed notebooks and documentation for the old filenames.
-6. Add a focused integration test that calls `example_file(...)` for the
-   tutorial pattern, confirms that BED, BIM, and FAM are retrieved, validates
-   their declared hashes, and opens the dataset successfully.
-7. Keep network retrieval in a dedicated integration or release-gate job so
-   ordinary offline unit tests do not become dependent on network availability.
-8. Validate every entry in both hashdown manifests before release, or document
-   a deliberately narrower validation set and why excluded data cannot be
-   checked.
+1. Use the five recovered root-level files in
+   [`fastlmm/bed-sample-files`](https://github.com/fastlmm/bed-sample-files)
+   as the source of truth.
+2. Pin `synth.hashdown.json` to immutable commit
+   `b17af28faf1ea6152fc84010dbf2f3fa38a84fe1`; do not use the moving
+   `main` branch.
+3. Keep one helper module and expose `example_file_synth(...)` beside the
+   existing `example_file(...)` and `example_file_bgen(...)` functions.
+4. Update the tutorial and paper notebooks to request the root-level filenames
+   through `example_file_synth(...)`.
+5. Remove the five unavailable `doc/ipynb/...` entries from
+   `pysnptools.hashdown.json`.
+6. Verify the exact served bytes against the historical hashes. The recovered
+   Windows text files must use their original LF representation.
+7. Add focused retrieval tests for BED, BIM, FAM, phenotype, and covariate
+   files. Keep network retrieval in an appropriate integration or release-gate
+   job if ordinary offline unit-test reliability requires separation.
+8. Validate every entry in all three hashdown manifests before release, or
+   document a deliberately narrower validation set and why excluded data
+   cannot be checked.
 
 Close issue #10 only after the fixed immutable references and regression test
 are present.

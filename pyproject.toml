@@ -115,6 +115,7 @@ packages = [
 "pysnptools" = [
     "util/pysnptools.hashdown.json",
     "util/bgen.hashdown.json",
+    "util/synth.hashdown.json",
     "tests/mintest.py",
 ]
 "doc" = ["*"]
