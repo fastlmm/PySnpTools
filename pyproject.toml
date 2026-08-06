@@ -95,6 +95,12 @@ filterwarnings = [
 
 [dependency-groups]
 dev = ["pytest-xdist>=3.6.1", "twine>=5.1.1"]
+notebook = [
+    "ipykernel>=7.3.0",
+    "ipywidgets>=8.1.8",
+    "matplotlib>=3.10.9",
+    "nbconvert>=7.17.1",
+]
 
 
 [tool.uv.build-backend]
