@@ -88,6 +88,12 @@ Resolve issue #10 using this implementation:
 8. Validate every entry in all three hashdown manifests before release, or
    document a deliberately narrower validation set and why excluded data
    cannot be checked.
+9. Execute both `doc/ipynb/tutorial.ipynb` and `doc/ipynb/paper.ipynb`
+   from start to finish in a clean environment with an empty
+   `PYSNPTOOLS_CACHE_HOME`. Confirm that every cell succeeds, the synthetic
+   files are downloaded from the pinned sample-data revision, and the computed
+   results remain correct. Regenerate and inspect stored notebook outputs only
+   after the execution succeeds.
 
 Close issue #10 only after the fixed immutable references and regression test
 are present.
@@ -180,7 +186,8 @@ During the backend migration:
 Replace legacy `[tool.uv].dev-dependencies` with PEP 735 dependency groups.
 Separate test, lint, and documentation tools. Retain a published `dev` extra
 only if downstream use justifies it; feature extras such as `bgen` remain
-published optional dependencies.
+published optional dependencies. Verify that normal `uv sync` and `uv run`
+commands no longer emit the `tool.uv.dev-dependencies` deprecation warning.
 
 ## Metadata
 
@@ -203,16 +210,31 @@ Inspect the built metadata rather than validating only `pyproject.toml`.
 
 ## Test-Suite Work
 
-Establish and document one complete test entry point:
+Keep the established unittest orchestration for this release:
 
-1. Inventory every suite assembled by `tests/test.py` and
-   `pysnptools.test.getTestSuite()`.
-2. Compare it with pytest collection from the repository root.
-3. Confirm whether configured module, RST, and Markdown doctests execute.
-4. Identify tests that download hashdown data and tests requiring BGEN extras.
-5. Add missing legacy tests to pytest discovery where practical.
-6. Run both entry points temporarily if pytest does not yet provide equivalent
-   coverage; do not retire the legacy runner until equivalence is demonstrated.
+```bash
+uv run python tests/test.py
+```
+
+The legacy runner passed 725 tests on Python 3.14.5. Root pytest collection
+found only 199 items, and explicitly collecting `pysnptools/test.py` failed
+because pytest attempted to construct the parameterized
+`NaNCNCTestCases` class without its required arguments. The legacy suite
+constructs those cases correctly. This is a test-harness incompatibility, not a
+product failure.
+
+Do not migrate the legacy suite to pytest as part of Python 3.14 support. Keep
+`tests/test.py` as the canonical core command and run the optional BGEN tests
+separately with:
+
+```bash
+uv run pytest pysnptools/distreader/test_bgen2.py
+```
+
+Confirm that the legacy suite continues to execute its intended doctest cases,
+and keep the BGEN job visibly separate so optional-dependency coverage cannot
+silently disappear. A future test-infrastructure project may redesign the
+parameterized unittest cases and reconsider unified pytest discovery.
 
 Required coverage must include representative:
 
@@ -234,10 +256,12 @@ Split the current all-in-one matrix into focused jobs:
 
 1. Run one pinned Ruff check.
 2. Run the complete test matrix on Python 3.10 through 3.14 across Linux,
-   Windows, Intel macOS, and Apple Silicon macOS.
+   Windows, Intel macOS, and Apple Silicon macOS using
+   `uv run python tests/test.py`.
 3. Run lower-bound tests on applicable boundary interpreters.
 4. Run optional BGEN tests distinctly so missing optional dependencies cannot
-   silently reduce core coverage.
+   silently reduce core coverage, using
+   `uv run pytest pysnptools/distreader/test_bgen2.py`.
 5. Build wheel and sdist once.
 6. Install and smoke-test the exact artifacts in clean Python 3.10 and 3.14
    environments without the repository on `PYTHONPATH`.
@@ -294,6 +318,10 @@ The work is complete when:
 - The committed lockfile supports the complete matrix; frozen, lower-bound,
   and scheduled freshness jobs pass.
 - The complete unit, integration, and doctest coverage is known and passes.
+- Normal `uv sync` and `uv run` commands emit no project-configuration
+  deprecation warnings.
+- The tutorial and paper notebooks execute from start to finish in a clean
+  environment with an empty sample-data cache.
 - The wheel and sdist contain the intended modules, metadata, licenses, and
   hashdown manifests.
 - Direct-checkout and sdist-derived wheels have equivalent intended contents.
