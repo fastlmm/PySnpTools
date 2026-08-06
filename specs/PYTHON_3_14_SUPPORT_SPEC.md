@@ -133,6 +133,28 @@ markers where Python 3.14 needs a newer release without unnecessarily raising
 older interpreters' bounds. Required CI and release qualification must use
 stable published packages, not VCS dependencies or prereleases.
 
+### Direct dependency refresh checklist
+
+Review every current runtime requirement during this release and record the
+tested decision in the implementation change:
+
+| Dependency | Required decision |
+| --- | --- |
+| NumPy | Keep the explicit pre-3.14 and 3.14-or-newer markers above. |
+| SciPy | Test the current stable line, including the 1.18 line identified during planning, and raise or mark the lower bound only where compatibility evidence requires it. |
+| pandas | Test the current stable line, including the 3.0 line identified during planning, and preserve the older lower bound where it remains truthful. |
+| psutil | Test both the declared minimum and current stable release; retain or raise the minimum based on results. |
+| h5py | Verify stable Python 3.14 wheels and test HDF5 reads and writes at the declared boundary and current stable release. |
+| cloudpickle | Test the declared minimum and current stable release, including multiprocessing and map-reduce serialization paths. |
+| `bed-reader[samples]` | Require a published Python 3.14-compatible release and test PySnpTools against that artifact. |
+| more-itertools | Test the declared minimum and current stable release; do not raise the minimum without a code or support requirement. |
+| wheel | Remove it from runtime dependencies unless an actual runtime import is demonstrated. |
+
+Do not mechanically replace every lower bound with the newest version shown by
+an editor. The normal stable-resolution job proves compatibility with current
+releases; the lower-bound job proves that published minimums remain honest.
+Use a Python-version marker when only Python 3.14 requires the newer line.
+
 Remove `wheel` from runtime dependencies unless a runtime use is demonstrated.
 Remove NumPy from `[build-system].requires` when changing the backend; restore
 it only if an isolated build proves it is required and document the reason.
@@ -309,6 +331,8 @@ The work is complete when:
   their intended lower bound.
 - Every direct runtime dependency has a justified, tested lower bound, and
   packaging-only tools are not runtime dependencies.
+- The direct dependency refresh checklist has a recorded result for both the
+  declared boundary and current stable release of each dependency.
 - Stable required dependencies resolve and install on every supported
   platform and Python version.
 - BGEN support on Python 3.14 is either fully tested from stable artifacts or
