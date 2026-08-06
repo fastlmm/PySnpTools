@@ -27,6 +27,7 @@ keywords = [
 ]
 authors = [{ name = "FaST-LMM Team", email = "fastlmm-dev@python.org" }]
 license = "Apache-2.0"
+license-files = ["LICENSE.md"]
 classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.10",
