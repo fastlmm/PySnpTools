@@ -19,7 +19,7 @@ checkouts, Git dependencies, or prereleases.
 
 ## One-time repository setup
 
-- Add a tag-triggered `.github/workflows/release.yml` workflow.
+- Maintain the tag-triggered `.github/workflows/release.yml` workflow.
 - Configure a PyPI Trusted Publisher for the `fastlmm/PySnpTools` repository,
   that workflow filename, and a protected GitHub `pypi` environment.
 - Require maintainer approval for the `pypi` environment and restrict it to
@@ -122,4 +122,3 @@ release's tag and evidence for traceability.
 TestPyPI may be used through a separate Trusted Publisher when a publishing
 workflow itself needs qualification. It does not replace clean local artifact
 tests or final testing against the real PyPI dependency ecosystem.
-
