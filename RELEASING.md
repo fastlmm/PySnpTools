@@ -5,7 +5,7 @@ and compatibility investigations belong in `specs/`; keep this file limited to
 the process that should apply to every release.
 
 The maintainer chooses the version and explicitly approves publication. A
-release must be built from a clean commit on `master`, and its `vX.Y.Z` tag must
+release must be built from a clean commit on `main`, and its `vX.Y.Z` tag must
 point to that exact commit.
 
 ## Release order
@@ -37,7 +37,7 @@ repository or GitHub Actions.
 
 ## Prepare the release
 
-1. Start from a clean release branch based on current `master`.
+1. Start from a clean release branch based on current `main`.
 2. Review open issues, pull requests, and dependency advisories for anything
    that affects the release.
 3. Set the version in `pyproject.toml` and update `CHANGELOG.md` with the release
@@ -81,7 +81,7 @@ repository or GitHub Actions.
 
 ## Publish
 
-1. Merge the reviewed release change into `master` and confirm that `master` is
+1. Merge the reviewed release change into `main` and confirm that `main` is
    clean and up to date.
 2. Confirm that the version is not already present on PyPI and that the tag does
    not already exist.
