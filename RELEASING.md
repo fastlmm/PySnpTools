@@ -28,6 +28,9 @@ checkouts, Git dependencies, or prereleases.
   `id-token: write`. Other jobs need only `contents: read`.
 - Pin third-party GitHub Actions to reviewed full commit SHAs and pin `uv` to a
   reviewed version.
+- Keep a scheduled CI job that resolves current stable dependencies without
+  rewriting or relying on the committed lockfile. Ordinary CI should continue
+  to use the frozen lockfile for reproducibility.
 - Pass the distributions built and tested by CI to the publish job as an
   artifact. Never rebuild them in the publish job.
 
@@ -43,7 +46,11 @@ repository or GitHub Actions.
 3. Set the version in `pyproject.toml` and update `CHANGELOG.md` with the release
    date, compatibility changes, deprecations, and user-visible fixes.
 4. Confirm that dependency bounds and Python-version markers describe versions
-   actually tested in CI.
+   actually tested in CI. When adding support for a new Python feature release,
+   audit every direct dependency against both its declared lower bound and its
+   current stable release. Record whether each bound was retained, raised, or
+   given a Python-version marker, and test the resulting minimum-dependency
+   environment rather than relying only on the locked current environment.
 5. Regenerate and commit `uv.lock`, then verify it:
 
    ```console
