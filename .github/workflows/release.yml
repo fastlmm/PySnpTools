@@ -54,11 +54,11 @@ jobs:
       - name: Build wheel and source distribution
         run: uv build --no-sources
 
-      - name: Build wheel directly from the checkout
-        run: uv build --wheel --no-sources --out-dir direct-dist
+      - name: Build wheel from the source distribution
+        run: uv build --wheel --no-sources --out-dir sdist-dist dist/*.tar.gz
 
       - name: Compare direct and sdist-derived wheels
-        run: cmp dist/*.whl direct-dist/*.whl
+        run: cmp dist/*.whl sdist-dist/*.whl
 
       - name: Upload distributions
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

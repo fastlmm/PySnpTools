@@ -28,6 +28,9 @@ checkouts, Git dependencies, or prereleases.
   `id-token: write`. Other jobs need only `contents: read`.
 - Pin third-party GitHub Actions to reviewed full commit SHAs and pin `uv` to a
   reviewed version.
+- Keep a scheduled CI job that resolves current stable dependencies without
+  rewriting or relying on the committed lockfile. Ordinary CI should continue
+  to use the frozen lockfile for reproducibility.
 - Pass the distributions built and tested by CI to the publish job as an
   artifact. Never rebuild them in the publish job.
 

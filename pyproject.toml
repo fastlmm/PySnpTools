@@ -49,10 +49,10 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://fastlmm.github.io/"
-bug-tracker = "https://github.com/fastlmm/PySnpTools/issues"
-documentation = "http://fastlmm.github.io/PySnpTools"
-source-code = "https://github.com/fastlmm/PySnpTools"
+Homepage = "https://fastlmm.github.io/"
+Documentation = "https://fastlmm.github.io/PySnpTools"
+Issues = "https://github.com/fastlmm/PySnpTools/issues"
+Source = "https://github.com/fastlmm/PySnpTools"
 
 
 [project.optional-dependencies]
