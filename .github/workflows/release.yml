@@ -1,87 +1,55 @@
-name: CI
+name: Release
 
 on:
   push:
-  pull_request:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 0 1 * *"
+    tags:
+      - "v*"
 
 permissions:
   contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  lint:
-    name: Ruff
+  build:
+    name: Build and test distributions
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
-      - name: Checkout
+      - name: Checkout tagged source
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Install uv
+      - name: Install uv and Python
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           version: "0.12.2"
           python-version: "3.14"
           enable-cache: true
 
-      - name: Ruff
-        run: uvx ruff@0.7.1 check
+      - name: Verify tag and package version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: >-
+          python -c
+          "import os, pathlib, tomllib;
+          version = tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'];
+          expected = f'v{version}';
+          assert os.environ['RELEASE_TAG'] == expected,
+          f'tag {os.environ[\"RELEASE_TAG\"]!r} does not match package version {version!r}'"
 
-  test:
-    name: Test (${{ matrix.os }}, Python ${{ matrix.python-version }})
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-2022, macos-15-intel, macos-15]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    env:
-      UV_PYTHON: ${{ matrix.python-version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Verify the lockfile
+        run: uv lock --check
 
-      - name: Install uv and Python ${{ matrix.python-version }}
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-        with:
-          version: "0.12.2"
-          python-version: ${{ matrix.python-version }}
-          enable-cache: true
-          cache-suffix: ${{ matrix.os }}-${{ matrix.python-version }}
-
-      - name: Install core test dependencies
-        run: uv sync --frozen --extra dev
+      - name: Install all test dependencies
+        run: uv sync --frozen --all-extras
 
       - name: Run the canonical core suite
         run: uv run --frozen --no-sync python tests/test.py
 
-      - name: Install optional dependencies
-        run: uv sync --frozen --all-extras
-
       - name: Run the optional BGEN suite
         run: uv run --frozen --no-sync pytest pysnptools/distreader/test_bgen2.py
-
-  build:
-    name: Build distributions
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-        with:
-          version: "0.12.2"
-          python-version: "3.14"
-          enable-cache: true
 
       - name: Build wheel and source distribution
         run: uv build --no-sources
@@ -90,21 +58,20 @@ jobs:
         run: uv build --wheel --no-sources --out-dir direct-dist
 
       - name: Compare direct and sdist-derived wheels
-        shell: bash
         run: cmp dist/*.whl direct-dist/*.whl
 
       - name: Upload distributions
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: distributions
+          name: release-distributions
           path: |
             dist/*.whl
             dist/*.tar.gz
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
 
   artifact-test:
-    name: Artifact test (${{ matrix.kind }}, Python ${{ matrix.python-version }})
+    name: Test ${{ matrix.kind }} on Python ${{ matrix.python-version }}
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -136,7 +103,7 @@ jobs:
       - name: Download distributions
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          name: distributions
+          name: release-distributions
           path: dist
 
       - name: Create clean environment
@@ -158,3 +125,26 @@ jobs:
           assert all(files('pysnptools.util').joinpath(name).is_file() for name in manifests);
           assert '.artifact-venv' in pysnptools.__file__;
           print(pysnptools.__file__)"
+
+  publish:
+    name: Publish to PyPI
+    needs: artifact-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pysnptools
+    permissions:
+      id-token: write
+    steps:
+      - name: Download tested distributions
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: release-distributions
+          path: dist
+
+      - name: Publish distributions with Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          packages-dir: dist/
+          attestations: true

@@ -1,0 +1,10 @@
+{
+  "url": "https://raw.githubusercontent.com/fastlmm/bed-sample-files/b17af28faf1ea6152fc84010dbf2f3fa38a84fe1",
+  "file_to_hash": {
+    "all.bed": "b0d620ac7b51f26c1ddb1eb4dca50d22",
+    "all.bim": "43aa9ee47c7cf054afc6fa0ff9d9b5c7",
+    "all.fam": "03665525a42d58f2d661e4c6e5d54d55",
+    "pheno_10_causals.txt": "1bbabc7ba273f9320d74d05912576a10",
+    "cov.txt": "790f41114e3fbcce3f98f9284fc87231"
+  }
+}

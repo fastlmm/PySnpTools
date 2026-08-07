@@ -733,7 +733,11 @@ def get_array_module(a):
 
 
 from pysnptools.util.generate import snp_gen  # noqa: E402, F401
-from pysnptools.util._example_file import example_file, example_file_bgen  # noqa: E402, F401
+from pysnptools.util._example_file import (  # noqa: E402, F401
+    example_file,
+    example_file_bgen,
+    example_file_synth,
+)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

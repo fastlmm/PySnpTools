@@ -364,9 +364,8 @@ if __name__ == "__main__":
 
     if False:
         from pysnptools.snpreader import Bed
-        from pysnptools.util import example_file  # Download and return local file name
 
-        # bed_file = example_file('doc/ipynb/all.*','*.bed')
+        # bed_file = example_file_synth("all.*", "*.bed")
         bed_file = r"F:\backup\carlk4d\data\carlk\cachebio\genetics\onemil\id1000000.sid_1000000.seed0.byiid\iid990000to1000000.bed"
         bed = Bed(bed_file, count_A1=False)
         snpdata1 = bed[:, :1000].read()

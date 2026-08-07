@@ -239,6 +239,7 @@
     <Content Include="examples\toydata.sim" />
     <Content Include="examples\toydata.snpmajor.snp.hdf5" />
     <Content Include="util\pysnptools.hashdown.json" />
+    <Content Include="util\synth.hashdown.json" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|gtg" />

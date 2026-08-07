@@ -16,6 +16,11 @@ bgen_hashdown = Hashdown.load_hashdown(
     directory=os.environ.get("PYSNPTOOLS_CACHE_HOME", None),
 )
 
+synth_hashdown = Hashdown.load_hashdown(
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), "synth.hashdown.json"),
+    directory=os.environ.get("PYSNPTOOLS_CACHE_HOME", None),
+)
+
 
 def example_file(pattern, endswith=None):
     """
@@ -73,12 +78,36 @@ def example_file_bgen(pattern, endswith=None):
     return bgen_hashdown._example_file(pattern, endswith=endswith)
 
 
+def example_file_synth(pattern, endswith=None):
+    """
+    Returns the local location of a synthetic tutorial file, downloading it
+    if needed.
+
+    >>> from pysnptools.util import example_file_synth
+    >>> bed_fn = example_file_synth("all.*", endswith="*.bed")
+    >>> os.path.basename(bed_fn)
+    'all.bed'
+
+    """
+    return synth_hashdown._example_file(pattern, endswith=endswith)
+
+
 class TestExampleFile(unittest.TestCase):
     def test_doc_test(self):
         import pysnptools.util._example_file as example_mod
 
         result = doctest.testmod(example_mod, optionflags=doctest.ELLIPSIS)
         assert result.failed == 0, "failed doc test: " + __file__
+
+    def test_synth_files(self):
+        from pysnptools.snpreader import Bed
+
+        bed_filename = example_file_synth("all.*", endswith="*.bed")
+        self.assertEqual(Bed(bed_filename, count_A1=False).shape, (500, 5000))
+
+        for filename in ("pheno_10_causals.txt", "cov.txt"):
+            local_filename = example_file_synth(filename)
+            self.assertEqual(os.path.basename(local_filename), filename)
 
 
 def getTestSuite():
