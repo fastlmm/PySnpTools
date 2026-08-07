@@ -4,7 +4,14 @@
 
 ## Status
 
-Proposed.
+Completed and released as PySnpTools 0.5.15 on August 7, 2026. The checklist
+below records the release requirements and should be archived or removed after
+the coordinated FaST-LMM release is complete.
+
+Post-release dependency qualification confirmed that all 725 canonical tests
+pass on Python 3.14.5 with pandas 3.0.5, NumPy 2.5.1, and SciPy 1.18.0. The
+working tree constrains pandas to `>=1.3.0,<4`, supporting the tested pandas 3
+line while rejecting the next untested major line until a future release.
 
 ## Objective
 
@@ -142,7 +149,7 @@ tested decision in the implementation change:
 | --- | --- |
 | NumPy | Keep the explicit pre-3.14 and 3.14-or-newer markers above. |
 | SciPy | Test the current stable line, including the 1.18 line identified during planning, and raise or mark the lower bound only where compatibility evidence requires it. |
-| pandas | Test the current stable line, including the 3.0 line identified during planning, and preserve the older lower bound where it remains truthful. |
+| pandas | Test the current stable 3.0 line, preserve the older lower bound where it remains truthful, and use `<4` to reject the next untested major line. |
 | psutil | Test both the declared minimum and current stable release; retain or raise the minimum based on results. |
 | h5py | Verify stable Python 3.14 wheels and test HDF5 reads and writes at the declared boundary and current stable release. |
 | cloudpickle | Test the declared minimum and current stable release, including multiprocessing and map-reduce serialization paths. |
