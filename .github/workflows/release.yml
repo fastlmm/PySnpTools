@@ -51,6 +51,12 @@ jobs:
       - name: Run the optional BGEN suite
         run: uv run --frozen --no-sync pytest pysnptools/distreader/test_bgen2.py
 
+      - name: Build documentation from clean sources
+        run: uv run --frozen --no-sync sphinx-build -W --keep-going -E -a -d "${{ runner.temp }}/doctrees" -b html doc/source "${{ runner.temp }}/generated-docs"
+
+      - name: Verify generated documentation is current
+        run: diff -ru --exclude=.nojekyll "${{ runner.temp }}/generated-docs" docs
+
       - name: Build wheel and source distribution
         run: uv build --no-sources
 

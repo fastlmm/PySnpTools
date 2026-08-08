@@ -18,7 +18,7 @@ class Bed(SnpReader):
 
     See :class:`.SnpReader` for details and examples.
 
-    The format is described `here <http://zzz.bwh.harvard.edu/plink/binary.shtml>`__.
+    The format is described `here <https://www.cog-genomics.org/plink/2.0/formats#bed>`__.
 
     **Constructor:**
         :Parameters: * **filename** (*string*) -- The `*.bed` file to read. The '.bed' suffix is optional. The related `*.bim` and `*.fam` files will also be read.

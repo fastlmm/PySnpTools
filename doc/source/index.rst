@@ -60,7 +60,6 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 
 
 .. automodule:: pysnptools
-    :members:
     :undoc-members:
 	:show-inheritance:
 	:special-members:
@@ -79,6 +78,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.SnpReader`
 +++++++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.SnpReader
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -89,6 +89,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.Bed`
 ++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.Bed
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -98,6 +99,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.SnpData`
 ++++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.SnpData
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -107,6 +109,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.Pheno`
 ++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.Pheno
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -116,6 +119,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.Ped`
 +++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.Ped
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -125,6 +129,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.Dat`
 +++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.Dat
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -134,6 +139,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.Dense`
 +++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.Dense
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -143,6 +149,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.SnpHdf5`
 +++++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.SnpHdf5
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -152,6 +159,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.SnpNpz`
 +++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.SnpNpz
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -162,6 +170,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.SnpMemMap`
 ++++++++++++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.SnpMemMap
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -171,6 +180,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.SnpGen`
 ++++++++++++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.SnpGen
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -180,6 +190,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`snpreader.DistributedBed`
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 .. autoclass:: pysnptools.snpreader.DistributedBed
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -307,6 +318,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`standardizer.DiagKtoN`
 +++++++++++++++++++++++++++++++++++++
 .. autoclass:: pysnptools.standardizer.DiagKtoN
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -325,6 +337,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`standardizer.DiagKtoNTrained`
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 .. autoclass:: pysnptools.standardizer.DiagKtoNTrained
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -348,6 +361,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`kernelstandardizer.DiagKtoN`
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 .. autoclass:: pysnptools.kernelstandardizer.DiagKtoN
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -357,6 +371,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 :class:`kernelstandardizer.DiagKtoNTrained`
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 .. autoclass:: pysnptools.kernelstandardizer.DiagKtoNTrained
+    :no-index:
     :members:
     :undoc-members:
 	:show-inheritance:
@@ -565,6 +580,7 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 ++++++++++++++++++++++++++
 
 .. autofunction:: pysnptools.util.mapreduce1.map_reduce
+    :no-index:
 
 :class:`util.mapreduce1.runner.Runner`
 ++++++++++++++++++++++++++++++++++++++++++++++++++

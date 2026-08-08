@@ -24,7 +24,7 @@ class Dat(_OneShot, SnpReader):
         null_200	j	n	0	nan	1
         ...
 
-    Its Map and Fam files are described `here <http://zzz.bwh.harvard.edu/plink/data.shtml>`__.
+    Its Map and Fam files are described in the `PLINK format reference <https://www.cog-genomics.org/plink/2.0/formats>`__.
 
     **Constructor:**
         :Parameters: * **filename** (*string*) -- The Dat file to read.

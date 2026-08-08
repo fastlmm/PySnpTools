@@ -14,7 +14,7 @@ class Pheno(_OneShot, SnpReader):
 
     See :class:`.SnpReader` for general examples of using SnpReaders.
 
-    This text format is described `here <http://zzz.bwh.harvard.edu/plink/data.shtml#pheno>`__ and looks like::
+    This text format is described `here <https://www.cog-genomics.org/plink/2.0/input#pheno>`__ and looks like::
 
          FID    IID      qt1   bmi    site
          F1     1110     2.3   22.22  2

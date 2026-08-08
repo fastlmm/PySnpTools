@@ -68,21 +68,31 @@ repository or GitHub Actions.
 7. Execute the tutorial and paper notebooks from start to finish in a clean
    notebook environment. Inspect numerical results and committed output changes
    rather than accepting changed output mechanically.
-8. Validate every entry in the package's hashdown manifests, including the
+8. Build both the source and published documentation with warnings treated as
+   errors, verify that generated pages are committed, and check external links:
+
+   ```console
+   pysnptools_docs_output="$(mktemp -d)"
+   uv run --frozen --no-sync sphinx-build -W --keep-going -E -a -d /tmp/pysnptools-doctrees -b html doc/source "$pysnptools_docs_output"
+   diff -ru --exclude=.nojekyll "$pysnptools_docs_output" docs
+   uv run --frozen --no-sync sphinx-build -W --keep-going -E -a -b linkcheck doc/source doc/build/linkcheck
+   ```
+
+9. Validate every entry in the package's hashdown manifests, including the
    packaged tutorial sample files.
-9. Build the source distribution and wheel without local source overrides:
+10. Build the source distribution and wheel without local source overrides:
 
    ```console
    uv build --no-sources
    ```
 
-10. Inspect both artifact manifests for required metadata, licenses, hashdown
+11. Inspect both artifact manifests for required metadata, licenses, hashdown
     files, and package data. Confirm that development files, caches, notebooks,
     and generated output are absent unless intentionally distributed.
-11. Install and smoke-test the exact wheel and source distribution in clean
+12. Install and smoke-test the exact wheel and source distribution in clean
     environments on the oldest and newest supported Python versions, outside
     the source checkout and without the repository on `PYTHONPATH`.
-12. Wait for all required CI jobs to pass on every supported operating system
+13. Wait for all required CI jobs to pass on every supported operating system
     and Python version. Resolve warnings that indicate a compatibility,
     packaging, or security problem.
 

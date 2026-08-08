@@ -13,6 +13,13 @@ pass on Python 3.14.5 with pandas 3.0.5, NumPy 2.5.1, and SciPy 1.18.0. The
 working tree constrains pandas to `>=1.3.0,<4`, supporting the tested pandas 3
 line while rejecting the next untested major line until a future release.
 
+A post-release documentation audit on August 8 corrected the stale Sphinx
+version (`0.0.2`), made the Sphinx 9.1 build warning-clean without removing
+module navigation, replaced four dead PLINK documentation links, regenerated
+the published pages as 0.5.15, and added source/generated documentation checks
+to CI and the release workflow. These documentation-only corrections do not
+require another PyPI release.
+
 ## Objective
 
 Release PySnpTools with supported, non-experimental Python 3.14 compatibility
