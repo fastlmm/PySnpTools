@@ -98,8 +98,10 @@ dev = ["pytest-xdist>=3.6.1", "twine>=5.1.1"]
 notebook = [
     "ipykernel>=7.3.0",
     "ipywidgets>=8.1.8",
-    "matplotlib>=3.10.9",
-    "nbconvert>=7.17.1",
+    # Pillow (via matplotlib) has no patched release for Python 3.10.
+    "matplotlib>=3.10.9; python_full_version >= '3.11'",
+    "nbconvert>=7.17.2",
+    "pillow>=13.0.0; python_full_version >= '3.11'",
 ]
 
 
