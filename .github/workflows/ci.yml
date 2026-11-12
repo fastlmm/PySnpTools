@@ -88,6 +88,9 @@ jobs:
         run: uv run --frozen --no-sync python tests/test.py
 
       - name: Install optional dependencies
+        env:
+          # cbgen's bundled zlib needs POSIX declarations on Linux.
+          CFLAGS: ${{ runner.os == 'Linux' && '-D_POSIX_C_SOURCE=200809L' || '' }}
         run: uv sync --frozen --all-extras
 
       - name: Run the optional BGEN suite
