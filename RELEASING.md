@@ -96,6 +96,19 @@ repository or GitHub Actions.
     and Python version. Resolve warnings that indicate a compatibility,
     packaging, or security problem.
 
+## Python 3.15 qualification
+
+Core Python 3.15 jobs must install a published compatible bed-reader wheel and
+must not install HDF5 or BGEN. Run the canonical core suite with explicit
+HDF5 skips and run the complete optional-feature suites on Python 3.11 through
+3.14. Missing optional support must never conceal an import or ABI failure
+inside an installed backend.
+
+Core development can use a locally built bed-reader wheel for diagnosis.
+Final release acceptance must use the published release and its declared
+minimum version. Confirm wheel and source-distribution installation outside
+the source tree, including an environment without either optional backend.
+
 ## Publish
 
 1. Merge the reviewed release change into `main` and confirm that `main` is

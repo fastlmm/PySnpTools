@@ -1,3 +1,4 @@
+from pysnptools.test_optional_dependencies import _has_hdf5, _requires_hdf5
 import numpy as np
 import logging
 import doctest
@@ -16,6 +17,7 @@ from pysnptools.standardizer import Beta
 from pysnptools.util import create_directory_if_necessary
 from pysnptools.kernelreader.test import TestKernelReader
 from pysnptools.kernelreader.test import TestKrDocStrings
+from pysnptools.test_optional_dependencies import TestOptionalHdf5, TestOptionalBgen
 from pysnptools.pstreader.test import TestPstReader
 from pysnptools.pstreader.test import TestPstDocStrings
 from pysnptools.pstreader.pstmemmap import TestPstMemMap
@@ -336,10 +338,12 @@ class TestPySnpTools(unittest.TestCase):
         arr = np.int64(1)
         snpreader[arr, arr]
 
+    @_requires_hdf5
     def test_c_reader_hdf5(self):
         snpreader = SnpHdf5(self.currentFolder + "/examples/toydata.snpmajor.snp.hdf5")
         self.c_reader(snpreader)
 
+    @_requires_hdf5
     def test_hdf5_case3(self):
         snpreader1 = SnpHdf5(
             self.currentFolder + "/examples/toydata.snpmajor.snp.hdf5"
@@ -353,6 +357,7 @@ class TestPySnpTools(unittest.TestCase):
             )
         )
 
+    @_requires_hdf5
     def test_standardize_hdf5(self):
         snpreader = SnpHdf5(self.currentFolder + "/examples/toydata.iidmajor.snp.hdf5")
         self.standardize(snpreader)
@@ -783,6 +788,7 @@ class TestPySnpTools(unittest.TestCase):
         result5 = result4.read(view_ok=True)
         self.assertTrue(np.may_share_memory(result4.val, result5.val))
 
+    @_requires_hdf5
     def test_load_and_standardize_hdf5(self):
         snpreader2 = SnpHdf5(self.currentFolder + "/examples/toydata.snpmajor.snp.hdf5")
         snpreader3 = SnpHdf5(self.currentFolder + "/examples/toydata.iidmajor.snp.hdf5")
@@ -919,7 +925,7 @@ class TestPySnpTools(unittest.TestCase):
         snpreader_list = [
             Bed("examples/toydata.5chrom.bed", count_A1=True),
             SnpGen(seed=0, iid_count=500, sid_count=50),
-            SnpHdf5("examples/toydata.snpmajor.snp.hdf5"),
+            *([SnpHdf5("examples/toydata.snpmajor.snp.hdf5")] if _has_hdf5 else []),
             SnpMemMap("examples/tiny.snp.memmap"),
             SnpNpz("examples/toydata10.snp.npz"),
             Bed("examples/toydata.5chrom.bed", count_A1=True)[::2, ::2],
@@ -1070,7 +1076,7 @@ class TestPySnpTools(unittest.TestCase):
             (Dat, "dat", None, None),
             (Ped, "ped", None, None),
             (Pheno, "pheno", None, None),
-            (SnpHdf5, "hdf5", None, None),
+            *([(SnpHdf5, "hdf5", None, None)] if _has_hdf5 else []),
             (SnpNpz, "npz", None, None),
             (SnpMemMap, "memmap", None, None),
         ]
@@ -1272,8 +1278,8 @@ class NaNCNCTestCases(unittest.TestCase):
                     ).read_and_standardize()
                     for snpreader_factory in [
                         snp_reader_factory_bed,
-                        snp_reader_factory_snpmajor_hdf5,
-                        snp_reader_factory_iidmajor_hdf5,
+                        *([snp_reader_factory_snpmajor_hdf5,
+                           snp_reader_factory_iidmajor_hdf5] if _has_hdf5 else []),
                         snp_reader_factory_dat,
                     ]:
                         for dtype in [np.float64, np.float32]:
@@ -1442,6 +1448,7 @@ class TestSnpDocStrings(unittest.TestCase):
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
+    @_requires_hdf5
     def test_snphdf5(self):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)) + "/snpreader")
@@ -1575,6 +1582,8 @@ def getTestSuite():
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPstMemMap))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSnpMemMap))
     test_suite.addTests(NaNCNCTestCases.factory_iterator())
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestOptionalHdf5))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestOptionalBgen))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPstReader))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestKernelReader))
 

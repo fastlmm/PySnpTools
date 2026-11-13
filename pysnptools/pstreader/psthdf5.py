@@ -1,12 +1,20 @@
-try:
-    import h5py
-except Exception:
-    pass
-
 import logging
 import numpy as np
 from pysnptools.pstreader import PstReader
 from pysnptools.pstreader.pstdata import PstData
+
+
+def _require_h5py():
+    try:
+        import h5py
+    except ModuleNotFoundError as error:
+        if error.name != "h5py":
+            raise
+        raise ModuleNotFoundError(
+            "HDF5 support requires h5py. Install it with: pip install 'pysnptools[hdf5]'",
+            name="h5py",
+        ) from error
+    return h5py
 
 
 class PstHdf5(PstReader):
@@ -96,6 +104,7 @@ class PstHdf5(PstReader):
     def _run_once(self):
         if self._ran_once:
             return
+        h5py = _require_h5py()
         try:
             self._h5 = h5py.File(self.filename, "r")
         except IOError as e:
@@ -415,6 +424,7 @@ class PstHdf5(PstReader):
             else:  # Otherwise, just leave it.
                 return possible_unicode
 
+        h5py = _require_h5py()
         with h5py.File(filename, "w") as h5:
             h5.create_dataset("row", data=any_u_to_a(pstdata.row))
             h5.create_dataset("col", data=any_u_to_a(pstdata.col))

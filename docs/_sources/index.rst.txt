@@ -4,14 +4,22 @@
 
 PySnpTools: A library for reading and manipulating genetic data.
 
-See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/README.md>`_ for installation instructions, documentation, and code.
+See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/main/README.md>`_ for installation instructions, documentation, and code.
+
+
+HDF5 and BGEN support are optional. Install ``pysnptools[hdf5]``,
+``pysnptools[bgen]``, or ``pysnptools[hdf5,bgen]`` as needed.
+Existing HDF5 users upgrading from an earlier release must install the HDF5 extra.
+Core Python 3.15 qualification excludes both backends; HDF5 and BGEN remain
+covered by the Python 3.11 through 3.14 test matrix.
+
 
 :Synopsis:
 
 * :mod:`.snpreader`: Efficiently read genetic PLINK formats including \*.bed/bim/fam and phenotype files. Also, efficiently read *parts* of files and standardize data.
 
 * :new: :mod:`.distreader`: Efficiently work with unphased BGEN format and other diploid, biallelic distribution data. Also, efficiently read *parts* of files.
-    See `Distribution IPython Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/master/doc/ipynb/Dist.ipynb>`_
+    See `Distribution IPython Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/Dist.ipynb>`_
 
 * :mod:`.kernelreader`: Efficiently create, read, and manipulate kernel data.
 
@@ -41,8 +49,8 @@ See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/master/R
 * `Slides <https://1drv.ms/p/s!AkoPP4cC5J64jOc15JXgDsXmD9EEaw>`_
 * `Video <https://www.youtube.com/watch?v=KPI6479ctAQ>`_
 * IPython Notebooks
-   * `General Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/master/doc/ipynb/tutorial.ipynb>`_
-   * `Distribution Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/master/doc/ipynb/Dist.ipynb>`_
+   * `General Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/tutorial.ipynb>`_
+   * `Distribution Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/Dist.ipynb>`_
 
 :Code:
 
