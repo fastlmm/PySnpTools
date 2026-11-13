@@ -1,3 +1,4 @@
+from pysnptools.test_optional_dependencies import _has_hdf5, _requires_hdf5
 import numpy as np
 import logging
 import doctest
@@ -222,7 +223,7 @@ class TestKernelReader(unittest.TestCase):
             Bed("../examples/toydata.5chrom.bed", count_A1=True)[::2, ::2].read_kernel(
                 StdIdentity()
             ),
-            KernelHdf5("../examples/toydata.kernel.hdf5"),
+            *([KernelHdf5("../examples/toydata.kernel.hdf5")] if _has_hdf5 else []),
             Identity(iidref, test=[("0", "x"), ("0", "y")]),
             Identity(iidref),
             KernelNpz("../examples/toydata.kernel.npz"),
@@ -513,6 +514,7 @@ class TestKrDocStrings(unittest.TestCase):
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
+    @_requires_hdf5
     def test_kernelhdf5(self):
         import pysnptools.kernelreader.kernelhdf5
 

@@ -17,6 +17,23 @@ from bgen_reader.test.test_bgen_reader import noread_permission
 from pysnptools.util import example_file_bgen
 
 
+def test_pysnptools_reader():
+    from pysnptools.distreader import Bgen
+    from pysnptools.util import example_file
+
+    data = Bgen(example_file("pysnptools/examples/example.bgen"))[:3, :2].read()
+    assert data.iid.tolist() == [["0", "sample_001"], ["0", "sample_002"], ["0", "sample_003"]]
+    assert data.sid.tolist() == ["SNPID_2,RSID_2", "SNPID_3,RSID_3"]
+    # The immutable fixture and the published legacy reader agree on these
+    # quantized probabilities. Allow only double-precision rounding variation.
+    expected = np.array([
+        [[np.nan, np.nan, np.nan], [0.005065919366913363, 0.0020751997367653994, 0.9928588808963212]],
+        [[0.027802362811705648, 0.00863673794284387, 0.9635608992454505], [0.009643549101809866, 0.0026855496695930023, 0.9876709012285971]],
+        [[0.017365036536325942, 0.04968413525486461, 0.9329508282088095], [0.9797058284701095, 0.019470196687493054, 0.0008239748423974903]],
+    ])
+    assert_allclose(data.val, expected, rtol=0, atol=1e-12, equal_nan=True)
+
+
 def test_bgen_samples_inside_bgen():
     data = open_bgen(example_file_bgen("haplotypes.bgen"), verbose=False)
     samples = ["sample_0", "sample_1", "sample_2", "sample_3"]

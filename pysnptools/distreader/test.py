@@ -1,3 +1,4 @@
+from pysnptools.test_optional_dependencies import _has_hdf5, _requires_hdf5
 import numpy as np
 import logging
 import doctest
@@ -49,12 +50,14 @@ class TestDistReaders(unittest.TestCase):
         arr = np.int64(1)
         distreader[arr, arr]
 
+    @_requires_hdf5
     def test_c_reader_hdf5(self):
         distreader = DistHdf5(
             self.currentFolder + "/../examples/toydata.snpmajor.dist.hdf5"
         )
         self.c_reader(distreader)
 
+    @_requires_hdf5
     def test_hdf5_case3(self):
         distreader1 = DistHdf5(
             self.currentFolder + "/../examples/toydata.snpmajor.dist.hdf5"
@@ -203,7 +206,7 @@ class TestDistReaders(unittest.TestCase):
         the_class_and_suffix_list = [
             (DistNpz, "npz", None, None),
             # Bgen used to be here
-            (DistHdf5, "hdf5", None, None),
+            *([(DistHdf5, "hdf5", None, None)] if _has_hdf5 else []),
             (DistMemMap, "memmap", None, None),
         ]
         # Skip because write requires qctool, which is not installed by default
@@ -595,8 +598,8 @@ class TestDistNaNCNC(unittest.TestCase):
                 ).read_and_standardize()
                 for distreader_factory in [
                     snp_reader_factory_distnpz,
-                    snp_reader_factory_snpmajor_hdf5,
-                    snp_reader_factory_iidmajor_hdf5,
+                    *([snp_reader_factory_snpmajor_hdf5,
+                       snp_reader_factory_iidmajor_hdf5] if _has_hdf5 else []),
                 ]:
                     for dtype in [np.float64, np.float32]:
                         for order in ["C", "F"]:
@@ -688,6 +691,7 @@ class TestDistNaNCNC(unittest.TestCase):
 # We do it this way instead of using doctest.DocTestSuite because doctest.DocTestSuite requires modules to be pickled, which python doesn't allow.
 # We need tests to be pickleable so that they can be run on a cluster.
 class TestDistReaderDocStrings(unittest.TestCase):
+    @_requires_hdf5
     def test_distreader(self):
         import pysnptools.distreader.distreader
 
@@ -710,6 +714,7 @@ class TestDistReaderDocStrings(unittest.TestCase):
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
+    @_requires_hdf5
     def test_disthdf5(self):
         import pysnptools.distreader.disthdf5
 
