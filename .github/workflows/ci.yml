@@ -272,6 +272,7 @@ jobs:
         run: uv venv --python ${{ matrix.python-version }} .artifact-venv
 
       - name: Install exact ${{ matrix.kind }} artifact
+        shell: bash
         run: uv pip install --python .artifact-venv ${{ matrix.package }}
 
       - name: Smoke-test installed package
