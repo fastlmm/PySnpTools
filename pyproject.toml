@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "pysnptools"
-version = "1.0.0"
+version = "1.0.1"
 description = "PySnpTools"
 readme = "README.md"
 requires-python = ">=3.11.5"
@@ -67,7 +67,11 @@ Source = "https://github.com/fastlmm/PySnpTools"
 
 
 [project.optional-dependencies]
-hdf5 = ["h5py>=3.12.1"]
+hdf5 = [
+    "h5py>=3.12.1; python_version < '3.14'",
+    # h5py 3.15.0 is the first release with Python 3.14 wheels.
+    "h5py>=3.15.0; python_version >= '3.14'",
+]
 bgen = ["cbgen>=1.0.6", "bgen-reader>=4.0.9"]
 dev = [
     "pytest",

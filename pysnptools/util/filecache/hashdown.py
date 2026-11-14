@@ -134,9 +134,12 @@ class Hashdown(FileCache):
                 return True
             except HTTPError as e:
                 if e.code == 404:
+                    e.close()
                     return False
                 if e.code < 500 or attempt == Hashdown._DOWNLOAD_ATTEMPTS:
                     raise
+                # Handled errors own response bodies just like successful responses.
+                e.close()
                 error = e
             except (URLError, TimeoutError, ConnectionError, http.client.HTTPException) as e:
                 if attempt == Hashdown._DOWNLOAD_ATTEMPTS:
