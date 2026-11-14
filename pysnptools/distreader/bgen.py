@@ -4,13 +4,6 @@ import numpy as np
 import unittest
 from pathlib import Path
 
-try:
-    from bgen_reader import open_bgen, example_filepath
-    from bgen_reader._multimemmap import MultiMemMap
-
-    BGEN_READER_AVAILABLE = True
-except ImportError:
-    BGEN_READER_AVAILABLE = False
 from pysnptools.util import log_in_place
 import shutil
 import math
@@ -18,6 +11,20 @@ import subprocess
 import pysnptools.util as pstutil
 from pysnptools.distreader import DistReader
 from bed_reader import get_num_threads
+
+
+def _require_bgen_reader():
+    try:
+        from bgen_reader import open_bgen
+        from bgen_reader._multimemmap import MultiMemMap
+    except ModuleNotFoundError as error:
+        if error.name != "bgen_reader":
+            raise
+        raise ModuleNotFoundError(
+            "BGEN support requires bgen-reader. Install it with: pip install 'pysnptools[bgen]'",
+            name="bgen_reader",
+        ) from error
+    return open_bgen, MultiMemMap
 
 
 def default_iid_function(sample):
@@ -206,14 +213,12 @@ class Bgen(DistReader):
         if self._ran_once:
             return
 
+        open_bgen, MultiMemMap = _require_bgen_reader()
         assert os.path.exists(self.filename), "Expect file to exist ('{0}')".format(
             self.filename
         )
         verbose = logging.getLogger().level <= logging.INFO
 
-        assert (
-            BGEN_READER_AVAILABLE
-        ), "To use Bgen, you must install the bgen feature of the pysnptools package. Try 'pip install pysnptools[bgen]'"
         self._open_bgen = open_bgen(self.filename, self._sample, verbose=verbose)
         assert (
             self._open_bgen.nvariants == 0 or self._open_bgen.nalleles[0] == 2
@@ -434,6 +439,7 @@ class Bgen(DistReader):
         >>> Bgen.write("tempdir/toydata10.bgen",distreader)        # Write data in BGEN format
         Bgen('tempdir/toydata10.bgen')
         """
+        open_bgen, _ = _require_bgen_reader()
         qctool_path = qctool_path or os.environ.get("QCTOOLPATH")
         assert (
             qctool_path is not None
@@ -612,6 +618,7 @@ class Bgen(DistReader):
         shutil.move(filename + ".temp", filename)
 
     def copyinputs(self, copier):
+        open_bgen, _ = _require_bgen_reader()
         # doesn't need to self.run_once() because only uses original inputs
         copier.input(self.filename)
         if self._sample is not None:
@@ -800,6 +807,7 @@ class TestBgen(unittest.TestCase):
         os.chdir(old_dir)
 
     def test_read1(self):
+        from bgen_reader import open_bgen
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
@@ -860,6 +868,7 @@ class TestBgen(unittest.TestCase):
         # This and many of the tests based on bgen-reader-py\bgen_reader\test
 
     def test_bgen_samples_inside_bgen(self):
+        from bgen_reader import example_filepath
         with example_filepath("example.32bits.bgen") as filepath:
             data = Bgen(filepath)
             samples = [
@@ -871,6 +880,7 @@ class TestBgen(unittest.TestCase):
             assert (data.iid[:4] == samples).all()
 
     def test_bgen_reader_variants_info(self):
+        from bgen_reader import example_filepath
         with example_filepath("example.32bits.bgen") as filepath:
             bgen = Bgen(filepath, sid_function="id")
 
@@ -910,6 +920,7 @@ class TestBgen(unittest.TestCase):
             np.testing.assert_array_almost_equal(g.val, b)
 
     def test_bgen_reader_without_metadata(self):
+        from bgen_reader import example_filepath
         with example_filepath("example.32bits.bgen") as filepath:
             bgen = Bgen(filepath)
             bgen.read()
@@ -926,6 +937,7 @@ class TestBgen(unittest.TestCase):
         assert got_error
 
     def test_bgen_reader_no_sample(self):
+        from bgen_reader import example_filepath
         with example_filepath("example.32bits.bgen") as filepath:
             bgen = Bgen(filepath)
             assert bgen.sid_count == 199
@@ -944,6 +956,7 @@ class TestBgen(unittest.TestCase):
         assert result.failed == 0, "failed doc test: " + __file__
 
     def test_coverage(self):
+        from bgen_reader import example_filepath
         from pysnptools.distreader import DistGen
 
         with example_filepath("example.32bits.bgen") as filepath:

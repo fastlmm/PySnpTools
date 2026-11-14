@@ -7,8 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-* Declare the `six` dependency used by `LocalMultiThread`, fixing imports in
-  clean environments where no other dependency installs it.
+* Require Python 3.11.5 or later and refresh stable runtime and development
+  dependencies, including security fixes for Pillow and Soup Sieve.
+* Make HDF5 support optional: existing HDF5 users must install
+  `pysnptools[hdf5]`. BGEN remains available through `pysnptools[bgen]`.
+* Load optional backends only when used, with actionable installation errors
+  and preservation of failures inside an installed backend.
+* Prepare Python 3.15 core support; optional formats remain qualified on
+  Python 3.11 through 3.14 pending upstream binary support.
+* Require bed-reader 1.2.0 or later, the first release with Python 3.15 and
+  Windows ARM64 wheels.
+* Remove the use of `six` from `LocalMultiThread`, so PySnpTools no longer
+  needs it (0.5.15 imported it without declaring it).
 
 ## [0.5.15] - 2026-08-06
 

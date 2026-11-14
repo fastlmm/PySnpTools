@@ -1,3 +1,4 @@
+from pysnptools.test_optional_dependencies import _has_hdf5, _requires_hdf5
 import numpy as np
 import logging
 import doctest
@@ -129,7 +130,7 @@ class TestPstReader(unittest.TestCase):
                             pstdata = PstData(row, col, val, row_prop, col_prop, str(i))
                             for the_class, suffix in [
                                 (PstMemMap, "memmap"),
-                                (PstHdf5, "hdf5"),
+                                *([(PstHdf5, "hdf5")] if _has_hdf5 else []),
                                 (PstNpz, "npz"),
                             ]:
                                 filename = output_template.format(i, suffix)
@@ -368,6 +369,7 @@ class TestPstReader(unittest.TestCase):
         assert np.array_equal(pstdata[1:, :2].col_property, pstdata.col_property[:2])
         logging.info("done with test")
 
+    @_requires_hdf5
     def test_flush(self):
         os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
@@ -386,6 +388,7 @@ class TestPstReader(unittest.TestCase):
 
         for pstreader in [
             PstNpz("../examples/toydata10.snp.npz"),
+            *([
             _MergeRows(
                 [
                     PstHdf5("../examples/toydata.snpmajor.snp.hdf5")[:5, :].read(),
@@ -401,6 +404,7 @@ class TestPstReader(unittest.TestCase):
             PstHdf5("../examples/toydata.snpmajor.snp.hdf5")[::2, ::2],
             PstHdf5("../examples/toydata.snpmajor.dist.hdf5").read(),
             PstHdf5("../examples/toydata.kernel.hdf5"),
+            ] if _has_hdf5 else []),
             PstMemMap("../examples/tiny.pst.memmap"),
         ]:
             logging.info(str(pstreader))
@@ -486,6 +490,7 @@ class TestPstDocStrings(unittest.TestCase):
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
+    @_requires_hdf5
     def test_psthdf5(self):
         import pysnptools.pstreader.psthdf5
 
@@ -519,6 +524,7 @@ class TestPstDocStrings(unittest.TestCase):
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
+    @_requires_hdf5
     def test_pstreader(self):
         import pysnptools.pstreader.pstreader
 

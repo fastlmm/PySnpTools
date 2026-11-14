@@ -12,7 +12,7 @@ Main Features:
 
 * [DistReader](https://fastlmm.github.io/PySnpTools/#module-pysnptools.distreader): Efficiently work with
          unphased BGEN format and other diploid, biallelic distribution data.
-          Also, efficiently read parts of files. See [Distribution IPython Notebook](https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/master/doc/ipynb/Dist.ipynb).
+          Also, efficiently read parts of files. See [Distribution IPython Notebook](https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/Dist.ipynb).
 
 * [util](https://fastlmm.github.io/PySnpTools/#module-pysnptools.util): In one line, intersect and re-order IIDs from snpreader and other sources.
           Also, efficiently extract a submatrix from an ndarray.
@@ -27,6 +27,14 @@ Install
 -------
 
     pip install pysnptools
+
+Requires Python 3.11.5 or later. Python 3.15 qualification is in progress.
+
+HDF5 support is optional. To read or write HDF5 files, install:
+
+    pip install pysnptools[hdf5]
+
+Existing HDF5 users upgrading from an earlier release should install this extra.
 
 *If you need support for BGEN files, instead do:*
 
@@ -43,7 +51,7 @@ Code
 
 * [PyPi](https://pypi.org/project/pysnptools/)
 * [GitHub](https://github.com/fastlmm/PySnpTools)
-* [Change Log](https://github.com/fastlmm/PySnpTools/blob/master/CHANGELOG.md)
+* [Change Log](https://github.com/fastlmm/PySnpTools/blob/main/CHANGELOG.md)
 
 Contacts
 --------
