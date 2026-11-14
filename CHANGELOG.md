@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-14
+
 * Make `Hashdown` downloads (used by `example_file`) more robust: retry
   network errors and HTTP 5xx responses up to three times with backoff, time
   out stalled connections, and write each file under a temporary name so an
   interrupted download never leaves a partial file in the cache.
+
+* Require h5py 3.15.0 or later for the HDF5 extra on Python 3.14 and
+  later, while retaining the existing requirement on earlier Python versions.
 
 ## [1.0.0] - 2026-11-13
 
