@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+* Make `Hashdown` downloads (used by `example_file`) more robust: retry
+  network errors and HTTP 5xx responses up to three times with backoff, time
+  out stalled connections, and write each file under a temporary name so an
+  interrupted download never leaves a partial file in the cache.
+
 ## [1.0.0] - 2026-11-13
 
 * Require Python 3.11.5 or later and refresh stable runtime and development
