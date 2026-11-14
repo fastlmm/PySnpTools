@@ -30,7 +30,9 @@ def _http_error(code):
 
 class TestHashdownRetry(unittest.TestCase):
     def setUp(self):
-        self.dir = tempfile.mkdtemp()
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.dir = directory.name
         self.file = os.path.join(self.dir, "sub", "f.txt")
         sleep = mock.patch.object(hashdown.time, "sleep")
         self.sleep = sleep.start()
@@ -38,6 +40,9 @@ class TestHashdownRetry(unittest.TestCase):
 
     def _get(self, *responses):
         calls = []
+        for response in responses:
+            if isinstance(response, (HTTPError, _Body)):
+                self.addCleanup(response.close)
 
         def fake_urlopen(url, timeout=None):
             calls.append(timeout)
@@ -63,14 +68,18 @@ class TestHashdownRetry(unittest.TestCase):
         self.sleep.assert_called_once_with(1)
 
     def test_retries_server_error(self):
-        result, calls = self._get(_http_error(503), _http_error(502), _Body(b"ok"))
+        errors = [_http_error(503), _http_error(502)]
+        result, calls = self._get(*errors, _Body(b"ok"))
         self.assertTrue(result)
+        self.assertTrue(all(error.closed for error in errors))
         self.assertEqual(len(calls), 3)
         self.assertEqual([c.args[0] for c in self.sleep.call_args_list], [1, 2])
 
     def test_404_returns_false_without_retry(self):
-        result, calls = self._get(_http_error(404))
+        error = _http_error(404)
+        result, calls = self._get(error)
         self.assertFalse(result)
+        self.assertTrue(error.closed)
         self.assertEqual(len(calls), 1)
         self.sleep.assert_not_called()
 
