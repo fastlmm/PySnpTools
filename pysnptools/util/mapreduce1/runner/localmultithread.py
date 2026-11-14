@@ -9,7 +9,7 @@ import os
 import logging
 import os.path
 import threading
-from six.moves.queue import PriorityQueue
+from queue import PriorityQueue
 
 
 class LocalMultiThread(Runner):
