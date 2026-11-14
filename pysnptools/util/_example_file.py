@@ -93,6 +93,42 @@ def example_file_synth(pattern, endswith=None):
 
 
 class TestExampleFile(unittest.TestCase):
+    def test_generated_files_match_generator(self):
+        import numpy as np
+        from pysnptools.snpreader import Bed
+        from pysnptools.util import snp_gen
+
+        filename = example_file("tests/datasets/generate/gen1.*", endswith="*.bed")
+        downloaded = Bed(filename, count_A1=False).read()
+        generated = snp_gen(
+            fst=0, dfr=0.5, iid_count=200, sid_count=20, maf_low=0.05, seed=5
+        )
+        np.testing.assert_array_equal(downloaded.iid, generated.iid)
+        np.testing.assert_array_equal(downloaded.sid, generated.sid)
+        np.testing.assert_array_equal(downloaded.pos, generated.pos)
+        np.testing.assert_array_equal(downloaded.val, generated.val)
+
+    def test_distributed_files_match_metadata(self):
+        import numpy as np
+        from pysnptools.snpreader import Bed
+
+        filename = example_file(
+            "tests/datasets/distributed_bed_test1/chrom1.piece1of2.*",
+            endswith="*.bed",
+        )
+        downloaded = Bed(filename, count_A1=False).read()
+        metadata_filename = example_file(
+            "tests/datasets/distributed_bed_test1/metadata.npz"
+        )
+        with np.load(metadata_filename, allow_pickle=False) as metadata:
+            # This pinned piece contains markers 4 through 7 of the full dataset.
+            np.testing.assert_array_equal(downloaded.iid, metadata["_row"].astype(str))
+            np.testing.assert_array_equal(downloaded.sid, metadata["_col"][4:8].astype(str))
+            expected_positions = metadata["_col_property"][4:8].copy()
+            # Bed documents PLINK zero positions as missing; this metadata stores raw zeros.
+            expected_positions[expected_positions == 0] = np.nan
+            np.testing.assert_array_equal(downloaded.pos, expected_positions)
+
     def test_doc_test(self):
         import pysnptools.util._example_file as example_mod
 
