@@ -69,14 +69,16 @@ repository or GitHub Actions.
    notebook environment. Inspect numerical results and committed output changes
    rather than accepting changed output mechanically.
 8. Build both the source and published documentation with warnings treated as
-   errors, verify that generated pages are committed, and check external links:
+   errors and check external links:
 
    ```console
    pysnptools_docs_output="$(mktemp -d)"
    uv run --frozen --no-sync sphinx-build -W --keep-going -E -a -d /tmp/pysnptools-doctrees -b html doc/source "$pysnptools_docs_output"
-   diff -ru --exclude=.nojekyll "$pysnptools_docs_output" docs
    uv run --frozen --no-sync sphinx-build -W --keep-going -E -a -b linkcheck doc/source doc/build/linkcheck
    ```
+
+   Documentation is deployed from the strict Sphinx build by the Pages artifact
+   workflow (`docs.yml`). Generated HTML is not checked into Git.
 
 9. Validate every entry in the package's hashdown manifests, including the
    packaged tutorial sample files.
