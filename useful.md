@@ -13,7 +13,6 @@ pytest
 cd doc
 make.bat html
 build\html\index.html
-xcopy /c /e /s /h build\html ..\docs
 cd ..
 ```
 
