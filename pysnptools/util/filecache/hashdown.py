@@ -3,8 +3,11 @@ import shutil
 import hashlib
 import fnmatch
 
-from urllib.request import urlopen, HTTPError
+from urllib.request import urlopen
+from urllib.error import HTTPError, URLError
+import http.client
 import logging
+import time
 from contextlib import contextmanager
 from pysnptools.util.filecache import FileCache
 import tempfile
@@ -104,9 +107,19 @@ class Hashdown(FileCache):
 
         return result
 
+    # A download is tried this many times in all before its error is raised.
+    _DOWNLOAD_ATTEMPTS = 4
+    # Seconds a connection may wait for data before the attempt is retried.
+    _DOWNLOAD_TIMEOUT = 60
+
     @staticmethod
     def _get_large_file(url, file, trust_local_files, length=16 * 1024):
-        """https://stackoverflow.com/questions/1517616/stream-large-binary-files-with-urllib2-to-file"""
+        """Download url to file, retrying transient network and server errors.
+
+        Returns False if the server reports 404. The file is written to a
+        temporary name and renamed into place only once it is complete, so an
+        interrupted download never leaves a partial file behind.
+        """
         import pysnptools.util as pstutil  # put here to avoid recursive nesting
 
         logging.info("Downloading'{0}'".format(url))
@@ -114,17 +127,43 @@ class Hashdown(FileCache):
             logging.info("Trusting local file'{0}'".format(file))
             return True
 
-        try:
-            req = urlopen(url)
-        except HTTPError as e:
-            if e.code == 404:
-                return False
-            raise
-
         pstutil.create_directory_if_necessary(file)
-        with open(file, "wb") as fp:
-            shutil.copyfileobj(req, fp, length)
-        return True
+        for attempt in range(1, Hashdown._DOWNLOAD_ATTEMPTS + 1):
+            try:
+                Hashdown._download_once(url, file, length)
+                return True
+            except HTTPError as e:
+                if e.code == 404:
+                    return False
+                if e.code < 500 or attempt == Hashdown._DOWNLOAD_ATTEMPTS:
+                    raise
+                error = e
+            except (URLError, TimeoutError, ConnectionError, http.client.HTTPException) as e:
+                if attempt == Hashdown._DOWNLOAD_ATTEMPTS:
+                    raise
+                error = e
+            wait = 2 ** (attempt - 1)
+            logging.warning(
+                "Download of '{0}' failed ({1}); retrying in {2}s".format(url, error, wait)
+            )
+            time.sleep(wait)
+
+    @staticmethod
+    def _download_once(url, file, length):
+        with urlopen(url, timeout=Hashdown._DOWNLOAD_TIMEOUT) as req:
+            fd, temp_file = tempfile.mkstemp(
+                dir=os.path.dirname(file) or ".",
+                prefix=os.path.basename(file) + ".",
+                suffix=".part",
+            )
+            try:
+                with os.fdopen(fd, "wb") as fp:
+                    shutil.copyfileobj(req, fp, length)
+                os.replace(temp_file, file)
+            except BaseException:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+                raise
 
     @staticmethod
     def _get_hash(filename):
