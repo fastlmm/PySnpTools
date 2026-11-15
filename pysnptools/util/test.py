@@ -167,8 +167,8 @@ class TestUtilTools(unittest.TestCase):
             subset = snpdata[np.array([True, False, True, True, False, True]), [3, 1]].read()
         np.testing.assert_array_equal(cp.asnumpy(subset.val), val[[0, 2, 3, 5]][:, [3, 1]])
 
-    def test_snpdata_cupy_keeps_float32(self):
-        # A numpy float32 val moved to cupy must stay float32 (not be upcast to float64).
+    def test_snpdata_cupy_keeps_dtype(self):
+        # A val moved between numpy and cupy keeps the dtype that same-module input keeps.
         try:
             import cupy as cp
         except ModuleNotFoundError:
@@ -177,11 +177,25 @@ class TestUtilTools(unittest.TestCase):
         from pysnptools.snpreader import SnpData
         iid = [["f", str(i)] for i in range(3)]
         sid = ["s0", "s1"]
-        with patch.dict("os.environ", {"ARRAY_MODULE": "cupy"}):
-            for in_dtype, out_dtype in [(np.float32, np.float32), (np.float64, np.float64), (np.int8, np.float64)]:
-                snpdata = SnpData(iid=iid, sid=sid, val=np.ones((3, 2), dtype=in_dtype))
-                assert isinstance(snpdata.val, cp.ndarray)
-                assert snpdata.val.dtype == out_dtype, (in_dtype, snpdata.val.dtype)
+        cases = [  # (input dtype, _require_float32_64, expected dtype)
+            (np.float32, True, np.float32),
+            (np.float64, True, np.float64),
+            (np.int8, True, np.float64),
+            (np.int8, False, np.int8),
+        ]
+        for array_module, target in [("cupy", cp), ("numpy", np)]:
+            source = np if target is cp else cp
+            with patch.dict("os.environ", {"ARRAY_MODULE": array_module}):
+                for in_dtype, require, out_dtype in cases:
+                    val = source.ones((3, 2), dtype=in_dtype)
+                    snpdata = SnpData(iid=iid, sid=sid, val=val, _require_float32_64=require)
+                    assert isinstance(snpdata.val, target.ndarray), (array_module, in_dtype)
+                    assert snpdata.val.dtype == out_dtype, (array_module, in_dtype, require, snpdata.val.dtype)
+                    # Same-module input keeps the same dtype.
+                    same = SnpData(iid=iid, sid=sid, val=target.ones((3, 2), dtype=in_dtype), _require_float32_64=require)
+                    assert same.val.dtype == out_dtype, (array_module, in_dtype, require, same.val.dtype)
+                lists = SnpData(iid=iid, sid=sid, val=[[1, 2], [3, 4], [5, 6]])
+                assert isinstance(lists.val, target.ndarray) and lists.val.dtype == np.float64
 
 
 

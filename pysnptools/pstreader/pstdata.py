@@ -1,3 +1,4 @@
+import sys
 import warnings
 import numpy as np
 from itertools import *  # noqa: F403
@@ -185,12 +186,22 @@ class PstData(PstReader):
             ), "If val is None, either row_count or col_count must be 0"
             input = _default_empty_creator_val(row_count, col_count)
         elif not isinstance(input, xp.ndarray):
-            # When moving a numpy ndarray to another array module (e.g. cupy),
-            # keep float32 rather than silently upcasting it to float64.
-            if isinstance(input, np.ndarray) and input.dtype == np.float32:
-                input = xp.array(input, dtype=xp.float32)
+            # An ndarray from another array module (numpy <-> cupy) keeps the dtype that
+            # same-module input keeps (below): float32 or float64, or any dtype when
+            # _require_float32_64 is False. Anything else (for example, a list) becomes float64.
+            cp = sys.modules.get("cupy")
+            is_ndarray = isinstance(input, np.ndarray) or (
+                cp is not None and isinstance(input, cp.ndarray)
+            )
+            if is_ndarray and (
+                not _require_float32_64 or input.dtype in (np.float32, np.float64)
+            ):
+                dtype = input.dtype
             else:
-                input = xp.array(input, dtype=xp.float64)
+                dtype = np.float64
+            if is_ndarray and xp is np:
+                input = pstutil.asnumpy(input)  # cupy forbids implicit conversion to numpy
+            input = xp.array(input, dtype=dtype)
         elif _require_float32_64 and input.dtype not in [xp.float32, xp.float64]:
             input = xp.array(input, dtype=xp.float64)
 
