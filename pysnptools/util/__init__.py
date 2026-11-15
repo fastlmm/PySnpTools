@@ -425,7 +425,8 @@ def _sub_matrix_cupy(cp, val, row_index_list, col_index_list, effective_order, d
     row_index = _checked_index(row_index_list, val.shape[0], "row")
     col_index = _checked_index(col_index_list, val.shape[1], "column")
     sub_val = val[cp.ix_(cp.asarray(row_index), cp.asarray(col_index))]
-    return cp.array(sub_val, dtype=dtype, order=effective_order)
+    # Indexing already returns a new array, so copy again only to change dtype or layout.
+    return sub_val.astype(dtype, order=effective_order, copy=False)
 
 
 def _checked_index(index_list, count, name):
