@@ -198,6 +198,31 @@ class TestUtilTools(unittest.TestCase):
                 assert isinstance(lists.val, target.ndarray) and lists.val.dtype == np.float64
 
 
+    def test_standardize_cupy_matches_rust(self):
+        # cupy arrays are standardized in Python; results and errors must match the Rust path.
+        try:
+            import cupy as cp
+        except ModuleNotFoundError:
+            raise unittest.SkipTest("cupy is not installed")
+        from pysnptools.standardizer import Unit, Beta
+        rng = np.random.default_rng(0)
+        val = rng.binomial(2, 0.3, (40, 5)).astype(np.float64)
+        val[[1, 5, 9], 0] = np.nan  # some missing
+        val[:, 1] = 1.0  # constant
+        val[:, 2] = np.nan  # one observed value
+        val[0, 2] = 2.0
+        for standardizer in [Unit(), Beta(1, 25)]:
+            for dtype in [np.float64, np.float32]:
+                expected = standardizer.standardize(np.asfortranarray(val.astype(dtype)))
+                actual = cp.asnumpy(standardizer.standardize(cp.asarray(val.astype(dtype), order="F")))
+                assert actual.dtype == expected.dtype
+                np.testing.assert_allclose(actual, expected, rtol=0, atol=8 * np.finfo(dtype).eps)
+            all_missing = val.copy()
+            all_missing[:, 3] = np.nan
+            for array in [np.asfortranarray(all_missing), cp.asarray(all_missing, order="F")]:
+                with self.assertRaisesRegex(ValueError, "No individual observed"):
+                    standardizer.standardize(array)
+
 
 def getTestSuite():
     """

@@ -5,6 +5,14 @@ import pysnptools.util as pstutil
 from bed_reader import get_num_threads, standardize_f64, standardize_f32
 
 
+def _check_observed(imissX):
+    # Match the Rust standardizer, which raises for a SNP with no observed values. (The
+    # Python path, used for cupy arrays, would otherwise silently set that SNP to 0.)
+    observed_count = (~imissX).sum(axis=0)
+    if bool((observed_count == 0).any()):
+        raise ValueError("No individual observed for the SNP.")
+
+
 class Standardizer(object):
     """
     A Standardizer is a class such as :class:`.Unit` and :class:`.Beta` to be used by the :meth:`.SnpData.standardize` and :meth:`.SnpReader.read_kernel` method to standardize SNP data.
@@ -221,6 +229,7 @@ class Standardizer(object):
             snp_mean = stats[:, 0]
             snp_std = stats[:, 1]
         else:
+            _check_observed(imissX)
             snp_std = xp.nanstd(snps, axis=0)
             snp_mean = xp.nanmean(snps, axis=0)
             # avoid div by 0 when standardizing
@@ -257,6 +266,7 @@ class Standardizer(object):
             np.float32,
         ], "snps must be a float in order to standardize in place."
 
+        xp = pstutil.get_array_module(snps)
         imissX = np.isnan(snps)
         snp_sum = np.nansum(snps, axis=0)
         n_obs_sum = (~imissX).sum(0)
@@ -265,6 +275,7 @@ class Standardizer(object):
             snp_mean = stats[:, 0]
             snp_std = stats[:, 1]
         else:
+            _check_observed(imissX)
             snp_mean = (snp_sum * 1.0) / n_obs_sum
             snp_std = np.sqrt(np.nansum((snps - snp_mean) ** 2, axis=0) / n_obs_sum)
             if 0.0 in snp_std:
@@ -281,7 +292,8 @@ class Standardizer(object):
             # avoid div by 0 when standardizing
             import scipy.stats as st
 
-            maf_beta = st.beta.pdf(maf, betaA, betaB)
+            # scipy needs numpy; maf has one value per SNP, so the round trip is cheap.
+            maf_beta = xp.asarray(st.beta.pdf(pstutil.asnumpy(maf), betaA, betaB))
             # print("BetaPdf[{0},{1},{2}]={3}".format(maf,betaA,betaB,maf_beta))
             snps -= snp_mean
             snps *= maf_beta
