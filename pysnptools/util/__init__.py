@@ -327,7 +327,7 @@ def sub_matrix(
     cp = sys.modules.get("cupy")
     if cp is not None and isinstance(val, cp.ndarray):
         return _sub_matrix_cupy(
-            val, row_index_list, col_index_list, effective_order, dtype
+            cp, val, row_index_list, col_index_list, effective_order, dtype
         )
 
     original_dimensions = len(val.shape)
@@ -403,11 +403,11 @@ def sub_matrix(
     return sub_val
 
 
-def _sub_matrix_cupy(val, row_index_list, col_index_list, effective_order, dtype):
+def _sub_matrix_cupy(cp, val, row_index_list, col_index_list, effective_order, dtype):
     # The Rust helper reads host memory, so a cupy (GPU) ndarray, which SnpData holds
     # when ARRAY_MODULE is 'cupy', is subset with cupy's own indexing instead.
+    # The caller passes the already-imported cupy module as cp.
     # Validation mirrors the numpy path so both array modules fail the same way.
-    import cupy as cp  # type: ignore
 
     if len(val.shape) not in {2, 3}:
         raise ValueError("Expect val dimensions of 2 or 3")
