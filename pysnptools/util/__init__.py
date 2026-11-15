@@ -322,6 +322,11 @@ def sub_matrix(
         effective_order = order
     dtype = np.dtype(dtype)
 
+    if not isinstance(val, np.ndarray):
+        return _sub_matrix_cupy(
+            val, row_index_list, col_index_list, effective_order, dtype
+        )
+
     original_dimensions = len(val.shape)
     if original_dimensions == 2:
         iid_count, sid_count = val.shape
@@ -393,6 +398,36 @@ def sub_matrix(
         sub_val = sub_val.reshape(sub_val.shape[0], sub_val.shape[1])
     logging.debug("Back from Rust matrixSubset")
     return sub_val
+
+
+def _sub_matrix_cupy(val, row_index_list, col_index_list, effective_order, dtype):
+    # The Rust helper reads host memory, so a cupy (GPU) ndarray, which SnpData holds
+    # when ARRAY_MODULE is 'cupy', is subset with cupy's own indexing instead.
+    # Validation mirrors the numpy path so both array modules fail the same way.
+    import cupy as cp  # type: ignore
+
+    if not isinstance(val, cp.ndarray):
+        raise TypeError(
+            "Expect val to be a numpy or cupy ndarray, not '{0}'".format(type(val))
+        )
+    if len(val.shape) not in {2, 3}:
+        raise ValueError("Expect val dimensions of 2 or 3")
+    if val.dtype not in (np.float64, np.float32):
+        raise Exception(
+            "input dtype '{0}' not known, only float64 and float32".format(val.dtype)
+        )
+    if dtype not in (np.float64, np.float32):
+        raise Exception("dtype '{0}' not known, only float64 and float32".format(dtype))
+    if not (val.flags["F_CONTIGUOUS"] or val.flags["C_CONTIGUOUS"]):
+        raise Exception("input order must be 'F' or 'C'")
+    if val.dtype == np.float64 and dtype == np.float32:
+        warnings.warn("Converting float64 to float32 can cause loss of information")
+
+    # uintp (like the Rust path) rejects negative indexes; cupy indexing wants intp.
+    row_index = cp.asarray(np.asarray(row_index_list, dtype=np.uintp).astype(np.intp))
+    col_index = cp.asarray(np.asarray(col_index_list, dtype=np.uintp).astype(np.intp))
+    sub_val = val[cp.ix_(row_index, col_index)]
+    return cp.array(sub_val, dtype=dtype, order=effective_order)
 
 
 def create_directory_if_necessary(name, isfile=True, robust=False):

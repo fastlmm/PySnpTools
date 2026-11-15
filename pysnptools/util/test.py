@@ -120,6 +120,64 @@ class TestUtilTools(unittest.TestCase):
         submatrix = pstutil.sub_matrix(matrix,[0,2,11],[6,5,4,3,2,1,0])
         assert  matrix[2,0,1] == submatrix[1,6,1] #The row # 2 is now #1, the column #0 is now #6.
 
+    def test_sub_matrix_cupy(self):
+        # cupy is optional; this test needs it and a GPU.
+        try:
+            import cupy as cp
+        except ModuleNotFoundError:
+            raise unittest.SkipTest("cupy is not installed")
+        import warnings
+        import pysnptools.util as pstutil
+        rng = np.random.default_rng(0)
+        row_index_list = [0, 2, 11, 2]
+        col_index_list = [6, 5, 4, 3, 2, 1, 0]
+        for shape in [(12, 7), (12, 7, 3)]:
+            for in_order in ["F", "C"]:
+                for in_dtype in [np.float64, np.float32]:
+                    matrix = np.asarray(rng.random(shape), dtype=in_dtype, order=in_order)
+                    for out_order in ["A", "F", "C"]:
+                        for out_dtype in [np.float64, np.float32]:
+                            with warnings.catch_warnings():
+                                warnings.simplefilter("ignore", UserWarning)
+                                expected = pstutil.sub_matrix(matrix, row_index_list, col_index_list, order=out_order, dtype=out_dtype)
+                                actual = pstutil.sub_matrix(cp.asarray(matrix, order=in_order), row_index_list, col_index_list, order=out_order, dtype=out_dtype)
+                            assert isinstance(actual, cp.ndarray)
+                            assert actual.dtype == expected.dtype
+                            assert actual.flags["F_CONTIGUOUS"] == expected.flags["F_CONTIGUOUS"]
+                            assert actual.flags["C_CONTIGUOUS"] == expected.flags["C_CONTIGUOUS"]
+                            np.testing.assert_array_equal(cp.asnumpy(actual), expected)
+
+    def test_snpdata_subset_cupy(self):
+        # End to end: SnpData created under ARRAY_MODULE=cupy holds a cupy val and must subset.
+        try:
+            import cupy as cp
+        except ModuleNotFoundError:
+            raise unittest.SkipTest("cupy is not installed")
+        from unittest.mock import patch
+        from pysnptools.snpreader import SnpData
+        val = np.arange(24, dtype=np.float64).reshape(6, 4)
+        with patch.dict("os.environ", {"ARRAY_MODULE": "cupy"}):
+            snpdata = SnpData(iid=[["f", str(i)] for i in range(6)], sid=[f"s{j}" for j in range(4)], val=val)
+            assert isinstance(snpdata.val, cp.ndarray)
+            subset = snpdata[np.array([True, False, True, True, False, True]), [3, 1]].read()
+        np.testing.assert_array_equal(cp.asnumpy(subset.val), val[[0, 2, 3, 5]][:, [3, 1]])
+
+    def test_snpdata_cupy_keeps_float32(self):
+        # A numpy float32 val moved to cupy must stay float32 (not be upcast to float64).
+        try:
+            import cupy as cp
+        except ModuleNotFoundError:
+            raise unittest.SkipTest("cupy is not installed")
+        from unittest.mock import patch
+        from pysnptools.snpreader import SnpData
+        iid = [["f", str(i)] for i in range(3)]
+        sid = ["s0", "s1"]
+        with patch.dict("os.environ", {"ARRAY_MODULE": "cupy"}):
+            for in_dtype, out_dtype in [(np.float32, np.float32), (np.float64, np.float64), (np.int8, np.float64)]:
+                snpdata = SnpData(iid=iid, sid=sid, val=np.ones((3, 2), dtype=in_dtype))
+                assert isinstance(snpdata.val, cp.ndarray)
+                assert snpdata.val.dtype == out_dtype, (in_dtype, snpdata.val.dtype)
+
 
 
 def getTestSuite():

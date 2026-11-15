@@ -185,7 +185,12 @@ class PstData(PstReader):
             ), "If val is None, either row_count or col_count must be 0"
             input = _default_empty_creator_val(row_count, col_count)
         elif not isinstance(input, xp.ndarray):
-            input = xp.array(input, dtype=xp.float64)
+            # When moving a numpy ndarray to another array module (e.g. cupy),
+            # keep float32 rather than silently upcasting it to float64.
+            if isinstance(input, np.ndarray) and input.dtype == np.float32:
+                input = xp.array(input, dtype=xp.float32)
+            else:
+                input = xp.array(input, dtype=xp.float64)
         elif _require_float32_64 and input.dtype not in [xp.float32, xp.float64]:
             input = xp.array(input, dtype=xp.float64)
 
