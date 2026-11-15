@@ -342,8 +342,8 @@ def sub_matrix(
     logging.debug("About to call Rust matrixSubset")
     num_threads = get_num_threads(num_threads)
     if val.flags["F_CONTIGUOUS"] or val.flags["C_CONTIGUOUS"]:
-        row_index_list = np.asarray(row_index_list, dtype=np.uintp)
-        col_index_list = np.asarray(col_index_list, dtype=np.uintp)
+        row_index_list = _checked_index(row_index_list, iid_count, "row").astype(np.uintp)
+        col_index_list = _checked_index(col_index_list, sid_count, "column").astype(np.uintp)
         if val.dtype == np.float64:
             sub_val = create_sub_val(np.float64)
             subset_f64_f64(
@@ -393,6 +393,20 @@ def sub_matrix(
         sub_val = sub_val.reshape(sub_val.shape[0], sub_val.shape[1])
     logging.debug("Back from Rust matrixSubset")
     return sub_val
+
+
+def _checked_index(index_list, count, name):
+    # The Rust helper panics on an out-of-range index (and a negative index in an ndarray
+    # wraps to a huge uintp), so check indexes first and raise a clear IndexError.
+    index = np.asarray(index_list, dtype=np.intp)
+    bad = (index < 0) | (index >= count)
+    if bad.any():
+        raise IndexError(
+            "{0} index {1} is out of range for {2} {0}s".format(
+                name, index[bad][0], count
+            )
+        )
+    return index
 
 
 def create_directory_if_necessary(name, isfile=True, robust=False):
