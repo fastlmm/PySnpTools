@@ -15,6 +15,27 @@ def _default_empty_creator_val(row_count, col_count):
     return np.empty([row_count, col_count], dtype="str")
 
 
+
+def _as_array_module(input, xp, require_float32_64):
+    # Return input as an xp array. An array (from xp or from the other module, numpy or
+    # cupy) keeps its dtype if it is float32 or float64, or always if require_float32_64
+    # is False; otherwise, and for anything else (for example, a list), it becomes float64.
+    def keeps_dtype(array):
+        return not require_float32_64 or array.dtype in (np.float32, np.float64)
+
+    if isinstance(input, xp.ndarray):  # same module
+        return input if keeps_dtype(input) else xp.array(input, dtype=xp.float64)
+
+    cp = sys.modules.get("cupy")  # a cupy array exists only if cupy was imported
+    if isinstance(input, np.ndarray) or (cp is not None and isinstance(input, cp.ndarray)):
+        dtype = input.dtype if keeps_dtype(input) else np.float64
+        if xp is np:
+            input = pstutil.asnumpy(input)  # cupy forbids implicit conversion to numpy
+        return xp.array(input, dtype=dtype)  # other module (always copies)
+
+    return xp.array(input, dtype=np.float64)  # not an array
+
+
 class PstData(PstReader):
     """A :class:`.PstReader` for holding values in-memory, along with related row and col information.
     It is usually created by calling the :meth:`.PstReader.read` method on another :class:`.PstReader`, for example, :class:`.PstNpz`. It can also be constructed directly.
@@ -185,25 +206,8 @@ class PstData(PstReader):
                 row_count == 0 or col_count == 0
             ), "If val is None, either row_count or col_count must be 0"
             input = _default_empty_creator_val(row_count, col_count)
-        elif not isinstance(input, xp.ndarray):
-            # An ndarray from another array module (numpy <-> cupy) keeps the dtype that
-            # same-module input keeps (below): float32 or float64, or any dtype when
-            # _require_float32_64 is False. Anything else (for example, a list) becomes float64.
-            cp = sys.modules.get("cupy")
-            is_ndarray = isinstance(input, np.ndarray) or (
-                cp is not None and isinstance(input, cp.ndarray)
-            )
-            if is_ndarray and (
-                not _require_float32_64 or input.dtype in (np.float32, np.float64)
-            ):
-                dtype = input.dtype
-            else:
-                dtype = np.float64
-            if is_ndarray and xp is np:
-                input = pstutil.asnumpy(input)  # cupy forbids implicit conversion to numpy
-            input = xp.array(input, dtype=dtype)
-        elif _require_float32_64 and input.dtype not in [xp.float32, xp.float64]:
-            input = xp.array(input, dtype=xp.float64)
+        else:
+            input = _as_array_module(input, xp, _require_float32_64)
 
         assert len(input.shape) in {2, 3}, "Expect val to be two or three dimensional."
         assert (
