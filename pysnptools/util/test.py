@@ -120,6 +120,15 @@ class TestUtilTools(unittest.TestCase):
         submatrix = pstutil.sub_matrix(matrix,[0,2,11],[6,5,4,3,2,1,0])
         assert  matrix[2,0,1] == submatrix[1,6,1] #The row # 2 is now #1, the column #0 is now #6.
 
+    def test_sub_matrix_bad_index(self):
+        # Out-of-range and negative indexes used to make the Rust helper panic.
+        import pysnptools.util as pstutil
+        for shape in [(12, 7), (12, 7, 3)]:
+            matrix = np.random.default_rng(0).random(shape)
+            for bad_rows, bad_cols in [([12], [0]), ([-1], [0]), (np.array([-1]), [0]), ([0], [7]), ([0], np.array([-7]))]:
+                with self.assertRaises(IndexError):
+                    pstutil.sub_matrix(matrix, bad_rows, bad_cols)
+
 
 
 def getTestSuite():
