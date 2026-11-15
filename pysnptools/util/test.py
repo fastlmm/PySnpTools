@@ -146,6 +146,11 @@ class TestUtilTools(unittest.TestCase):
                             assert actual.flags["F_CONTIGUOUS"] == expected.flags["F_CONTIGUOUS"]
                             assert actual.flags["C_CONTIGUOUS"] == expected.flags["C_CONTIGUOUS"]
                             np.testing.assert_array_equal(cp.asnumpy(actual), expected)
+        # cupy indexing would silently wrap these, so sub_matrix must reject them.
+        matrix = cp.asarray(rng.random((12, 7)))
+        for bad_rows, bad_cols in [([12], [0]), ([-1], [0]), (np.array([-1]), [0]), ([0], [7]), ([0], np.array([-7]))]:
+            with self.assertRaises(IndexError):
+                pstutil.sub_matrix(matrix, bad_rows, bad_cols)
 
     def test_snpdata_subset_cupy(self):
         # End to end: SnpData created under ARRAY_MODULE=cupy holds a cupy val and must subset.

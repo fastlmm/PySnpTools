@@ -322,7 +322,10 @@ def sub_matrix(
         effective_order = order
     dtype = np.dtype(dtype)
 
-    if not isinstance(val, np.ndarray):
+    # A cupy ndarray can exist only if cupy was already imported, so this check never
+    # imports cupy and leaves every non-cupy input on the numpy path below.
+    cp = sys.modules.get("cupy")
+    if cp is not None and isinstance(val, cp.ndarray):
         return _sub_matrix_cupy(
             val, row_index_list, col_index_list, effective_order, dtype
         )
@@ -406,10 +409,6 @@ def _sub_matrix_cupy(val, row_index_list, col_index_list, effective_order, dtype
     # Validation mirrors the numpy path so both array modules fail the same way.
     import cupy as cp  # type: ignore
 
-    if not isinstance(val, cp.ndarray):
-        raise TypeError(
-            "Expect val to be a numpy or cupy ndarray, not '{0}'".format(type(val))
-        )
     if len(val.shape) not in {2, 3}:
         raise ValueError("Expect val dimensions of 2 or 3")
     if val.dtype not in (np.float64, np.float32):
@@ -423,11 +422,24 @@ def _sub_matrix_cupy(val, row_index_list, col_index_list, effective_order, dtype
     if val.dtype == np.float64 and dtype == np.float32:
         warnings.warn("Converting float64 to float32 can cause loss of information")
 
-    # uintp (like the Rust path) rejects negative indexes; cupy indexing wants intp.
-    row_index = cp.asarray(np.asarray(row_index_list, dtype=np.uintp).astype(np.intp))
-    col_index = cp.asarray(np.asarray(col_index_list, dtype=np.uintp).astype(np.intp))
-    sub_val = val[cp.ix_(row_index, col_index)]
+    row_index = _checked_index(row_index_list, val.shape[0], "row")
+    col_index = _checked_index(col_index_list, val.shape[1], "column")
+    sub_val = val[cp.ix_(cp.asarray(row_index), cp.asarray(col_index))]
     return cp.array(sub_val, dtype=dtype, order=effective_order)
+
+
+def _checked_index(index_list, count, name):
+    # cupy indexing silently wraps negative and out-of-range indexes, so check them on
+    # the host first. (The Rust path rejects them too, though with a less clear error.)
+    index = np.asarray(index_list, dtype=np.intp)
+    bad = (index < 0) | (index >= count)
+    if bad.any():
+        raise IndexError(
+            "{0} index {1} is out of range for {2} {0}s".format(
+                name, index[bad][0], count
+            )
+        )
+    return index
 
 
 def create_directory_if_necessary(name, isfile=True, robust=False):
