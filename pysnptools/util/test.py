@@ -128,6 +128,13 @@ class TestUtilTools(unittest.TestCase):
             raise unittest.SkipTest("cupy is not installed")
         import warnings
         import pysnptools.util as pstutil
+
+        def sub_matrix_and_warnings(val, out_order, out_dtype):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                result = pstutil.sub_matrix(val, row_index_list, col_index_list, order=out_order, dtype=out_dtype)
+            return result, [str(warning.message) for warning in caught]
+
         rng = np.random.default_rng(0)
         row_index_list = [0, 2, 11, 2]
         col_index_list = [6, 5, 4, 3, 2, 1, 0]
@@ -137,10 +144,13 @@ class TestUtilTools(unittest.TestCase):
                     matrix = np.asarray(rng.random(shape), dtype=in_dtype, order=in_order)
                     for out_order in ["A", "F", "C"]:
                         for out_dtype in [np.float64, np.float32]:
-                            with warnings.catch_warnings():
-                                warnings.simplefilter("ignore", UserWarning)
-                                expected = pstutil.sub_matrix(matrix, row_index_list, col_index_list, order=out_order, dtype=out_dtype)
-                                actual = pstutil.sub_matrix(cp.asarray(matrix, order=in_order), row_index_list, col_index_list, order=out_order, dtype=out_dtype)
+                            expected, expected_warnings = sub_matrix_and_warnings(matrix, out_order, out_dtype)
+                            actual, actual_warnings = sub_matrix_and_warnings(cp.asarray(matrix, order=in_order), out_order, out_dtype)
+                            # Both paths warn exactly when narrowing float64 to float32, and otherwise not at all.
+                            narrowing = in_dtype == np.float64 and out_dtype == np.float32
+                            precision_warning = ["Converting float64 to float32 can cause loss of information"]
+                            assert expected_warnings == (precision_warning if narrowing else []), expected_warnings
+                            assert actual_warnings == expected_warnings, actual_warnings
                             assert isinstance(actual, cp.ndarray)
                             assert actual.dtype == expected.dtype
                             assert actual.flags["F_CONTIGUOUS"] == expected.flags["F_CONTIGUOUS"]
