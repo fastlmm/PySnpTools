@@ -175,6 +175,8 @@ class TestUtilTools(unittest.TestCase):
             snpdata = SnpData(iid=[["f", str(i)] for i in range(6)], sid=[f"s{j}" for j in range(4)], val=val)
             assert isinstance(snpdata.val, cp.ndarray)
             subset = snpdata[np.array([True, False, True, True, False, True]), [3, 1]].read()
+        # The subset stays on the GPU with its dtype (cp.asnumpy would also accept numpy).
+        assert isinstance(subset.val, cp.ndarray) and subset.val.dtype == np.float64
         np.testing.assert_array_equal(cp.asnumpy(subset.val), val[[0, 2, 3, 5]][:, [3, 1]])
 
     def test_snpdata_cupy_keeps_dtype(self):
