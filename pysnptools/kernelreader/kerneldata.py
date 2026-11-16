@@ -14,7 +14,9 @@ class KernelData(KernelReader, PstData):
     It can also be created by calling the :meth:`.KernelReader.read` method on :class:`.SnpKernel`, for example, :class:`.KernelNpz`.
     It can also be constructed directly.
 
-    See :class:`.KernelReader` for details and examples.
+    See :class:`.KernelReader` for details and examples, and :doc:`/gpu` for
+    backend selection and device-transfer examples. Existing float32 and float64
+    arrays retain their dtype when transferred between NumPy and CuPy.
 
     **Constructor:**
         :Parameters: * **iid** (an array of string pairs) -- The :attr:`KernelReader.iid` information.

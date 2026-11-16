@@ -287,8 +287,8 @@ def sub_matrix(
     :param col_index_list: Tells which columns (and in which order) to copy into the sub-matrix
     :type col_index_list: list of integers
     :param order: {'A' (default), 'C', 'F'}, optional -- Specify the order of the sub-matrix to create.
-        If order is 'C', then the returned sub-matrix will be in C-contiguous order (first index varies the fastest).
-        If order is 'F', then the array will be in F-contiguous order (second index varies the fastest).
+        If order is 'C', then the returned sub-matrix will be in C-contiguous order (last index varies the fastest).
+        If order is 'F', then the array will be in F-contiguous order (first index varies the fastest).
         If order is 'A', then sub-matrix may be in any order F or C.
     :type order: string or None
     :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for sub-matrix created.
@@ -310,7 +310,11 @@ def sub_matrix(
     >>> print(matrix[2,0] == submatrix[1,6]) #The row # 2 is now #1, the column #0 is now #6.
     True
 
-    Note: Behind the scenes, for performance, this function calls a Rust helper function.
+    NumPy inputs use a Rust helper; CuPy inputs use CuPy indexing and stay on
+    the GPU. CuPy row/column indices must be nonnegative and in range. Both paths
+    require contiguous float32/float64 inputs, preserve duplicate indices, and
+    warn when converting float64 to float32. Pass ``dtype=val.dtype`` to preserve
+    float32; the default output dtype is float64. See :doc:`/gpu` for GPU examples.
     """
 
     if order == "A":

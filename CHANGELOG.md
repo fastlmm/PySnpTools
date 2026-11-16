@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Preserve float32/float64 when moving numerical values between NumPy and CuPy.
+* Support CuPy arrays in `sub_matrix`, preserving the input device, requested
+  layout, and dtype; reject negative or out-of-range CuPy indices and warn when
+  narrowing float64 to float32.
+* Support Beta standardization on CuPy and reject wholly missing SNPs when
+  fitting Python/CuPy Unit or Beta standardizers, matching the native path.
+* Add a GPU guide with examples and current backend and reader limitations.
+
 ## [1.0.1] - 2026-11-14
 
 * Make `Hashdown` downloads (used by `example_file`) more robust: retry

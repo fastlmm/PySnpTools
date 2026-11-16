@@ -14,7 +14,10 @@ class SnpData(PstData, SnpReader):
     """A :class:`.SnpReader` for holding SNP values (or similar values) in-memory, along with related iid and sid information.
     It is usually created by calling the :meth:`.SnpReader.read` method on another :class:`.SnpReader`, for example, :class:`.Bed`. It can also be constructed directly.
 
-    See :class:`.SnpReader` for details and examples.
+    See :class:`.SnpReader` for details and examples, and :doc:`/gpu` for device
+    transfers, GPU subsetting, and in-place standardization examples. Float32 and
+    float64 arrays keep their dtype when transferred between NumPy and CuPy;
+    lists and integer arrays normally become float64.
 
     **Constructor:**
         :Parameters: * **iid** (an array of string pair) -- The :attr:`SnpReader.iid` information.
@@ -111,7 +114,7 @@ class SnpData(PstData, SnpReader):
 
     @property
     def val(self):
-        """The 2D NumPy array of floats that represents the values of the SNPs.  You can get or set this property.
+        """The 2D NumPy or CuPy array of floats that represents the values of the SNPs.  You can get or set this property.
 
         >>> from pysnptools.snpreader import Bed
         >>> from pysnptools.util import example_file # Download and return local file name

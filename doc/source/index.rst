@@ -52,6 +52,12 @@ covered by the Python 3.11 through 3.14 test matrix.
    * `General Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/tutorial.ipynb>`_
    * `Distribution Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/Dist.ipynb>`_
 
+.. toctree::
+   :maxdepth: 2
+
+   gpu
+   gpu-api-preview
+
 :Code:
 
 * `PyPi <https://pypi.org/project/pysnptools/>`_
