@@ -18,6 +18,9 @@ class SnpData(PstData, SnpReader):
     transfers, GPU subsetting, and in-place standardization examples. Float32 and
     float64 arrays keep their dtype when transferred between NumPy and CuPy;
     lists and integer arrays normally become float64.
+    New supported GPU matrices prefer CubeCL-owned storage when available;
+    existing CuPy arrays are retained when no conversion is needed. See
+    :doc:`/gpu` for allocation and standardization dispatch details.
 
     **Constructor:**
         :Parameters: * **iid** (an array of string pair) -- The :attr:`SnpReader.iid` information.
@@ -199,8 +202,8 @@ class SnpData(PstData, SnpReader):
         it also returns the SnpData.
 
         :param standardizer: optional -- Specify standardization to be applied.
-             Any :class:`.Standardizer` may be used. Some choices include :class:`.Unit` (default, makes values for each SNP have mean zero and
-             standard deviation 1.0) and :class:`.Beta`.
+             Any :class:`.Standardizer` may be used. Some choices include :class:`.Unit` (default, centers and scales observed
+             values before filling missing values with zero) and :class:`.Beta`.
         :type standardizer: :class:`.Standardizer`
 
         :param block_size: Deprecated and ignored; this wrapper does not forward it.
@@ -276,7 +279,14 @@ class SnpData(PstData, SnpReader):
             time.time()
             # is_worth_logging = train.val.shape[0] * train.val.shape[1] * test.val.shape[0] > 1e9
             # if is_worth_logging: logging.info("  _read_kernel about to multiply train{0} x test{1}".format(train.val.shape,test.val.shape))
-            if order == "F":  # numpy's 'dot' always returns 'C' order
+            if xp is not np:
+                from pysnptools.util._array import empty
+                K = empty((train.iid_count, train.iid_count), dtype=dtype,
+                          order="F" if order == "F" else "C", xp=xp)
+                # dot's out must be C-contiguous; the symmetric product can be
+                # written through a transpose to retain the requested F layout.
+                xp.dot(train.val, train.val.T, out=K.T if order == "F" else K)
+            elif order == "F":  # numpy's 'dot' always returns 'C' order
                 K = (train.val.dot(train.val.T)).T
             else:
                 K = train.val.dot(train.val.T)

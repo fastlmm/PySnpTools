@@ -3,6 +3,16 @@ from functools import lru_cache
 
 
 @lru_cache(maxsize=1)
+def _sum_squares_kernel():
+    import cupy as cp
+
+    # Normalization must propagate NaNs, unlike missing-aware SNP variance.
+    return cp.ReductionKernel(
+        "T value", "float64 total", "(double)value * (double)value",
+        "a + b", "total = a", "0", "normalization_sum_squares")
+
+
+@lru_cache(maxsize=1)
 def kernels():
     import cupy as cp
 

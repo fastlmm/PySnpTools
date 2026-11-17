@@ -10,6 +10,10 @@ Main Features:
           New features include multi-threaded BED reading, cluster-ready BED data, on-the-fly SNP generation,
           and larger in-memory data.
 
+* **Experimental GPU arrays:** Read, standardize, and construct kernels with CuPy.
+  See the [GPU guide](doc/source/gpu.rst) and [workflow notebook](doc/ipynb/gpu_workflow.ipynb).
+  Requires matching development packages and a CUDA-enabled bed-reader for native GPU BED reads.
+
 * [DistReader](https://fastlmm.github.io/PySnpTools/#module-pysnptools.distreader): Efficiently work with
          unphased BGEN format and other diploid, biallelic distribution data.
           Also, efficiently read parts of files. See [Distribution IPython Notebook](https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/Dist.ipynb).
@@ -39,14 +43,6 @@ Existing HDF5 users upgrading from an earlier release should install this extra.
 *If you need support for BGEN files, instead do:*
 
     pip install pysnptools[bgen]
-
-GPU arrays (development branch)
--------------------------------
-
-Readers accept explicit NumPy/CuPy backends; standardization follows the array's
-device. GPU BED reads require a CUDA-enabled bed-reader build. See the
-[GPU guide](doc/source/gpu.rst) for prerequisites, options, and complete examples.
-These development features are not necessarily in the published packages.
 
 Documentation
 -------------

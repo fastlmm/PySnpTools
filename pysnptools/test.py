@@ -39,6 +39,55 @@ import time
 
 
 class TestBetaPython(unittest.TestCase):
+    def test_empty_data_factory(self):
+        from pysnptools.snpreader import SnpData
+        from pysnptools.kernelreader import KernelData
+
+        source = SnpData(iid=[], sid=["s0", "s1"], val=None, xp=np)
+        kernel = KernelData(iid=[], val=None, xp=np)
+        for target, shape in ((source, (0, 2)), (kernel, (0, 0))):
+            self.assertIsInstance(target.val, np.ndarray)
+            self.assertEqual(target.val.dtype, np.float64)
+            self.assertEqual(target.val.shape, shape)
+
+    def test_trained_statistics_across_dtypes(self):
+        from pysnptools.snpreader import SnpData
+
+        iid = [["family", str(sample)] for sample in range(3)]
+        sid = ["variable", "dosage", "constant"]
+        training_values = [[0, 0.25, 1], [1, 1, 1], [2, 1.75, np.nan]]
+        test_values = [[0.5, np.nan, 0], [1.75, 0.25, 2], [np.nan, 1.25, 1]]
+        for training_dtype, target_dtype in ((np.float32, np.float64), (np.float64, np.float32)):
+            for order in ("C", "F"):
+                for standardizer in (Unit(), Beta(2, 3)):
+                    training = SnpData(iid=iid, sid=sid, xp=np,
+                                       val=np.array(training_values, dtype=training_dtype, order=order))
+                    _, trained = training.standardize(standardizer, return_trained=True)
+                    original_stats = trained.stats.copy()
+                    # Stored moments are rounded to the target's supported dtype.
+                    means, deviations = trained.stats.astype(target_dtype).astype(np.float64).T
+                    if isinstance(standardizer, Unit):
+                        factors = 1 / deviations
+                    else:
+                        frequencies = np.minimum(means / 2, 1 - means / 2)
+                        factors = 12 * frequencies * (1 - frequencies) ** 2
+                        factors[np.isinf(deviations)] = 0
+                    expected = (np.array(test_values) - means) * factors
+                    expected[np.isnan(test_values)] = 0
+                    for force_python_only in (False, True):
+                        with self.subTest(training_dtype=training_dtype, target_dtype=target_dtype,
+                                          order=order, standardizer=standardizer,
+                                          force_python_only=force_python_only):
+                            target = SnpData(iid=iid, sid=sid, xp=np,
+                                             val=np.array(test_values, dtype=target_dtype, order=order))
+                            self.assertIs(target.standardize(trained, force_python_only=force_python_only), target)
+                            self.assertEqual(target.val.dtype, target_dtype)
+                            # Small bounded inputs; allow arithmetic and density roundoff.
+                            tolerance = 32 * np.finfo(target_dtype).eps
+                            np.testing.assert_allclose(target.val, expected, rtol=tolerance, atol=tolerance)
+                            np.testing.assert_array_equal(trained.stats, original_stats)
+                            self.assertEqual(trained.stats.dtype, training_dtype)
+
     def test_blocked_trained_kernel(self):
         self._check_blocked_trained_kernel(np)
 
@@ -185,6 +234,68 @@ class TestBetaPython(unittest.TestCase):
                         with np.errstate(invalid="raise"):
                             fallback.standardize(standardizer)
                         np.testing.assert_allclose(fallback.val, expected, rtol=tolerance, atol=tolerance)
+
+
+class TestDiagKtoN(unittest.TestCase):
+    def test_diagKtoN_invalid_denominator(self):
+        self._check_diagKtoN_denominator(np)
+
+    def test_diagKtoN_invalid_denominator_cupy(self):
+        try:
+            import cupy
+        except ModuleNotFoundError:
+            self.skipTest("requires CuPy and a working CUDA GPU")
+        self._check_diagKtoN_denominator(cupy)
+
+    def _check_diagKtoN_denominator(self, xp):
+        from pysnptools.kernelreader import KernelData
+        from pysnptools.snpreader import SnpData
+        from pysnptools.standardizer import DiagKtoN
+        from pysnptools.util import asnumpy
+
+        def data(values, dtype, order, kernel):
+            iid = [["family", str(sample)] for sample in range(values.shape[0])]
+            val = xp.array(values, dtype=dtype, order=order)
+            if kernel:
+                return KernelData(iid=iid, val=val, xp=xp)
+            return SnpData(iid=iid, sid=[str(marker) for marker in range(values.shape[1])], val=val, xp=xp)
+
+        for dtype in (np.float32, np.float64):
+            for order in ("C", "F"):
+                for kernel in (False, True):
+                    invalid = [np.zeros((2, 2)), np.array([[np.nan, 0], [0, 1]]),
+                               np.array([[np.inf, 0], [0, 1]]), np.empty((0, 0))]
+                    if kernel:
+                        invalid.append(-np.eye(2))
+                    else:
+                        invalid.extend([np.empty((0, 2)), np.empty((2, 0))])
+                    for values in invalid:
+                        for return_trained in (False, True):
+                            with self.subTest(backend=xp.__name__, dtype=dtype, order=order,
+                                              kernel=kernel, values=values, return_trained=return_trained):
+                                target = data(values, dtype, order, kernel)
+                                with self.assertRaisesRegex(ValueError, "finite, positive normalization denominator"):
+                                    target.standardize(DiagKtoN(), return_trained=return_trained)
+                                np.testing.assert_array_equal(asnumpy(target.val), values)
+
+                    # Independently known scales: kernel trace 8 -> factor 1/4;
+                    # SNP sum of squares 4 -> factor 1/2, applied as sqrt(1/2).
+                    values = np.array([[4., 2.], [2., 4.]]) if kernel else np.array([[-1., 1.], [1., -1.]])
+                    factor = 0.25 if kernel else 0.5
+                    expected = values * (factor if kernel else np.sqrt(factor))
+                    target = data(values, dtype, order, kernel)
+                    result, trained = target.standardize(DiagKtoN(), return_trained=True)
+                    self.assertIs(result, target)
+                    self.assertEqual(trained.factor, factor)
+                    self.assertEqual(target.val.dtype, dtype)
+                    self.assertTrue(target.val.flags["C_CONTIGUOUS" if order == "C" else "F_CONTIGUOUS"])
+                    # One scalar multiplication; allow sqrt and multiplication roundoff.
+                    np.testing.assert_allclose(asnumpy(target.val), expected,
+                                               rtol=8 * np.finfo(dtype).eps, atol=0)
+                    # Applying a fitted scale to zero test data does not refit it.
+                    zero = data(np.zeros((2, 2)), dtype, order, kernel)
+                    zero.standardize(trained)
+                    np.testing.assert_array_equal(asnumpy(zero.val), 0)
 
 
 class TestPySnpTools(unittest.TestCase):
@@ -1718,6 +1829,7 @@ def getTestSuite():
     test_suite = unittest.TestSuite([])
 
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestBetaPython))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDiagKtoN))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPySnpTools))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDistReaders))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDistributedBed))

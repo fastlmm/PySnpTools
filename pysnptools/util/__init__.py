@@ -439,6 +439,21 @@ def _sub_matrix_cupy(cp, val, row_index_list, col_index_list, effective_order, d
 
     row_index = _checked_index(row_index_list, val.shape[0], "row")
     col_index = _checked_index(col_index_list, val.shape[1], "column")
+    from pysnptools.util._array import _allocator
+
+    shape = (len(row_index), len(col_index), *val.shape[2:])
+    allocator = _allocator(shape, dtype, cp)
+    if allocator is not None:
+        # A subset is a new matrix, unlike a caller-supplied array or shared
+        # view. Put its final dtype/layout in native storage so subsequent
+        # Unit/Beta fitting can use CubeCL. CuPy's gather is an intermediate;
+        # copy directly into the final allocation rather than first casting it.
+        result = allocator(shape, dtype=dtype, order=effective_order)
+        selected = val[cp.ix_(cp.asarray(row_index), cp.asarray(col_index))]
+        cp.copyto(result, selected, casting="unsafe")
+        return result
+    from pysnptools.util._gpu_warnings import warn_gpu_float64
+    warn_gpu_float64(dtype, cp)
     sub_val = val[cp.ix_(cp.asarray(row_index), cp.asarray(col_index))]
     # Indexing already returns a new array, so copy again only to change dtype or layout.
     return sub_val.astype(dtype, order=effective_order, copy=False)

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Keep newly copied supported GPU subsets in CubeCL-backed storage so fitting
+  Unit/Beta can use native standardization, including FaST-LMM test-SNP blocks
+  from preloaded `SnpData`. Preserve caller-owned arrays and shared views.
+
+* Prefer bed-reader's CubeCL allocator for new supported GPU matrices and kernel
+  outputs, retaining caller-supplied CuPy storage. Fit Unit/Beta natively only
+  for complete registered matrices; use CuPy for other arrays/views and applying
+  trained statistics, without CPU fallback.
+  Honor empty-container factories so `val=None` retains the intended floating
+  dtype and backend for empty `SnpData` and `KernelData`.
+
+* Reject zero, negative, and nonfinite `DiagKtoN` normalization denominators with
+  `ValueError` before changing values on NumPy or CuPy, including empty inputs.
+  GPU SNP normalization now propagates NaNs into the denominator rather than
+  silently ignoring them.
+
+* Reject invalid kernel block sizes, including negative sizes that previously
+  could silently produce an all-zero kernel.
+
+* Apply Unit/Beta trained statistics across float32/float64 CPU arrays in either
+  memory order, fixing a native type error for Fortran-order targets.
+
 * Fix blocked kernel construction with `BetaTrained`: validate the complete
   SNP ID order, reuse the matching fitted moments in each block, and preserve
   the original trained standardizer when returning training information.

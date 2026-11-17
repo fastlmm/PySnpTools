@@ -136,6 +136,14 @@ class Standardizer(object):
         ), "Expect snps to be order 'C' or order 'F'"
 
         if xp is not np:
+            from pysnptools.util._gpu_warnings import warn_gpu_float64
+            warn_gpu_float64(snps.dtype, xp)
+            if apply_in_place and not use_stats:
+                from pysnptools.util._array import native_owner
+                owner = native_owner(snps)
+                if owner is not None:
+                    from bed_reader import bed_reader as native
+                    return native.standardize_gpu(owner, is_beta, a, b)
             return Standardizer._standardize_cupy(
                 snps, is_beta, a, b, apply_in_place, use_stats, stats, xp)
 
@@ -149,10 +157,10 @@ class Standardizer(object):
         elif not (
             stats.dtype == snps.dtype  # stats must have the same dtype as snps
             and (stats.flags["OWNDATA"])  # stats must own its data
-            and (snps.flags["C_CONTIGUOUS"] and stats.flags["C_CONTIGUOUS"])
-            or (
-                snps.flags["F_CONTIGUOUS"] and stats.flags["F_CONTIGUOUS"]
-            )  # stats must have the same order as snps
+            and (
+                (snps.flags["C_CONTIGUOUS"] and stats.flags["C_CONTIGUOUS"])
+                or (snps.flags["F_CONTIGUOUS"] and stats.flags["F_CONTIGUOUS"])
+            )  # Both layouts also require the matching dtype and ownership above.
         ):
             stats = xp.array(
                 stats,

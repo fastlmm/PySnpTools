@@ -7,6 +7,11 @@ required; installing the published packages does not necessarily provide these
 features. NumPy runs on the CPU. CuPy support here is experimental CUDA support;
 Python HIP support is not implemented.
 
+The :download:`GPU workflow notebook <../ipynb/gpu_workflow.ipynb>`
+combines local BED reads, fractional dosages, trained standardizers, blocked
+kernels, and PCA. It creates its own data and checks results against independent
+NumPy calculations.
+
 Backend, dtype, and order
 -------------------------
 
@@ -15,6 +20,20 @@ An explicit ``xp=np``, ``xp=cp``, ``xp="numpy"``, or ``xp="cupy"`` overrides
 both, NumPy is used. Missing CuPy raises ``ImportError``. An unknown module name
 raises ``ValueError``; a successful CuPy import does not establish driver or
 hardware availability. There is no automatic CPU retry after a GPU error.
+
+Float64 arithmetic can be much slower than float32 on consumer GPUs; devices
+with strong float64 hardware can behave differently. Float64 storage also uses
+twice the memory. GPU float64 reads, allocations, and standardization emit
+bed-reader's ``GpuFloat64Warning`` (a ``UserWarning`` with older dependencies).
+Warnings preserve the requested dtype and defaults. Nested library calls point
+to the user's call, so Python's default warning filter avoids repeated messages
+at that call site. Caller-owned float64 arrays are also covered when standardized.
+
+For example, use ``reader.read(dtype="float32", xp="cupy")`` when adequate;
+reads otherwise default to float64 even for float32 in-memory sources. Keep
+float64 when numerical accuracy requires it, and validate representative results
+before switching. CPU float64 and internal float64 reductions for float32 input
+do not emit this warning. Float32 storage does not remove every float64 operation.
 
 .. list-table:: Reader and constructor options
    :header-rows: 1
@@ -31,7 +50,8 @@ hardware availability. There is no automatic CPU retry after a GPU error.
    * - ``SnpReader.read``, ``KernelReader.read``
      - ``xp=None``, ``dtype=np.float64``, ``order="F"``
      - Return ``SnpData`` or ``KernelData``. Every read chooses its backend
-       independently of the constructor and its requested output dtype.
+       independently of the constructor. The read's dtype default is float64,
+       even when the source stores float32; pass ``dtype="float32"`` to keep it.
    * - ``SnpReader.read_kernel``
      - ``standardizer=None``, ``block_size=None``, ``order="A"``
      - A standardizer is required despite the ``None`` signature default;
@@ -61,6 +81,25 @@ int8 data must be converted to floating point before standardization. Float16
 is not a supported numerical read dtype. In-memory constructors preserve array
 dtypes, not an arbitrary requested layout; use ``read(order=..., dtype=..., xp=...)``
 for explicit output requirements. Dense kernels have shape samples by samples.
+
+When new storage is needed for a supported 2-D matrix on CUDA device 0,
+PySnpTools prefers bed-reader's ``empty_gpu`` allocator when available. This
+includes CPU-to-GPU construction, read copies/conversions and copied subsets,
+and kernel outputs. These are ordinary CuPy arrays backed by CubeCL memory.
+Caller-supplied CuPy arrays retain their storage when no conversion is needed;
+PySnpTools does not copy them merely to change ownership. To choose a CuPy
+allocator yourself, create the CuPy array first and pass it to the constructor.
+
+CuPy-only builds, other devices/ranks/dtypes, and direct CuPy operations (such
+as ``values[index]``) continue using CuPy storage. PySnpTools copies a supported
+2-D subset into its final CubeCL allocation after gathering on the GPU. Shared
+views keep their original allocation; no complete matrix is standardized
+through a partial view.
+Unavailable native allocation does not move computation to the CPU. An error
+from an allocator that was selected propagates without retrying another one.
+CubeCL and CuPy cache allocations in separate pools. After dropping arrays and
+their views, ``bed_reader.gpu_memory_cleanup()`` releases unused native storage
+for other GPU libraries; it preserves live arrays and does not clear CuPy's pool.
 
 The following complete example checks both directions of environment overrides,
 actual array types, dtype, order, and a duplicate-preserving subset. It needs
@@ -107,11 +146,22 @@ Standardization and trained statistics
 
 Unit and Beta modify values in place on their existing device; they do not
 consult ``ARRAY_MODULE``. Values must be contiguous floating-point arrays.
+Fitting uses CubeCL kernels for a complete registered native matrix (including
+an identical full view) within the
+native indexing limits; other arrays and views use CuPy kernels. Shape, strides,
+dtype, device, and allocation identity must match before native dispatch, so a
+slice or transpose cannot accidentally standardize the larger owner. Applying
+trained moments uses CuPy without refitting. Both paths preserve the same
+missing-value, constant-column, dtype, and ordering semantics.
 ``return_trained=True`` returns ``(data, trained_standardizer)``; otherwise the
 return is the same data object. Training through Unit/Beta returns NumPy
 ``trained.stats`` with shape ``(sid_count, 2)``: mean and population standard
 deviation (``ddof=0``), in the input floating dtype. Even GPU training transfers
 these small per-SNP statistics to the CPU.
+
+Applying trained statistics converts a working copy to the target array's
+floating dtype where needed; it does not change the original trained statistics.
+Using a float64 target cannot restore precision lost during float32 training.
 
 .. list-table:: Standardizer behavior
    :header-rows: 1
@@ -225,9 +275,12 @@ Native GPU BED reads and kernel construction
 --------------------------------------------
 
 GPU BED decoding requires the matching bed-reader Python extension built with
-``cubecl-cuda``, CuPy, a working CUDA driver, and a supported NVIDIA GPU.
+the ``cubecl-cuda`` Cargo feature, CuPy, a working CUDA driver, and a supported NVIDIA GPU.
 ``bed_reader.has_gpu_support()`` reports the compiled capability, not runtime
 health. Prebuilt CPU wheels are not sufficient; there is no PySnpTools GPU extra.
+Native BED reads currently use CUDA device 0; ``xp`` selects the array module,
+not a device number. Use CuPy on the same device for this workflow. Standardization
+of an existing CuPy array follows that array's device.
 Metadata stays on the CPU. Native GPU reads expose Rust-owned device memory
 through CuPy, whose views keep that owner alive.
 
@@ -282,9 +335,17 @@ read/standardize operation; callers use the public read methods::
 
 ``read_kernel(Unit())`` returns the product of standardized SNPs and their
 transpose. It does not normalize the average diagonal to one; apply
-``kernel.standardize()`` separately for that. The requested positive integer
+``kernel.standardize()`` separately for that. Fitting ``DiagKtoN`` requires a
+finite, positive trace (or sum of squared SNP values). Zero, negative, or
+nonfinite denominators and empty inputs raise ``ValueError`` on either device
+before values change. NaNs are not imputed by this scalar normalization; use
+Unit/Beta first when imputation is needed. Applying an already-trained
+``DiagKtoN`` scale does not refit it, so zero test data remains zero.
+
+The requested positive integer
 ``block_size`` limits each SNP block, including when SNPs are fewer than samples;
-``None`` loads all SNPs. It is not a total memory budget. The dense kernel,
+``None`` loads all SNPs. Invalid block sizes, including Booleans and negative
+values, raise ``ValueError``. It is not a total memory budget. The dense kernel,
 CuPy/CubeCL allocator pools, multiplication temporaries, and downstream solver
 workspaces also use GPU memory. A lazy ``SnpKernel`` subset can still construct
 the full kernel before selecting its rectangle. Native GPU BED buffers are

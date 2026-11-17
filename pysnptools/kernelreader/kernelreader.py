@@ -127,8 +127,11 @@ class KernelReader(PstReader):
 
     The :meth:`read` Method
 
-        By default the :meth:`read` returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (iid0-index varies the fastest). You may, instead,
-        ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
+        By default :meth:`read` returns :class:`.KernelData` with a float64 values array
+        in F-contiguous order (iid0-index varies the fastest). You may, instead,
+        ask for numpy.float32 or for C-contiguous order or any order. Explicit ``xp``
+        selects NumPy or CuPy and overrides ARRAY_MODULE; the final default is
+        NumPy. See :meth:`read` and :doc:`/gpu` for options and complete examples.
 
     The :meth:`.KernelData.standardize` Method
         The :meth:`.KernelData.standardize` method, available only on :class:`.KernelData`, does in-place standardization of the in-memory
@@ -251,7 +254,7 @@ class KernelReader(PstReader):
         num_threads=None,
         xp=None,
     ):
-        """Reads the kernel values and returns a :class:`.KernelData` (with :attr:`KernelData.val` property containing a new ndarray of the kernel values).
+        """Reads the kernel values and returns a :class:`.KernelData` (with :attr:`KernelData.val` property containing a NumPy or CuPy array of kernel values).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
             then the array will be in F-contiguous order (iid0-index varies the fastest).
@@ -290,7 +293,8 @@ class KernelReader(PstReader):
 
         :rtype: :class:`.KernelData`
 
-        Calling the method again causes the kernel values to be re-read and creates a new in-memory :class:`.KernelData` with a new ndarray of kernel values.
+        Each call creates a new :class:`.KernelData`. Values are read again from disk
+        or copied from memory unless ``view_ok=True`` allows shared storage.
 
         If you request the values for only a subset of the rows or columns, (to the degree practical) only that subset will be read from disk.
 
@@ -337,7 +341,8 @@ class KernelReader(PstReader):
             return val
         if xp is np:
             val = pstutil.asnumpy(val)
-        return xp.asarray(val, dtype=dtype, order=order)
+        from pysnptools.util._array import asarray
+        return asarray(val, dtype=dtype, order=order, xp=xp)
 
     def iid_to_index(self, list):
         """Takes a list of iids and returns a list of index numbers.

@@ -378,8 +378,13 @@ class Bed(SnpReader):
         # No CuPy work precedes CubeCL here. Export waits for CubeCL to finish;
         # CuPy keeps the owner alive, including when only a view remains.
         metadata = self if _row_index is None and _col_index is None else self[_row_index, _col_index]
+        if hasattr(native, "allocate_gpu"):
+            from bed_reader._gpu import _as_cupy
+            values = _as_cupy(owner)
+        else:
+            values = xp.asarray(owner)
         data = SnpData(iid=metadata.iid, sid=metadata.sid, pos=metadata.pos,
-                       val=xp.asarray(owner), xp=xp, name=str(metadata))
+                       val=values, xp=xp, name=str(metadata))
         data._std_string_list.append(str(standardizer))
         trained = (BetaTrained(standardizer.a, standardizer.b, data.sid, stats)
                    if is_beta else UnitTrained(data.sid, stats))

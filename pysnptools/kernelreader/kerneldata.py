@@ -17,12 +17,14 @@ class KernelData(KernelReader, PstData):
     See :class:`.KernelReader` for details and examples, and :doc:`/gpu` for
     backend selection and device-transfer examples. Existing float32 and float64
     arrays retain their dtype when transferred between NumPy and CuPy.
+    New supported GPU matrices prefer CubeCL-owned storage when available;
+    existing CuPy arrays retain their storage when no conversion is needed.
 
     **Constructor:**
         :Parameters: * **iid** (an array of string pairs) -- The :attr:`KernelReader.iid` information.
                      * **iid0** (an array of string pairs) -- The :attr:`KernelReader.iid0` information.
                      * **iid1** (an array of strings pairs) -- The :attr:`KernelReader.iid1` information.
-                     * **val** (a 2-D array of floats) -- The SNP values
+                     * **val** (a 2-D array of floats) -- The kernel values
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **xp** (optional, a Python module or string) -- The array module that controls **val**,
                                for example, 'numpy' or 'cupy'. An explicit choice overrides ARRAY_MODULE;
@@ -130,7 +132,7 @@ class KernelData(KernelReader, PstData):
             val,
             row_count=len(self._row),
             col_count=len(self._col),
-            empty_creator=lambda row_count, col_count: xp.empty(
+            empty_creator=lambda row_count, col_count: np.empty(
                 [row_count, col_count], dtype=xp.float64
             ),
             xp=xp,
@@ -193,6 +195,8 @@ class KernelData(KernelReader, PstData):
         """Does in-place standardization of the in-memory
         kernel data on its existing NumPy/CuPy device. The default DiagKtoN
         multiplies values by a scalar so the diagonal sums to iid_count.
+        A zero, negative, or nonfinite trace (including an empty kernel) raises
+        ValueError before changing values.
         See :doc:`/gpu` for kernel construction and memory examples.
 
         :param standardizer: Kernel standardizer; defaults to DiagKtoN().

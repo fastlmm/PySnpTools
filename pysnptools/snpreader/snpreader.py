@@ -208,7 +208,7 @@ class SnpReader(PstReader):
         When Data is Re-Read and Copied:
 
             Every time you call a SnpReader's :meth:`read` method, the SnpReader re-reads the SNP value data and returns a new in-memory :class:`.SnpData`
-            (with :attr:`.SnpData.val` property containing a new ndarray of the SNP values). Likewise, when you call the :meth:`kernel` method, the SnpReader re-reads
+            (with :attr:`.SnpData.val` property containing a NumPy or CuPy array of SNP values). Likewise, when you call the :meth:`kernel` method, the SnpReader re-reads
             the data and returns a new kernel ndarray.
 
             Here is an example of what not to do, because it causes all the SNP value data to be read twice.
@@ -271,7 +271,8 @@ class SnpReader(PstReader):
 
         The :meth:`read` Method
 
-            By default the :meth:`read` returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (iid-index varies the fastest). You may, instead,
+            By default :meth:`read` returns :class:`.SnpData` with a float64 values array
+            in F-contiguous order (iid-index varies the fastest). You may, instead,
             ask for numpy.float32 or for C-contiguous order or any order. Explicit xp overrides
             ARRAY_MODULE at every read; NumPy is used when neither is supplied. See
             :meth:`read` and :doc:`/gpu` for options and complete examples.
@@ -436,7 +437,7 @@ class SnpReader(PstReader):
         _require_float32_64=True,
         xp=None,
     ):
-        """Reads the SNP values and returns a :class:`.SnpData` (with :attr:`.SnpData.val` property containing a new ndarray of the SNP values).
+        """Reads the SNP values and returns a :class:`.SnpData` (with :attr:`.SnpData.val` property containing a NumPy or CuPy array of SNP values).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
             then the array will be in F-contiguous order (iid-index varies the fastest).
@@ -477,7 +478,8 @@ class SnpReader(PstReader):
 
         :rtype: :class:`.SnpData`
 
-        Calling the method again causes the SNP values to be re-read and creates a new in-memory :class:`.SnpData` with a new ndarray of SNP values.
+        Each call creates a new :class:`.SnpData`. Values are read again from disk
+        or copied from memory unless ``view_ok=True`` allows shared storage.
 
         If you request the values for only a subset of the rows or columns, (to the degree practical) only that subset will be read from disk.
 
@@ -533,7 +535,8 @@ class SnpReader(PstReader):
             return val
         if xp is np:
             val = pstutil.asnumpy(val)
-        return xp.asarray(val, dtype=dtype, order=order)
+        from pysnptools.util._array import asarray
+        return asarray(val, dtype=dtype, order=order, xp=xp)
 
     def _read_with_standardizing(self, standardizer, order="F", dtype=np.float64,
                                  xp=None, return_trained=False,
@@ -615,6 +618,7 @@ class SnpReader(PstReader):
         :type standardizer: :class:`.Standardizer`
 
         :param block_size: Positive integer SNP block size, or None (default) to load all.
+            Invalid values, including Boolean values, raise ValueError.
             Limits SNP blocks, not the dense kernel or total GPU memory. A SnpKernel
             subset can still construct the full kernel. See :doc:`/gpu` for memory limits.
         :type block_size: int or None
@@ -817,7 +821,8 @@ class SnpReader(PstReader):
             if order == "A":
                 order = "C"
             t0 = time.time()
-            K = xp.zeros([self.iid_count, self.iid_count], dtype=dtype, order=order)
+            from pysnptools.util._array import zeros
+            K = zeros((self.iid_count, self.iid_count), dtype=dtype, order=order, xp=xp)
             trained_standardizer_list = []
             logging.info(
                 f"reading {self.sid_count:,} SNPs in blocks of {block_size:,} and adding up kernels (for {self.iid_count:,} individuals) with {xp.__name__}."

@@ -55,6 +55,7 @@ options, exceptions, and complete examples.
 * IPython Notebooks
    * `General Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/tutorial.ipynb>`_
    * `Distribution Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/Dist.ipynb>`_
+   * :download:`GPU workflow notebook <../ipynb/gpu_workflow.ipynb>` (development): BED reads, dosages, trained statistics, blocked kernels, and PCA.
 
 .. toctree::
    :maxdepth: 2

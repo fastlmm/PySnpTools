@@ -1,4 +1,5 @@
 import numpy as np
+from numbers import Integral
 from itertools import *  # noqa: F403
 import logging
 from pysnptools.standardizer import Identity as SS_Identity
@@ -21,7 +22,7 @@ class SnpKernel(KernelReader):
     **Constructor:**
         :Parameters: * **snpreader** (:class:`SnpReader`) -- The SNP data
                      * **standardizer** (:class:`Standardizer`) -- How the SNP data should be standardized
-                     * **block_size** (optional, int) -- The number of SNPs to read at a time.
+                     * **block_size** (optional, positive int) -- The number of SNPs to read at a time. Invalid values raise ValueError.
 
         If **block_size** is not given, then all SNP data will be read at once.
 
@@ -46,6 +47,12 @@ class SnpKernel(KernelReader):
         super(SnpKernel, self).__init__()
 
         assert standardizer is not None, "'standardizer' must be provided"
+        if block_size is not None and (
+            isinstance(block_size, (bool, np.bool_))
+            or not isinstance(block_size, Integral)
+            or block_size <= 0
+        ):
+            raise ValueError("block_size must be a positive integer or None")
 
         self.snpreader = snpreader
         self.standardizer = standardizer
@@ -208,6 +215,9 @@ class SnpKernel(KernelReader):
     ):
         """Reads the SNP values, applies the standardizer, and returns a :class:`.SnpData`.
 
+        Values are standardized on the selected device. See :doc:`/gpu` for
+        GPU prerequisites, training semantics, and complete workflow examples.
+
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
             then the array will be in F-contiguous order (iid-index varies the fastest).
             If order is 'C', then the returned array will be in C-contiguous order (sid-index varies the fastest).
@@ -218,26 +228,32 @@ class SnpKernel(KernelReader):
         :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`SnpData.val` ndarray.
         :type dtype: data-type
 
-        :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
-            be done without outside library code.
+        :param force_python_only: Request a Python CPU path where supported.
+            Native GPU BED reads reject True; this flag does not select a CPU backend.
         :type force_python_only: bool
 
-        :param view_ok: optional -- If False (default), allocates new memory for the :attr:`SnpData.val`'s ndarray. If True,
-            if practical and reading from a :class:`SnpData`, will return a new
-            :class:`SnpData` with a ndarray shares memory with the original :class:`SnpData`.
-            Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
-            Use these parameters with care because any change to either ndarray (for example, via :meth:`.SnpData.standardize`) will effect
-            the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
-            share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
+        :param view_ok: Accepted for compatibility but ignored. This method reads
+            independent values before standardizing them in place.
         :type view_ok: bool
 
-        :param num_threads: optional -- The number of threads with which to read data. Defaults to all available
+        :param num_threads: optional -- The CPU thread count, ignored by GPU decoding and CuPy math. Defaults to all available
             processors. Can also be set with these environment variables (listed in priority order):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
 
+        :param xp: NumPy or CuPy module or name. An explicit choice overrides
+            ARRAY_MODULE; None uses the environment, then NumPy.
+        :type xp: module, str, or None
+
         :rtype: :class:`.SnpData`
 
+        >>> from pysnptools.kernelreader import SnpKernel
+        >>> from pysnptools.snpreader import SnpData
+        >>> from pysnptools.standardizer import Unit
+        >>> source = SnpData(iid=[["f", "0"], ["f", "1"]], sid=["s"], val=[[0.], [2.]], xp="numpy")
+        >>> standardized = SnpKernel(source, Unit()).read_snps(xp="numpy")
+        >>> standardized.val.tolist()
+        [[-1.0], [1.0]]
         """
         dtype = np.dtype(dtype)
         return self.snpreader._read_with_standardizing(

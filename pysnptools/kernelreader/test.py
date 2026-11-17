@@ -38,6 +38,27 @@ class _fortesting_JustCheckExists(object):  # Implements ICopier
 
 
 class TestKernelReader(unittest.TestCase):
+    def test_invalid_block_size(self):
+        source = SnpData(
+            iid=[["family", str(sample)] for sample in range(3)],
+            sid=["snp0", "snp1"],
+            val=np.array([[0., 0.], [1., 1.], [2., 2.]]),
+            xp=np,
+        )
+        for block_size in (-1, 0, 0.5, 10.5, True, np.bool_(False), np.nan, np.inf):
+            with self.subTest(block_size=block_size):
+                for create_kernel in (
+                    lambda: source.read_kernel(stdizer.Unit(), block_size=block_size, xp=np),
+                    lambda: SnpKernel(source, stdizer.Unit(), block_size=block_size),
+                ):
+                    with self.assertRaisesRegex(ValueError, "positive integer or None"):
+                        create_kernel()
+        # Both ordinary Python and NumPy integer block sizes remain supported.
+        expected = np.array([[3., 0., -3.], [0., 0., 0.], [-3., 0., 3.]])
+        for block_size in (1, np.int64(1), None):
+            actual = source.read_kernel(stdizer.Unit(), block_size=block_size, xp=np).val
+            np.testing.assert_allclose(actual, expected, rtol=8 * np.finfo(float).eps, atol=0)
+
     @classmethod
     def setUpClass(self):
         self.currentFolder = os.path.dirname(os.path.realpath(__file__))
