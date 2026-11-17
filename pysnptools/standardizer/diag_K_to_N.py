@@ -1,3 +1,4 @@
+import pysnptools.util as pstutil
 import numpy as np
 from pysnptools.standardizer import Standardizer
 import logging
@@ -63,7 +64,9 @@ class DiagKtoN(Standardizer):
         force_python_only=False,
         num_threads=None,
     ):
-        factor = float(kerneldata.iid_count) / np.diag(kerneldata.val).sum()
+        xp = pstutil.get_array_module(kerneldata.val)
+        factor = (float(kerneldata.iid_count) / np.diag(kerneldata.val).sum()
+                  if xp is np else float(kerneldata.iid_count) / float(xp.diag(kerneldata.val).sum(dtype=np.float64)))
 
         if abs(factor - 1.0) > 1e-15:
             kerneldata._val *= factor
@@ -118,7 +121,14 @@ class DiagKtoN(Standardizer):
         vec = val.reshape(-1, order="A")
         # make sure no copy was made
         assert not vec.flags["OWNDATA"]
-        squared_sum = vec.dot(vec)
+        # Accumulate in float64 without a matrix-sized float64 temporary.
+        xp = pstutil.get_array_module(val)
+        if xp is np:
+            squared_sum = vec.dot(vec)
+        else:
+            from pysnptools.standardizer._cupy import kernels
+            # The centered reduction with mean zero is a sum of squares.
+            squared_sum = float(kernels()[2](vec, xp.asarray(0.0, dtype=np.float64)))
         factor = float(val.shape[0]) / squared_sum
 
         if abs(factor - 1.0) > 1e-15:

@@ -41,14 +41,12 @@ Existing HDF5 users upgrading from an earlier release should install this extra.
     pip install pysnptools[bgen]
 
 GPU arrays (development branch)
-===============================
+-------------------------------
 
-`SnpData` and `KernelData` support NumPy/CuPy values, with float32/float64
-preserved during device transfers. CuPy subsetting stays on the GPU, and Unit
-and Beta standardization work on CuPy arrays. See the [GPU guide](doc/source/gpu.rst)
-for complete examples, backend selection, dtype rules, and current reader
-limitations. The [API preview](doc/source/gpu-api-preview.rst) covers the
-concurrent explicit reader API and native GPU BED changes. These branch features are not necessarily in the published package.
+Readers accept explicit NumPy/CuPy backends; standardization follows the array's
+device. GPU BED reads require a CUDA-enabled bed-reader build. See the
+[GPU guide](doc/source/gpu.rst) for prerequisites, options, and complete examples.
+These development features are not necessarily in the published packages.
 
 Documentation
 -------------

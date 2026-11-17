@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import sys
 from contextlib import contextmanager
+from operator import index as integer_index
 import time
 import datetime
 from types import ModuleType
@@ -290,10 +291,10 @@ def sub_matrix(
         If order is 'C', then the returned sub-matrix will be in C-contiguous order (last index varies the fastest).
         If order is 'F', then the array will be in F-contiguous order (first index varies the fastest).
         If order is 'A', then sub-matrix may be in any order F or C.
-    :type order: string or None
+    :type order: str
     :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for sub-matrix created.
     :type dtype: data-type
-    :param num_threads: optional -- The number of threads with which to work. Defaults to all available
+    :param num_threads: optional -- The CPU thread count, ignored for CuPy. Defaults to all available
         processors. Can also be set with these environment variables (listed in priority order):
         'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
     :type num_threads: None or int
@@ -302,16 +303,26 @@ def sub_matrix(
 
     >>> import numpy as np
     >>> import pysnptools.util as pstutil
-    >>> np.random.seed(0) # set seed so that results are deterministic
-    >>> matrix = np.random.rand(12,7) # create a 12 x 7 ndarray
+    >>> rng = np.random.default_rng(0) # deterministic local generator
+    >>> matrix = rng.random((12, 7)) # create a 12 x 7 ndarray
     >>> submatrix = pstutil.sub_matrix(matrix,[0,2,11],[6,5,4,3,2,1,0])
     >>> print(int(submatrix.shape[0]),int(submatrix.shape[1]))
     3 7
     >>> print(matrix[2,0] == submatrix[1,6]) #The row # 2 is now #1, the column #0 is now #6.
     True
 
+    Invalid indices are rejected before integer conversion:
+
+    >>> pstutil.sub_matrix(matrix, [0.9], [0])
+    Traceback (most recent call last):
+        ...
+    IndexError: row indices must be a one-dimensional sequence of integers, excluding Booleans
+
     NumPy inputs use a Rust helper; CuPy inputs use CuPy indexing and stay on
-    the GPU. CuPy row/column indices must be nonnegative and in range. Both paths
+    the GPU. Row/column indices must be one-dimensional integer sequences,
+    nonnegative and in range. Invalid indices raise IndexError on both devices;
+    floating-point values (even 1.0) and Boolean masks are not accepted here.
+    Use reader slicing for Boolean masks. Both paths
     require contiguous float32/float64 inputs, preserve duplicate indices, and
     warn when converting float64 to float32. Pass ``dtype=val.dtype`` to preserve
     float32; the default output dtype is float64. See :doc:`/gpu` for GPU examples.
@@ -354,8 +365,8 @@ def sub_matrix(
     logging.debug("About to call Rust matrixSubset")
     num_threads = get_num_threads(num_threads)
     if val.flags["F_CONTIGUOUS"] or val.flags["C_CONTIGUOUS"]:
-        row_index_list = np.asarray(row_index_list, dtype=np.uintp)
-        col_index_list = np.asarray(col_index_list, dtype=np.uintp)
+        row_index_list = _checked_index(row_index_list, iid_count, "row")
+        col_index_list = _checked_index(col_index_list, sid_count, "column")
         if val.dtype == np.float64:
             sub_val = create_sub_val(np.float64)
             subset_f64_f64(
@@ -434,9 +445,27 @@ def _sub_matrix_cupy(cp, val, row_index_list, col_index_list, effective_order, d
 
 
 def _checked_index(index_list, count, name):
-    # cupy indexing silently wraps negative and out-of-range indexes, so check them on
-    # the host first. (The Rust path rejects them too, though with a less clear error.)
-    index = np.asarray(index_list, dtype=np.intp)
+    # Preserve sequence elements until validated: NumPy promotion can hide a Boolean
+    # mixed with integers, or turn mixed signed/unsigned integers into floats.
+    index = np.asarray(index_list, dtype=None if isinstance(index_list, np.ndarray) else object)
+    message = f"{name} indices must be a one-dimensional sequence of integers, excluding Booleans"
+    if index.ndim != 1:
+        raise IndexError(message)
+    if index.dtype.kind == "O":
+        indices = []
+        for value in index:
+            if isinstance(value, (bool, np.bool_)):
+                raise IndexError(message)
+            try:
+                indices.append(integer_index(value))
+            except TypeError as error:
+                raise IndexError(message) from error
+        index = np.asarray(indices)
+    elif index.size and index.dtype.kind not in "iu":
+        raise IndexError(message)
+
+    # Check the original integer range before converting to the Rust helper's uintp.
+    # This also prevents CuPy's wrapping semantics from selecting the wrong element.
     bad = (index < 0) | (index >= count)
     if bad.any():
         raise IndexError(
@@ -444,7 +473,7 @@ def _checked_index(index_list, count, name):
                 name, index[bad][0], count
             )
         )
-    return index
+    return index.astype(np.uintp, copy=False)
 
 
 def create_directory_if_necessary(name, isfile=True, robust=False):
@@ -705,7 +734,9 @@ _warn_array_module_once = False
 
 def array_module(xp=None):
     """
-    Find the array module to use, for example **numpy** or **cupy**.
+    Resolve an explicit module/name, then ARRAY_MODULE, then NumPy.
+    Missing CuPy raises ImportError; unsupported names raise ValueError.
+    See :doc:`/gpu` for explicit overrides and actual-device checks.
 
     :param xp: The array module to use, for example, 'numpy'
                (normal CPU-based module) or 'cupy' (GPU-based module).
@@ -713,8 +744,7 @@ def array_module(xp=None):
                from the ARRAY_MODULE environment variable. If not given and
                ARRAY_MODULE is not set,
                will use numpy. If 'cupy' is requested, will
-               try to 'import cupy'. If that import fails, will
-               revert to numpy.
+               import cupy. A missing CuPy installation raises ImportError.
     :type xp: optional, string or Python module
     :rtype: Python module
 
@@ -722,11 +752,11 @@ def array_module(xp=None):
     >>> xp = array_module() # will look at environment variable
     >>> print(xp.zeros((3)))
     [0. 0. 0.]
-    >>> xp = array_module('cupy') # will try to import 'cupy'
+    >>> xp = array_module('numpy') # an explicit module overrides the environment
     >>> print(xp.zeros((3)))
     [0. 0. 0.]
     """
-    xp = xp or os.environ.get("ARRAY_MODULE", "numpy")
+    xp = os.environ.get("ARRAY_MODULE", "numpy") if xp is None else xp
 
     if isinstance(xp, ModuleType):
         return xp
@@ -735,16 +765,9 @@ def array_module(xp=None):
         return np
 
     if xp == "cupy":
-        try:
-            import cupy as cp # type: ignore
+        import cupy as cp  # type: ignore
 
-            return cp
-        except ModuleNotFoundError as e:
-            global _warn_array_module_once
-            if not _warn_array_module_once:
-                logging.warning(f"Using numpy. ({e})")
-                _warn_array_module_once = True
-            return np
+        return cp
 
     raise ValueError(f"Don't know ARRAY_MODULE '{xp}'")
 
@@ -755,8 +778,8 @@ def asnumpy(a):
     numpy array. (Returns a numpy array unchanged.)
 
     >>> from pysnptools.util import asnumpy, array_module
-    >>> xp = array_module('cupy')
-    >>> zeros_xp = xp.zeros((3)) # will be cupy if available
+    >>> xp = array_module('numpy')
+    >>> zeros_xp = xp.zeros((3)) # explicitly NumPy in this example
     >>> zeros_np = asnumpy(zeros_xp) # will be numpy
     >>> zeros_np
     array([0., 0., 0.])

@@ -14,6 +14,10 @@ Core Python 3.15 qualification excludes both backends; HDF5 and BGEN remain
 covered by the Python 3.11 through 3.14 test matrix.
 
 
+NumPy is the default backend. The development GPU API supports explicit CuPy
+reads and device-preserving standardization; see :doc:`gpu` for prerequisites,
+options, exceptions, and complete examples.
+
 :Synopsis:
 
 * :mod:`.snpreader`: Efficiently read genetic PLINK formats including \*.bed/bim/fam and phenotype files. Also, efficiently read *parts* of files and standardize data.
@@ -56,6 +60,10 @@ covered by the Python 3.11 through 3.14 test matrix.
    :maxdepth: 2
 
    gpu
+
+.. toctree::
+   :hidden:
+
    gpu-api-preview
 
 :Code:

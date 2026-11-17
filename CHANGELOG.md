@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Fix blocked kernel construction with `BetaTrained`: validate the complete
+  SNP ID order, reuse the matching fitted moments in each block, and preserve
+  the original trained standardizer when returning training information.
+
+* Fix Python CPU Beta standardization of constant SNPs with singular endpoint
+  densities (for example, `Beta(0.5, 0.5)`): return zeros without invalid
+  multiplications during fitting or application of trained statistics.
+
+* Validate `sub_matrix` indices before conversion on both NumPy and CuPy.
+  Reject floating-point indices, Boolean masks, invalid shapes, and out-of-range
+  values with `IndexError` instead of truncating, wrapping, or reaching a native panic.
 * Preserve float32/float64 when moving numerical values between NumPy and CuPy.
 * Support CuPy arrays in `sub_matrix`, preserving the input device, requested
   layout, and dtype; reject negative or out-of-range CuPy indices and warn when

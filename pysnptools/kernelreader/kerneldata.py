@@ -25,8 +25,8 @@ class KernelData(KernelReader, PstData):
                      * **val** (a 2-D array of floats) -- The SNP values
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **xp** (optional, a Python module or string) -- The array module that controls **val**,
-                               for example, 'numpy' or 'cupy'. Defaults to numpy. Can also be set with the
-                               'ARRAY_MODULE' environment variable.
+                               for example, 'numpy' or 'cupy'. An explicit choice overrides ARRAY_MODULE;
+                               None uses the environment, then NumPy. Missing CuPy raises ImportError.
 
         If *iid* is provided, don't provide *iid0* and *iid1*. Likewise, if *iid0* and *iid1* are provided, don't provide *iid*.
 
@@ -142,7 +142,7 @@ class KernelData(KernelReader, PstData):
 
     @property
     def val(self):
-        """The 2D NumPy array of floats that represents the values of the kernel. You can get or set this property.
+        """The 2D NumPy or CuPy array of floats that represents the values of the kernel. You can get or set this property.
 
         >>> from pysnptools.kernelreader import KernelData
         >>> kerneldata = KernelData(iid=[['fam0','iid0'],['fam0','iid1']], val=[[1.,.5],[.5,1.]])
@@ -191,10 +191,15 @@ class KernelData(KernelReader, PstData):
         num_threads=None,
     ):
         """Does in-place standardization of the in-memory
-        kernel data. The method multiples the values with a scalar factor such that the diagonal sums to iid_count. Although it works in place, for convenience
-        it also returns the KernelData.
+        kernel data on its existing NumPy/CuPy device. The default DiagKtoN
+        multiplies values by a scalar so the diagonal sums to iid_count.
+        See :doc:`/gpu` for kernel construction and memory examples.
 
-        :rtype: :class:`.KernelData` (standardizes in place, but for convenience, returns 'self')
+        :param standardizer: Kernel standardizer; defaults to DiagKtoN().
+        :param return_trained: If True, also return the trained standardizer.
+        :param force_python_only: Passed to the standardizer; ignored by DiagKtoN.
+        :param num_threads: Passed to the standardizer; ignored by DiagKtoN.
+        :rtype: KernelData, or (KernelData, trained standardizer)
 
         >>> from pysnptools.kernelreader import KernelNpz
         >>> from pysnptools.util import example_file # Download and return local file name

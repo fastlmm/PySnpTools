@@ -11,8 +11,10 @@ import pysnptools.util as pstutil
 class SnpKernel(KernelReader):
     """
     A :class:`.KernelReader` that creates a kernel from a :class:`.SnpReader`. No SNP data will be read until
-    the :meth:`SnpKernel.read` method is called. Use block_size to avoid ever reading all the SNP data into memory.
-    at once.
+    the :meth:`SnpKernel.read` method is called. A positive block_size limits SNP
+    blocks during kernel construction; the dense kernel and temporary products
+    still need memory. Reading a subset can construct the full kernel first.
+    See :doc:`/gpu` for explicit read backends, dtype/order options, and examples.
 
     See :class:`.KernelReader` for general examples of using KernelReaders.
 
@@ -85,45 +87,26 @@ class SnpKernel(KernelReader):
         view_ok,
         num_threads,
     ):
-        dtype = np.dtype(dtype)
-        # Special case: If square and constant, can push the subsetting into the SnpReader
-        if (
-            self.standardizer.is_constant
-            and row_index_or_none is not None
-            and col_index_or_none is not None
-            and np.array_equal(row_index_or_none, col_index_or_none)
-        ):
-            return self.snpreader[row_index_or_none, :]._read_kernel(
-                self.standardizer,
-                self.block_size,
-                order,
-                dtype,
-                force_python_only,
-                view_ok,
-                num_threads,
-            )  # !!!LATER can this ever be reached?
-        else:
-            # LATER: If it was often that case that we wanted to standardize on all the data, but then only return a slice of the result,
-            #       that could be done with less memory by working in blocks but not tabulating for all the iids.
-            whole = self.snpreader._read_kernel(
-                self.standardizer,
-                self.block_size,
-                order,
-                dtype,
-                force_python_only,
-                view_ok,
-                num_threads,
-            )
-            val, shares_memory = self._apply_sparray_or_slice_to_val(
-                whole,
-                row_index_or_none,
-                col_index_or_none,
-                order,
-                dtype,
-                force_python_only,
-                num_threads,
-            )
-            return val
+        return self._read_array(
+            row_index_or_none, col_index_or_none, order, dtype,
+            force_python_only, view_ok, num_threads, pstutil.array_module())
+
+    def _read_array(self, row_index, col_index, order, dtype,
+                    force_python_only, view_ok, num_threads, xp):
+        if (self.standardizer.is_constant and row_index is not None
+                and col_index is not None and np.array_equal(row_index, col_index)):
+            return self.snpreader[row_index, :]._read_kernel(
+                self.standardizer, block_size=self.block_size, order=order, dtype=dtype,
+                force_python_only=force_python_only, view_ok=view_ok,
+                num_threads=num_threads, xp=xp)
+        # LATER: Building just the requested rectangle could save memory.
+        whole = self.snpreader._read_kernel(
+            self.standardizer, block_size=self.block_size, order=order, dtype=dtype,
+            force_python_only=force_python_only, view_ok=view_ok,
+            num_threads=num_threads, xp=xp)
+        val, shares_memory = self._apply_sparray_or_slice_to_val(
+            whole, row_index, col_index, order, dtype, force_python_only, num_threads)
+        return val
 
     def __getitem__(self, iid_indexer_and_snp_indexer):
         if isinstance(iid_indexer_and_snp_indexer, tuple):
@@ -153,6 +136,8 @@ class SnpKernel(KernelReader):
         kernel_standardizer=DiagKtoN(),
         return_trained=False,
         num_threads=None,
+        dtype=np.float64,
+        xp=None,
     ):
         """
         Reads a SnpKernel with two cases
@@ -166,12 +151,13 @@ class SnpKernel(KernelReader):
 
         """
         logging.info("Starting '_read_with_standardizing'")
-        xp = pstutil.array_module()
+        xp = pstutil.array_module(xp)
 
         if to_kerneldata:
             val, snp_trained = self.snpreader._read_kernel(
                 self.standardizer,
                 block_size=self.block_size,
+                dtype=dtype, xp=xp,
                 return_trained=True,
                 num_threads=num_threads,
             )
@@ -180,8 +166,9 @@ class SnpKernel(KernelReader):
                 kernel_standardizer, return_trained=True, num_threads=num_threads
             )
         else:
-            snpdata, snp_trained = self.snpreader.read().standardize(
-                self.standardizer, return_trained=True, num_threads=num_threads
+            snpdata, snp_trained = self.snpreader._read_with_standardizing(
+                self.standardizer, return_trained=True, num_threads=num_threads,
+                dtype=dtype, xp=xp
             )
             snpdata, kernel_trained = snpdata.standardize(
                 kernel_standardizer, return_trained=True, num_threads=num_threads
@@ -217,6 +204,7 @@ class SnpKernel(KernelReader):
         force_python_only=False,
         view_ok=False,
         num_threads=None,
+        xp=None,
     ):
         """Reads the SNP values, applies the standardizer, and returns a :class:`.SnpData`.
 
@@ -252,13 +240,10 @@ class SnpKernel(KernelReader):
 
         """
         dtype = np.dtype(dtype)
-        return self.snpreader.read(
-            order=order,
-            dtype=dtype,
-            force_python_only=force_python_only,
-            view_ok=view_ok,
-            num_threads=num_threads,
-        ).standardize(self.standardizer, num_threads=num_threads)
+        return self.snpreader._read_with_standardizing(
+            self.standardizer, order=order, dtype=dtype, xp=xp,
+            force_python_only=force_python_only, num_threads=num_threads)
+
 
 
 if __name__ == "__main__":

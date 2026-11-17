@@ -120,6 +120,63 @@ class TestUtilTools(unittest.TestCase):
         submatrix = pstutil.sub_matrix(matrix,[0,2,11],[6,5,4,3,2,1,0])
         assert  matrix[2,0,1] == submatrix[1,6,1] #The row # 2 is now #1, the column #0 is now #6.
 
+    def test_sub_matrix_indices(self):
+        self._check_sub_matrix_indices(np)
+
+    def test_sub_matrix_indices_cupy(self):
+        try:
+            import cupy as cp
+        except ModuleNotFoundError:
+            raise unittest.SkipTest("cupy is not installed")
+        self._check_sub_matrix_indices(cp)
+
+    def _check_sub_matrix_indices(self, xp):
+        import pysnptools.util as pstutil
+
+        invalid_indices = [
+            [0.9], [-0.9], [1.0], [0, 0.9],
+            [np.nan], [np.inf], [-np.inf], [1 + 0j], ["1"],
+            [True], [False, 1], (np.bool_(True), 1),
+            np.array([True, False]), np.array([0.9], dtype=object),
+            [-1], [3], np.array([2**64 - 1], dtype=np.uint64),
+            [2**64], [2**100], [-2**100],
+            0, [[0]], np.empty((0, 1), dtype=np.int64),
+        ]
+        valid_indices = [
+            [2, 0, 2], (2, 0, 2), range(2, -1, -1),
+            np.array([2, 0, 2], dtype=np.int32),
+            np.array([2, 0, 2], dtype=np.uint64),
+            np.array([2, 0, 2], dtype=object),
+            [np.int64(2), np.uint64(0)], [],
+        ]
+        for shape in [(3, 3), (3, 3, 2)]:
+            for order in ["C", "F"]:
+                for dtype in [np.float32, np.float64]:
+                    values = np.arange(np.prod(shape), dtype=dtype).reshape(shape)
+                    matrix = xp.array(values, order=order)
+                    for indices in invalid_indices:
+                        for axis in ["row", "column"]:
+                            with self.subTest(shape=shape, order=order, dtype=dtype,
+                                              indices=repr(indices), axis=axis):
+                                rows, columns = (indices, [0]) if axis == "row" else ([0], indices)
+                                with self.assertRaisesRegex(IndexError, axis):
+                                    pstutil.sub_matrix(matrix, rows, columns, dtype=dtype)
+                    for indices in valid_indices:
+                        # Independent NumPy indexing supplies the expected Cartesian product.
+                        expected_indices = np.asarray(list(indices), dtype=np.intp)
+                        for rows, columns in [(indices, [2, 0]), ([2, 0], indices)]:
+                            with self.subTest(shape=shape, order=order, dtype=dtype,
+                                              rows=repr(rows), columns=repr(columns)):
+                                actual = pstutil.sub_matrix(matrix, rows, columns,
+                                                            order=order, dtype=dtype)
+                                expected_rows = expected_indices if rows is indices else [2, 0]
+                                expected_columns = expected_indices if columns is indices else [2, 0]
+                                expected = values[np.ix_(expected_rows, expected_columns)]
+                                self.assertIsInstance(actual, xp.ndarray)
+                                self.assertEqual(actual.dtype, dtype)
+                                self.assertTrue(actual.flags[order + "_CONTIGUOUS"])
+                                np.testing.assert_array_equal(pstutil.asnumpy(actual), expected)
+
     def test_sub_matrix_cupy(self):
         # cupy is optional; this test needs it and a GPU.
         try:
