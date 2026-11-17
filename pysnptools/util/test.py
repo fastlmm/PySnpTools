@@ -190,7 +190,7 @@ class TestUtilTools(unittest.TestCase):
             with warnings.catch_warnings(record=True) as caught:
                 warnings.simplefilter("always")
                 result = pstutil.sub_matrix(val, row_index_list, col_index_list, order=out_order, dtype=out_dtype)
-            return result, [str(warning.message) for warning in caught]
+            return result, caught
 
         rng = np.random.default_rng(0)
         row_index_list = [0, 2, 11, 2]
@@ -203,11 +203,21 @@ class TestUtilTools(unittest.TestCase):
                         for out_dtype in [np.float64, np.float32]:
                             expected, expected_warnings = sub_matrix_and_warnings(matrix, out_order, out_dtype)
                             actual, actual_warnings = sub_matrix_and_warnings(cp.asarray(matrix, order=in_order), out_order, out_dtype)
-                            # Both paths warn exactly when narrowing float64 to float32, and otherwise not at all.
+                            # Both paths report narrowing; GPU float64 output additionally
+                            # reports its performance cost. Check every notice rather than
+                            # filtering the new category or weakening the precision check.
+                            import bed_reader
+                            warning_type = getattr(bed_reader, "GpuFloat64Warning", UserWarning)
                             narrowing = in_dtype == np.float64 and out_dtype == np.float32
                             precision_warning = ["Converting float64 to float32 can cause loss of information"]
-                            assert expected_warnings == (precision_warning if narrowing else []), expected_warnings
-                            assert actual_warnings == expected_warnings, actual_warnings
+                            expected_messages = [str(warning.message) for warning in expected_warnings]
+                            assert expected_messages == (precision_warning if narrowing else []), expected_messages
+                            assert len(actual_warnings) == len(expected_warnings) + (out_dtype == np.float64)
+                            for warning in actual_warnings:
+                                if str(warning.message) not in expected_messages:
+                                    assert out_dtype == np.float64
+                                    assert issubclass(warning.category, warning_type)
+                                    assert "consumer GPUs" in str(warning.message)
                             assert isinstance(actual, cp.ndarray)
                             assert actual.dtype == expected.dtype
                             assert actual.flags["F_CONTIGUOUS"] == expected.flags["F_CONTIGUOUS"]

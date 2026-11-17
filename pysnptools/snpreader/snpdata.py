@@ -17,7 +17,7 @@ class SnpData(PstData, SnpReader):
     See :class:`.SnpReader` for details and examples, and :doc:`/gpu` for device
     transfers, GPU subsetting, and in-place standardization examples. Float32 and
     float64 arrays keep their dtype when transferred between NumPy and CuPy;
-    lists and integer arrays normally become float64.
+    lists and integer arrays use ARRAY_DTYPE, then float64.
     New supported GPU matrices prefer CubeCL-owned storage when available;
     existing CuPy arrays are retained when no conversion is needed. See
     :doc:`/gpu` for allocation and standardization dispatch details.
@@ -106,7 +106,7 @@ class SnpData(PstData, SnpReader):
             val,
             row_count=len(self._row),
             col_count=len(self._col),
-            empty_creator=lambda row_count, col_count: np.empty([row_count, col_count], dtype=np.float64),
+            empty_creator=lambda row_count, col_count: np.empty([row_count, col_count], dtype=pstutil.array_dtype()),
             _require_float32_64=_require_float32_64,
             xp=xp,
         )
@@ -134,7 +134,7 @@ class SnpData(PstData, SnpReader):
             new_value,
             row_count=len(self._row),
             col_count=len(self._col),
-            empty_creator=lambda row_count, col_count: np.empty([row_count, col_count], dtype=np.float64),
+            empty_creator=lambda row_count, col_count: np.empty([row_count, col_count], dtype=pstutil.array_dtype()),
             xp=self._xp,
         )
         self._assert_iid_sid_pos(check_val=True)
@@ -257,7 +257,7 @@ class SnpData(PstData, SnpReader):
         standardizer,
         block_size=None,
         order="A",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         return_trained=False,
@@ -270,7 +270,7 @@ class SnpData(PstData, SnpReader):
         """
         from pysnptools.pstreader import PstReader
 
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
         xp = pstutil.array_module(xp)
 
         # Just do a 'python' dot, if no standardization is needed and everything is the right type

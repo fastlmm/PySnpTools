@@ -1,6 +1,7 @@
 import os
 import logging
 import numpy as np
+from pysnptools.util._precision import array_dtype
 import sys
 from contextlib import contextmanager
 from operator import index as integer_index
@@ -276,7 +277,7 @@ def intersect_ids(idslist):
 
 
 def sub_matrix(
-    val, row_index_list, col_index_list, order="A", dtype=np.float64, num_threads=None
+    val, row_index_list, col_index_list, order="A", dtype=None, num_threads=None
 ):
     """
     Efficiently creates a sub-matrix from a 2-D or 3-D ndarray.
@@ -325,7 +326,7 @@ def sub_matrix(
     Use reader slicing for Boolean masks. Both paths
     require contiguous float32/float64 inputs, preserve duplicate indices, and
     warn when converting float64 to float32. Pass ``dtype=val.dtype`` to preserve
-    float32; the default output dtype is float64. See :doc:`/gpu` for GPU examples.
+    float32; omitted dtype uses ARRAY_DTYPE, then float64. See :doc:`/gpu` for GPU examples.
     """
 
     if order == "A":
@@ -335,7 +336,7 @@ def sub_matrix(
             effective_order = "C"
     else:
         effective_order = order
-    dtype = np.dtype(dtype)
+    dtype = array_dtype(dtype)
 
     # A cupy ndarray can exist only if cupy was already imported, so this check never
     # imports cupy and leaves every non-cupy input on the numpy path below.

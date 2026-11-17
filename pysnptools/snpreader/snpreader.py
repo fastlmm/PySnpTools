@@ -271,7 +271,7 @@ class SnpReader(PstReader):
 
         The :meth:`read` Method
 
-            By default :meth:`read` returns :class:`.SnpData` with a float64 values array
+            Without ARRAY_DTYPE or an explicit dtype, :meth:`read` returns :class:`.SnpData` with a float64 values array
             in F-contiguous order (iid-index varies the fastest). You may, instead,
             ask for numpy.float32 or for C-contiguous order or any order. Explicit xp overrides
             ARRAY_MODULE at every read; NumPy is used when neither is supplied. See
@@ -430,7 +430,7 @@ class SnpReader(PstReader):
     def read(
         self,
         order="F",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
@@ -446,9 +446,10 @@ class SnpReader(PstReader):
             ndarray may be in any order (either C-, Fortran-contiguous).
         :type order: str
 
-        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`SnpData.val` ndarray.
+        :param dtype: {None, numpy.float64, numpy.float32}, optional -- The data-type for the :attr:`SnpData.val` ndarray.
              (For :class:`Bed`, only, it can also be numpy.int8. Hidden option _require_float32_64 must be set
              to False. See :class:`Bed` for an example.)
+             None uses ARRAY_DTYPE, then float64; an explicit dtype overrides it.
         :type dtype: data-type.
 
         :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
@@ -499,7 +500,7 @@ class SnpReader(PstReader):
         >>> import numpy as np
         >>> # print np.may_share_memory(subset_snpdata.val, subsub_snpdata.val) # Do the two ndarray's share memory? They could. Currently they won't.
         """
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
         xp = pstutil.array_module(xp)
         val = self._read_array(
             None, None, order, dtype, force_python_only, view_ok, num_threads, xp
@@ -538,11 +539,12 @@ class SnpReader(PstReader):
         from pysnptools.util._array import asarray
         return asarray(val, dtype=dtype, order=order, xp=xp)
 
-    def _read_with_standardizing(self, standardizer, order="F", dtype=np.float64,
+    def _read_with_standardizing(self, standardizer, order="F", dtype=None,
                                  xp=None, return_trained=False,
                                  force_python_only=False, num_threads=None,
                                  _row_index=None, _col_index=None):
         """Internal read/standardize operation; Bed can keep both steps in CubeCL."""
+        dtype = pstutil.array_dtype(dtype)
         reader = self if _row_index is None and _col_index is None else self[_row_index, _col_index]
         return reader.read(order=order, dtype=dtype, xp=xp,
                            force_python_only=force_python_only, num_threads=num_threads).standardize(
@@ -602,7 +604,7 @@ class SnpReader(PstReader):
         standardizer=None,
         block_size=None,
         order="A",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
@@ -626,7 +628,8 @@ class SnpReader(PstReader):
         :param order: 'A' (default), 'C', or 'F' for the output kernel layout.
             Blocked accumulation uses C order when A is requested.
         :type order: str
-        :param dtype: Output floating dtype, float64 (default) or float32. GPU
+        :param dtype: Output floating dtype, float64 or float32. None uses ARRAY_DTYPE,
+            then float64; an explicit dtype overrides it. GPU
             multiplication and accumulation use this dtype; statistics can use float64.
         :type dtype: data-type
         :param force_python_only: Request a Python CPU read/standardization path.
@@ -664,7 +667,7 @@ class SnpReader(PstReader):
         (300, '901.421836')
         """
         assert standardizer is not None, "'standardizer' must be provided"
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
 
         from pysnptools.kernelreader import SnpKernel
 
@@ -738,7 +741,7 @@ class SnpReader(PstReader):
         """
         Like 'read' except (1) won't read if already a snpdata and (2) returns the standardizer
         """
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
         xp = pstutil.array_module(xp)
 
         if (
@@ -763,7 +766,7 @@ class SnpReader(PstReader):
         standardizer,
         block_size=None,
         order="A",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         return_trained=False,
@@ -773,7 +776,7 @@ class SnpReader(PstReader):
         """
         Will respect the cupy environment variable.
         """
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
         xp = pstutil.array_module(xp)
         # Respect an explicit block size even when the SNP count is below iid_count.
         # Do all-at-once only if no blocking was requested or one block covers the data.

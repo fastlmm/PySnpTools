@@ -127,7 +127,7 @@ class KernelReader(PstReader):
 
     The :meth:`read` Method
 
-        By default :meth:`read` returns :class:`.KernelData` with a float64 values array
+        Without ARRAY_DTYPE or an explicit dtype, :meth:`read` returns :class:`.KernelData` with a float64 values array
         in F-contiguous order (iid0-index varies the fastest). You may, instead,
         ask for numpy.float32 or for C-contiguous order or any order. Explicit ``xp``
         selects NumPy or CuPy and overrides ARRAY_MODULE; the final default is
@@ -248,7 +248,7 @@ class KernelReader(PstReader):
     def read(
         self,
         order="F",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
@@ -263,7 +263,8 @@ class KernelReader(PstReader):
             ndarray may be in any order (either C-, Fortran-contiguous, or even discontiguous).
         :type order: str
 
-        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`KernelData.val` ndarray.
+        :param dtype: {None, numpy.float64, numpy.float32}, optional -- The data-type for the :attr:`KernelData.val` ndarray.
+             None uses ARRAY_DTYPE, then float64; an explicit dtype overrides it.
         :type dtype: data-type
 
         :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
@@ -314,7 +315,7 @@ class KernelReader(PstReader):
         >>> import numpy as np
         >>> #print(np.may_share_memory(subset_kerneldata.val, subsub_kerneldata.val)) # Do the two ndarray's share memory? They could. Currently they won't.
         """
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
         xp = pstutil.array_module(xp)
         val = self._read_array(
             None, None, order, dtype, force_python_only, view_ok, num_threads, xp
@@ -417,13 +418,14 @@ class KernelReader(PstReader):
         snp_standardizer=None,
         kernel_standardizer=DiagKtoN(),
         return_trained=False,
-        dtype=np.float64,
+        dtype=None,
         xp=None,
         num_threads=None,
     ):
         assert (
             to_kerneldata
         ), "When working with non-SnpKernels, to_kerneldata must be 'True'"
+        dtype = pstutil.array_dtype(dtype)
         kernel, kernel_trained = self.read(dtype=dtype, xp=xp, num_threads=num_threads).standardize(
             kernel_standardizer, return_trained=True, num_threads=num_threads
         )

@@ -281,7 +281,7 @@ class PstReader(object):
 
     The :meth:`read` Method
 
-        By default the :meth:`read` returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (row-index varies the fastest). You may, instead,
+        Without ARRAY_DTYPE or an explicit dtype, :meth:`read` returns an ndarray of numpy.float64 laid out in memory in F-contiguous order (row-index varies the fastest). You may, instead,
         ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
 
     Details of Methods & Properties:
@@ -424,7 +424,7 @@ class PstReader(object):
     def read(
         self,
         order="F",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
@@ -438,7 +438,8 @@ class PstReader(object):
             ndarray may be in any order (either C-, Fortran-contiguous).
         :type order: string or None
 
-        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`PstData.val` ndarray.
+        :param dtype: {None, numpy.float64, numpy.float32}, optional -- The data-type for the :attr:`PstData.val` ndarray.
+             None uses ARRAY_DTYPE, then float64; an explicit dtype overrides it.
         :type dtype: data-type
 
         :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
@@ -483,7 +484,7 @@ class PstReader(object):
         >>> import numpy as np
         >>> # print(np.may_share_memory(subset_snpdata.val, subsub_snpdata.val)) # Do the two ndarray's share memory? They could. Currently they won't.
         """
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
         val = self._read(
             None, None, order, dtype, force_python_only, view_ok, num_threads
         )
@@ -656,7 +657,7 @@ class PstReader(object):
 
     @staticmethod
     def _array_properties_are_ok(val, order, dtype):
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
 
         if val.dtype != dtype:
             return False
@@ -677,7 +678,7 @@ class PstReader(object):
         force_python_only,
         num_threads,
     ):
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
 
         if (
             PstReader._is_all_slice(row_indexer_or_none)

@@ -3,6 +3,7 @@ from itertools import *  # noqa: F403
 import logging
 from pysnptools.distreader import DistReader
 from pysnptools.pstreader import PstData
+from pysnptools.util import array_dtype
 
 
 class DistData(PstData, DistReader):
@@ -107,7 +108,7 @@ class DistData(PstData, DistReader):
             row_count=len(self._row),
             col_count=len(self._col),
             empty_creator=lambda row_count, col_count: np.empty(
-                [row_count, col_count, 3], dtype=np.float64
+                [row_count, col_count, 3], dtype=array_dtype()
             ),
         )  # !!!Replace empty with my FillNA method?
         self._assert_iid_sid_pos(check_val=True)
@@ -134,7 +135,7 @@ class DistData(PstData, DistReader):
             row_count=len(self._row),
             col_count=len(self._col),
             empty_creator=lambda row_count, col_count: np.empty(
-                [row_count, col_count, 3], dtype=np.float64
+                [row_count, col_count, 3], dtype=array_dtype()
             ),
         )  # !!!Replace empty with my FillNA method?
         self._assert_iid_sid_pos(check_val=True)

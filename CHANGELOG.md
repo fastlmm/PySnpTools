@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Add `ARRAY_DTYPE` defaults for reads, kernels, submatrix copies, and untyped
+  containers, with explicit dtype taking precedence. Optional dtype signatures
+  now default to `None`; the unconfigured float64 defaults are unchanged.
+  Existing floating arrays and standardizers keep their precision.
+* Keep Pheno, Dense, Dat, and Ped text parsing on the CPU until a read chooses
+  its backend and precision, avoiding GPU allocation during metadata access.
+
 * Keep newly copied supported GPU subsets in CubeCL-backed storage so fitting
   Unit/Beta can use native standardization, including FaST-LMM test-SNP blocks
   from preloaded `SnpData`. Preserve caller-owned arrays and shared views.

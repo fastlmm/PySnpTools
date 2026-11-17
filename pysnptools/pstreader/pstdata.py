@@ -20,21 +20,21 @@ def _as_array_module(input, xp, require_float32_64):
     from pysnptools.util._array import asarray
     # Return input as an xp array. An array (from xp or from the other module, numpy or
     # cupy) keeps its dtype if it is float32 or float64, or always if require_float32_64
-    # is False; otherwise, and for anything else (for example, a list), it becomes float64.
+    # is False; otherwise (including a list), use ARRAY_DTYPE, then float64.
     def keeps_dtype(array):
         return not require_float32_64 or array.dtype in (np.float32, np.float64)
 
     if isinstance(input, xp.ndarray):  # same module
-        return input if keeps_dtype(input) else asarray(input, dtype=np.float64, order="K", xp=xp)
+        return input if keeps_dtype(input) else asarray(input, dtype=pstutil.array_dtype(), order="K", xp=xp)
 
     cp = sys.modules.get("cupy")  # a cupy array exists only if cupy was imported
     if isinstance(input, np.ndarray) or (cp is not None and isinstance(input, cp.ndarray)):
-        dtype = input.dtype if keeps_dtype(input) else np.float64
+        dtype = input.dtype if keeps_dtype(input) else pstutil.array_dtype()
         if xp is np:
             input = pstutil.asnumpy(input)  # cupy forbids implicit conversion to numpy
         return asarray(input, dtype=dtype, order="K", xp=xp, copy=True)
 
-    return asarray(input, dtype=np.float64, order="K", xp=xp)
+    return asarray(input, dtype=pstutil.array_dtype(), order="K", xp=xp)
 
 
 class PstData(PstReader):

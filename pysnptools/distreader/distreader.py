@@ -2,6 +2,7 @@ import numpy as np
 from itertools import *  # noqa: F403
 import logging
 from pysnptools.pstreader import PstReader
+from pysnptools.util import array_dtype
 from pysnptools.snpreader._dist2snp import _Dist2Snp
 
 
@@ -223,7 +224,7 @@ class DistReader(PstReader):
     def read(
         self,
         order="F",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
@@ -237,7 +238,8 @@ class DistReader(PstReader):
             ndarray may be in any order (either C-, Fortran-contiguous).
         :type order: string or None
 
-        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`DistData.val` ndarray.
+        :param dtype: {None, numpy.float64, numpy.float32}, optional -- The data-type for the :attr:`DistData.val` ndarray.
+             None uses ARRAY_DTYPE, then float64; explicit dtype overrides it.
         :type dtype: data-type
 
         :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
@@ -280,7 +282,7 @@ class DistReader(PstReader):
         >>> import numpy as np
         >>> # print np.may_share_memory(subset_distdata.val, subsub_distdata.val) # Do the two ndarray's share memory? They could. Currently they won't.
         """
-        dtype = np.dtype(dtype)
+        dtype = array_dtype(dtype)
         val = self._read(
             None, None, order, dtype, force_python_only, view_ok, num_threads
         )
@@ -379,7 +381,7 @@ class DistReader(PstReader):
         Like 'read' except won't read if already a DistData
         """
 
-        dtype = np.dtype(dtype)
+        dtype = array_dtype(dtype)
 
         if (
             hasattr(distreader, "val")

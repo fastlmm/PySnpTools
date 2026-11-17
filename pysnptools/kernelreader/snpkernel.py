@@ -143,7 +143,7 @@ class SnpKernel(KernelReader):
         kernel_standardizer=DiagKtoN(),
         return_trained=False,
         num_threads=None,
-        dtype=np.float64,
+        dtype=None,
         xp=None,
     ):
         """
@@ -159,6 +159,7 @@ class SnpKernel(KernelReader):
         """
         logging.info("Starting '_read_with_standardizing'")
         xp = pstutil.array_module(xp)
+        dtype = pstutil.array_dtype(dtype)
 
         if to_kerneldata:
             val, snp_trained = self.snpreader._read_kernel(
@@ -207,7 +208,7 @@ class SnpKernel(KernelReader):
     def read_snps(
         self,
         order="F",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
@@ -225,7 +226,8 @@ class SnpKernel(KernelReader):
             ndarray may be in any order (either C-, Fortran-contiguous).
         :type order: string or None
 
-        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`SnpData.val` ndarray.
+        :param dtype: {None, numpy.float64, numpy.float32}, optional -- The data-type for the :attr:`SnpData.val` ndarray.
+             None uses ARRAY_DTYPE, then float64; explicit dtype overrides it.
         :type dtype: data-type
 
         :param force_python_only: Request a Python CPU path where supported.
@@ -255,7 +257,7 @@ class SnpKernel(KernelReader):
         >>> standardized.val.tolist()
         [[-1.0], [1.0]]
         """
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
         return self.snpreader._read_with_standardizing(
             self.standardizer, order=order, dtype=dtype, xp=xp,
             force_python_only=force_python_only, num_threads=num_threads)

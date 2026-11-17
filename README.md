@@ -11,6 +11,7 @@ Main Features:
           and larger in-memory data.
 
 * **Experimental GPU arrays:** Read, standardize, and construct kernels with CuPy.
+  `ARRAY_MODULE` and `ARRAY_DTYPE` supply optional backend/precision environment defaults.
   See the [GPU guide](doc/source/gpu.rst) and [workflow notebook](doc/ipynb/gpu_workflow.ipynb).
   Requires matching development packages and a CUDA-enabled bed-reader for native GPU BED reads.
 

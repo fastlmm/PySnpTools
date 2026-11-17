@@ -15,7 +15,8 @@ covered by the Python 3.11 through 3.14 test matrix.
 
 
 NumPy is the default backend. The development GPU API supports explicit CuPy
-reads and device-preserving standardization; see :doc:`gpu` for prerequisites,
+reads and device-preserving standardization. ARRAY_MODULE and ARRAY_DTYPE
+supply backend/precision defaults when their arguments are omitted; see :doc:`gpu` for prerequisites,
 options, exceptions, and complete examples.
 
 :Synopsis:
@@ -566,6 +567,8 @@ options, exceptions, and complete examples.
     :members:
     :undoc-members:
 	:show-inheritance:
+
+.. autofunction:: pysnptools.util.array_dtype
 
 .. autofunction:: pysnptools.util.example_file
 

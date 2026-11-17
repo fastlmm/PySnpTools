@@ -352,7 +352,7 @@ class Bed(SnpReader):
             order="F" if order == "A" else order, xp=xp,
             force_python_only=force_python_only, num_threads=num_threads)
 
-    def _read_with_standardizing(self, standardizer, order="F", dtype=np.float64,
+    def _read_with_standardizing(self, standardizer, order="F", dtype=None,
                                  xp=None, return_trained=False,
                                  force_python_only=False, num_threads=None,
                                  _row_index=None, _col_index=None):
@@ -361,6 +361,7 @@ class Bed(SnpReader):
         from pysnptools.snpreader import SnpData
 
         xp = pstutil.array_module(xp)
+        dtype = pstutil.array_dtype(dtype)
         if xp is np or type(standardizer) not in (Unit, Beta) or force_python_only:
             return super()._read_with_standardizing(
                 standardizer, order=order, dtype=dtype, xp=xp,

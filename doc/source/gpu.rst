@@ -21,6 +21,35 @@ both, NumPy is used. Missing CuPy raises ``ImportError``. An unknown module name
 raises ``ValueError``; a successful CuPy import does not establish driver or
 hardware availability. There is no automatic CPU retry after a GPU error.
 
+``ARRAY_DTYPE`` supplies a shared precision default for reads, kernels, GPU
+allocation, and untyped/list construction. Explicit dtype wins; None or omission
+uses this environment variable, then each API's original default. PySnpTools
+reads default to float64 without the variable (bed-reader reads default to
+float32). Only float32 and float64 are accepted as environment defaults. Existing
+floating arrays and standardizers keep their dtype; writers keep their existing
+storage/inference rules. NumPy/CuPy functions do not consult this variable.
+
+Set backend and precision together for a workflow::
+
+    from unittest.mock import patch
+    from pysnptools.snpreader import Bed
+    from pysnptools.standardizer import Unit
+    from pysnptools.util import example_file
+
+    bed = Bed(example_file("pysnptools/examples/toydata.*", "*.bed"), count_A1=True)[:40, :60]
+    with patch.dict("os.environ", {"ARRAY_MODULE": "cupy", "ARRAY_DTYPE": "float32"}):
+        values = bed.read()
+        kernel = values.read_kernel(Unit())
+        assert values.val.dtype.name == kernel.val.dtype.name == "float32"
+        precise = bed[:2, :3].read(dtype="float64")  # explicit override
+        assert precise.val.dtype.name == "float64"
+    # Previous settings are restored, even after an exception.
+
+These environment settings are process-wide; use one consistent policy per
+process. This new policy requires matching development versions of bed-reader
+and PySnpTools; older dependencies retain their original defaults but reject
+ARRAY_DTYPE rather than silently ignoring it.
+
 Float64 arithmetic can be much slower than float32 on consumer GPUs; devices
 with strong float64 hardware can behave differently. Float64 storage also uses
 twice the memory. GPU float64 reads, allocations, and standardization emit
@@ -30,7 +59,7 @@ to the user's call, so Python's default warning filter avoids repeated messages
 at that call site. Caller-owned float64 arrays are also covered when standardized.
 
 For example, use ``reader.read(dtype="float32", xp="cupy")`` when adequate;
-reads otherwise default to float64 even for float32 in-memory sources. Keep
+omitted dtype uses ARRAY_DTYPE, then float64, even for float32 in-memory sources. Keep
 float64 when numerical accuracy requires it, and validate representative results
 before switching. CPU float64 and internal float64 reductions for float32 input
 do not emit this warning. Float32 storage does not remove every float64 operation.
@@ -46,17 +75,17 @@ do not emit this warning. Float32 storage does not remove every float64 operatio
      - ``xp=None``
      - Selects the module for values; metadata remains NumPy. Float32/float64
        inputs keep their dtype across transfers. Lists and integers normally
-       become float64. Same-module floating arrays can share storage.
+       use ARRAY_DTYPE, then float64. Same-module floating arrays can share storage.
    * - ``SnpReader.read``, ``KernelReader.read``
-     - ``xp=None``, ``dtype=np.float64``, ``order="F"``
+     - ``xp=None``, ``dtype=None``, ``order="F"``
      - Return ``SnpData`` or ``KernelData``. Every read chooses its backend
-       independently of the constructor. The read's dtype default is float64,
-       even when the source stores float32; pass ``dtype="float32"`` to keep it.
+       independently of the constructor. None uses ARRAY_DTYPE, then float64,
+       independently of the source dtype. Explicit dtype overrides the environment.
    * - ``SnpReader.read_kernel``
      - ``standardizer=None``, ``block_size=None``, ``order="A"``
      - A standardizer is required despite the ``None`` signature default;
        omitting it raises ``AssertionError``. Returns ``KernelData``.
-       Output dtype defaults to float64; ``xp=None`` uses the environment.
+       Omitted dtype uses ARRAY_DTYPE, then float64; ``xp=None`` uses ARRAY_MODULE.
    * - ``order``
      - As above
      - ``F`` varies the first index fastest; ``C`` varies the last index
@@ -137,7 +166,7 @@ environment. It accepts contiguous 2-D/3-D float32/float64 arrays and
 one-dimensional integer index sequences, preserving order and duplicates.
 It rejects negative, out-of-range, floating-point, and Boolean indices with
 ``IndexError``. Reader slicing also accepts slices and Boolean masks.
-``sub_matrix`` defaults to float64: pass ``dtype=values.dtype`` to keep float32.
+``sub_matrix`` uses ARRAY_DTYPE, then float64: pass ``dtype=values.dtype`` to keep float32.
 Narrowing float64 to float32 warns of precision loss. ``asnumpy`` copies a CuPy
 array to the host and returns a NumPy array unchanged.
 

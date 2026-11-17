@@ -133,7 +133,7 @@ class KernelData(KernelReader, PstData):
             row_count=len(self._row),
             col_count=len(self._col),
             empty_creator=lambda row_count, col_count: np.empty(
-                [row_count, col_count], dtype=xp.float64
+                [row_count, col_count], dtype=pstutil.array_dtype()
             ),
             xp=xp,
         )
@@ -160,7 +160,7 @@ class KernelData(KernelReader, PstData):
             row_count=len(self._row),
             col_count=len(self._col),
             empty_creator=lambda row_count, col_count: np.empty(
-                [row_count, col_count], dtype=np.float64
+                [row_count, col_count], dtype=pstutil.array_dtype()
             ),
             xp=self._xp,
         )
