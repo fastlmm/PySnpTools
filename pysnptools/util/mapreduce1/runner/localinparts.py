@@ -1,10 +1,10 @@
-from unittest.mock import patch
 import os
 import sys
 import logging
 from pysnptools.util.mapreduce1.runner import Runner, _JustCheckExists, _run_one_task
 from pysnptools.util import create_directory_if_necessary
 import cloudpickle as pickle
+from pysnptools.util.mapreduce1.runner import _threads
 
 
 class LocalInParts(Runner):
@@ -15,7 +15,8 @@ class LocalInParts(Runner):
     **Constructor:**
         :Parameters: * **taskindex** (*number*) -- Which piece of work to run. When 0 to **taskcount**-1, does map work. When **taskcount**, does the reduce work.
                      * **taskcount** (*number*) -- The number of pieces into which to divide the work.
-                     * **mkl_num_threads** (*number*) -- (default None) Limit on the number threads used by the NumPy MKL library.
+                     * **num_threads** (*number*) -- (default None) Maximum threads per process for MKL, OpenBLAS, and PySnpTools CPU operations. None leaves thread settings unchanged.
+                     * **mkl_num_threads** (*number*) -- Deprecated alias for num_threads. Supplying both names, including explicit None, raises TypeError.
                      * **weights** (*array of integers*) -- (default None) If given, tells the relative amount of work assigned to
                               each task. The length of the array must be **taskcount**. If not given, all tasks are assigned the
                               same amount of work.
@@ -36,20 +37,21 @@ class LocalInParts(Runner):
         ...     def reducer1(sequence):
         ...        return sum(sequence)
         ...     return map_reduce(range(n),mapper=mapper1,reducer=reducer1,runner=runner)
-        >>> holder1(100,LocalInParts(0,4)) #Run part 0 of 4 and save partial results to disk as '0.4.p'.
-        >>> holder1(100,LocalInParts(1,4)) #Run part 1 of 4 and save partial results to disk as '1.4.p'.
-        >>> holder1(100,LocalInParts(2,4)) #Run part 2 of 4 and save partial results to disk as '2.4.p'.
-        >>> holder1(100,LocalInParts(3,4)) #Run part 3 of 4 and save partial results to disk as '3.4.p'.
-        >>> holder1(100,LocalInParts(4,4)) #Read the all partial results and then apply the reduce function and return the result.
+        >>> holder1(100,LocalInParts(0,4,num_threads=1)) #Run part 0 of 4 and save partial results to disk as '0.4.p'.
+        >>> holder1(100,LocalInParts(1,4,num_threads=1)) #Run part 1 of 4 and save partial results to disk as '1.4.p'.
+        >>> holder1(100,LocalInParts(2,4,num_threads=1)) #Run part 2 of 4 and save partial results to disk as '2.4.p'.
+        >>> holder1(100,LocalInParts(3,4,num_threads=1)) #Run part 3 of 4 and save partial results to disk as '3.4.p'.
+        >>> holder1(100,LocalInParts(4,4,num_threads=1)) #Read the all partial results and then apply the reduce function and return the result.
         328350
 
     """
 
+    @_threads.renamed_num_threads
     def __init__(
         self,
         taskindex,
         taskcount,
-        mkl_num_threads=None,
+        num_threads=None,
         weights=None,
         environ=None,
         result_file=None,
@@ -73,7 +75,10 @@ class LocalInParts(Runner):
         self.taskcount = taskcount
         self.weights = weights
         self.environ = environ
-        self.mkl_num_threads = mkl_num_threads
+        self.num_threads = num_threads
+
+    num_threads = _threads.canonical_num_threads
+    mkl_num_threads = _threads.legacy_num_threads
 
     def run(self, distributable):
         if self.temp_dir is not None:
@@ -82,12 +87,8 @@ class LocalInParts(Runner):
             tempdir = os.path.join(self.run_dir, distributable.tempdirectory)
         tempdir = os.path.realpath(tempdir)
 
-        with patch.dict(
-            "os.environ",
-            {"MKL_NUM_THREADS": str(self.mkl_num_threads)}
-            if self.mkl_num_threads is not None
-            else {},
-        ) as _:
+        # Environment variables alone do not reconfigure already loaded BLAS pools.
+        with _threads.limits(self.num_threads):
             if self.taskindex != self.taskcount:
                 _JustCheckExists().input(distributable)
                 return _run_one_task(

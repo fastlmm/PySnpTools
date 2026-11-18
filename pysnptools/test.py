@@ -31,6 +31,7 @@ from pysnptools.util.intrangeset import TestIntRangeSet
 from pysnptools.util.test import TestUtilTools
 from pysnptools.util.filecache.test import TestFileCache
 from pysnptools.util.filecache.test_hashdown_retry import TestHashdownRetry
+from pysnptools.util.mapreduce1.test_threads import TestRunnerThreads
 from pysnptools.distreader.test import TestDistReaders
 
 import unittest
@@ -1835,6 +1836,7 @@ def getTestSuite():
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDistributedBed))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestFileCache))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestHashdownRetry))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestRunnerThreads))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestUtilTools))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestIntRangeSet))
     test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSnpDocStrings))
