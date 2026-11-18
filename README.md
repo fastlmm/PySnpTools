@@ -35,7 +35,7 @@ Install
 
 Requires Python 3.11.5 or later. Python 3.15 qualification is in progress.
 
-For the experimental GPU alpha, after `1.1.0a1` is published:
+For the experimental GPU alpha:
 
     pip install "pysnptools[cupy]==1.1.0a1"
 
