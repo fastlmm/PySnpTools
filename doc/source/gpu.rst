@@ -23,8 +23,9 @@ Rust or Maturin. See
 for system-toolkit and pip-managed CUDA options. Initial GPU qualification is
 Python 3.11 through 3.14 on NVIDIA Windows/Linux x86-64, including WSL2.
 Python 3.15 is currently CPU-only because CuPy 14.2 has no wheel for it.
-Linux GPU wheels require glibc 2.35 or later. Native Linux GPU testing remains
-outstanding; the Linux wheels have been tested under WSL2. CPU wheels also cover
+Linux GPU wheels require glibc 2.35 or later. The published alpha stack passed
+native Linux GPU integration tests on Ubuntu 24.04 x86-64 with an RTX 3060,
+Python 3.11, and CUDA toolkit 13.3, in addition to WSL2 testing. CPU wheels also cover
 Intel Mac, Apple silicon, Linux ARM64, and Windows ARM64; these platforms do not
 gain Python GPU support. Normal unpinned installations continue selecting stable
 releases. Omit ``[cupy]`` for a CPU-only installation of the alpha.
