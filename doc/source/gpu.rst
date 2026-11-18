@@ -1,16 +1,37 @@
 GPU arrays, readers, and standardization
 ========================================
 
-This guide describes the current development implementation, including the
-reader GPU API. Matching development versions of PySnpTools and bed-reader are
-required; installing the published packages does not necessarily provide these
-features. NumPy runs on the CPU. CuPy support here is experimental CUDA support;
-Python HIP support is not implemented.
+This guide describes the ``1.1.0a1`` alpha, including the reader GPU API. It
+requires bed-reader 1.3.0a1 or later. NumPy runs on the CPU. CuPy support here is
+experimental NVIDIA CUDA support; Python HIP support is not implemented.
+
+Installing the alpha
+--------------------
+
+Publication is pending. After the alpha is published, explicitly select it:
+
+.. code-block:: bash
+
+    pip install "pysnptools[cupy]==1.1.0a1"
+    # Or, in an existing uv environment:
+    uv pip install "pysnptools[cupy]==1.1.0a1"
+
+The extra installs CuPy through ``bed-reader[cupy]``. It follows CuPy's CUDA 13
+driver/toolkit prerequisites; a prebuilt bed-reader wheel does not require
+Rust or Maturin. See
+`bed-reader's GPU guide <https://github.com/fastlmm/bed-reader/blob/gpu-cubecl/doc/source/gpu.rst>`_
+for system-toolkit and pip-managed CUDA options. Initial GPU qualification is
+Python 3.11 through 3.14 on NVIDIA Windows/Linux x86-64, including WSL2.
+Python 3.15 is currently CPU-only because CuPy 14.2 has no wheel for it.
+Linux GPU wheels require glibc 2.35 or later. Native Linux GPU testing remains
+outstanding; the Linux wheels have been tested under WSL2. Other CPU platforms
+may require building bed-reader from its source distribution until their alpha
+wheels are available. Normal unpinned installations continue selecting stable
+releases. Omit ``[cupy]`` for a CPU-only installation of the alpha.
 
 The :download:`GPU workflow notebook <../ipynb/gpu_workflow.ipynb>`
-combines local BED reads, fractional dosages, trained standardizers, blocked
-kernels, and PCA. It creates its own data and checks results against independent
-NumPy calculations.
+uses existing sample BED data to demonstrate GPU reads, standardized kernels,
+PCA, and a comparison of NumPy and CuPy kernel construction.
 
 Backend, dtype, and order
 -------------------------
@@ -46,8 +67,8 @@ Set backend and precision together for a workflow::
     # Previous settings are restored, even after an exception.
 
 These environment settings are process-wide; use one consistent policy per
-process. This new policy requires matching development versions of bed-reader
-and PySnpTools; older dependencies retain their original defaults but reject
+process. This policy requires the alpha versions described above; older
+dependencies retain their original defaults but reject
 ARRAY_DTYPE rather than silently ignoring it.
 
 Float64 arithmetic can be much slower than float32 on consumer GPUs; devices

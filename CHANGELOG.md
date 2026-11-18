@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0a1] - 2026-11-17
+
+* Add the `cupy` installation extra, using the published bed-reader 1.3.0a1
+  alpha for GPU reads and native allocations. CPU execution remains the
+  default. Initial GPU support targets Python 3.11 through 3.14 on NVIDIA
+  Windows/Linux x86-64, including WSL2, following CuPy's CUDA prerequisites.
+
 * Add `ARRAY_DTYPE` defaults for reads, kernels, submatrix copies, and untyped
   containers, with explicit dtype taking precedence. Optional dtype signatures
   now default to `None`; the unconfigured float64 defaults are unchanged.
