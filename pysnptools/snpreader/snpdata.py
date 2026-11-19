@@ -14,18 +14,24 @@ class SnpData(PstData, SnpReader):
     """A :class:`.SnpReader` for holding SNP values (or similar values) in-memory, along with related iid and sid information.
     It is usually created by calling the :meth:`.SnpReader.read` method on another :class:`.SnpReader`, for example, :class:`.Bed`. It can also be constructed directly.
 
-    See :class:`.SnpReader` for details and examples.
+    See :class:`.SnpReader` for details and examples, and :doc:`/gpu` for device
+    transfers, GPU subsetting, and in-place standardization examples. Float32 and
+    float64 arrays keep their dtype when transferred between NumPy and CuPy;
+    lists and integer arrays use ARRAY_DTYPE, then float64.
+    New supported GPU matrices prefer CubeCL-owned storage when available;
+    existing CuPy arrays are retained when no conversion is needed. See
+    :doc:`/gpu` for allocation and standardization dispatch details.
 
     **Constructor:**
         :Parameters: * **iid** (an array of string pair) -- The :attr:`SnpReader.iid` information.
                      * **sid** (an array of strings) -- The :attr:`SnpReader.sid` information.
                      * **val** (a 2-D array of floats) -- The SNP values
-                     * **pos** (optional, an array of strings) -- The :attr:`SnpReader.pos` information
+                     * **pos** (optional, numeric array of shape (sid_count, 3)) -- The :attr:`SnpReader.pos` information
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **copyinputs_function** (optional, function) -- *Used internally by optional clustering code*
                      * **xp** (optional, a Python module or string) -- The array module that controls **val**,
-                               for example, 'numpy' or 'cupy'. Defaults to numpy. Can also be set with the
-                               'ARRAY_MODULE' environment variable.
+                               for example, 'numpy' or 'cupy'. An explicit choice overrides ARRAY_MODULE;
+                               None uses the environment, then NumPy. Missing CuPy raises ImportError.
 
         :Example:
 
@@ -100,7 +106,7 @@ class SnpData(PstData, SnpReader):
             val,
             row_count=len(self._row),
             col_count=len(self._col),
-            empty_creator=lambda row_count, col_count: np.empty([row_count, col_count], dtype=np.float64),
+            empty_creator=lambda row_count, col_count: np.empty([row_count, col_count], dtype=pstutil.array_dtype()),
             _require_float32_64=_require_float32_64,
             xp=xp,
         )
@@ -111,7 +117,7 @@ class SnpData(PstData, SnpReader):
 
     @property
     def val(self):
-        """The 2D NumPy array of floats that represents the values of the SNPs.  You can get or set this property.
+        """The 2D NumPy or CuPy array of floats that represents the values of the SNPs.  You can get or set this property.
 
         >>> from pysnptools.snpreader import Bed
         >>> from pysnptools.util import example_file # Download and return local file name
@@ -128,7 +134,7 @@ class SnpData(PstData, SnpReader):
             new_value,
             row_count=len(self._row),
             col_count=len(self._col),
-            empty_creator=lambda row_count, col_count: np.empty([row_count, col_count], dtype=np.float64),
+            empty_creator=lambda row_count, col_count: np.empty([row_count, col_count], dtype=pstutil.array_dtype()),
             xp=self._xp,
         )
         self._assert_iid_sid_pos(check_val=True)
@@ -186,31 +192,36 @@ class SnpData(PstData, SnpReader):
         num_threads=None,
     ):
         """Does in-place standardization of the in-memory
-        SNP data. By default, it applies 'Unit' standardization, that is: the values for each SNP will have mean zero and standard deviation 1.0.
-        NaN values are then filled with zero, the mean (consequently, if there are NaN values, the final standard deviation will not be zero.
+        SNP data on the array's device, independently of ARRAY_MODULE. By default,
+        Unit centers and scales observed values to population standard deviation one,
+        then replaces NaNs with zero. With missing values, final column variance
+        is generally below one; constant columns become zero. Wholly missing
+        training columns raise ValueError. See :doc:`/gpu` for complete examples,
+        trained-statistic alignment, backend options, and exceptions.
         Note that, for efficiency, this method works in-place, actually changing values in the ndarray. Although it works in place, for convenience
         it also returns the SnpData.
 
         :param standardizer: optional -- Specify standardization to be applied.
-             Any :class:`.Standardizer` may be used. Some choices include :class:`.Unit` (default, makes values for each SNP have mean zero and
-             standard deviation 1.0) and :class:`.Beta`.
+             Any :class:`.Standardizer` may be used. Some choices include :class:`.Unit` (default, centers and scales observed
+             values before filling missing values with zero) and :class:`.Beta`.
         :type standardizer: :class:`.Standardizer`
 
-        :param block_size: optional -- Deprecated.
+        :param block_size: Deprecated and ignored; this wrapper does not forward it.
         :type block_size: None
 
         :param return_trained: If true, returns a second value containing a constant :class:`.Standardizer` trained on this data.
         :type return_trained: bool
 
-        :param force_python_only: optional -- If true, will use pure Python instead of faster C++ libraries.
+        :param force_python_only: Request Python CPU standardization when supported;
+            ignored for CuPy, which remains on the existing device.
         :type force_python_only: bool
 
-        :param num_threads: optional -- The number of threads with which to standardize data. Defaults to all available
+        :param num_threads: optional -- The CPU standardization thread count (ignored for CuPy). Defaults to all available
             processors. Can also be set with these environment variables (listed in priority order):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
 
-        :rtype: :class:`.SnpData` (standardizes in place, but for convenience, returns 'self')
+        :rtype: :class:`.SnpData`, or (SnpData, trained standardizer) when return_trained=True
 
         >>> from pysnptools.snpreader import Bed
         >>> from pysnptools.util import example_file # Download and return local file name
@@ -246,11 +257,12 @@ class SnpData(PstData, SnpReader):
         standardizer,
         block_size=None,
         order="A",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         return_trained=False,
         num_threads=None,
+        xp=None,
     ):
         """
         The method creates a kernel for the in-memory SNP data. It handles these cases
@@ -258,14 +270,27 @@ class SnpData(PstData, SnpReader):
         """
         from pysnptools.pstreader import PstReader
 
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
+        xp = pstutil.array_module(xp)
 
         # Just do a 'python' dot, if no standardization is needed and everything is the right type
-        if isinstance(standardizer, Identity) and train.val.dtype == dtype:
+        if (isinstance(standardizer, Identity) and train.val.dtype == dtype
+                and pstutil.get_array_module(train.val) is xp):
             time.time()
             # is_worth_logging = train.val.shape[0] * train.val.shape[1] * test.val.shape[0] > 1e9
             # if is_worth_logging: logging.info("  _read_kernel about to multiply train{0} x test{1}".format(train.val.shape,test.val.shape))
-            if order == "F":  # numpy's 'dot' always returns 'C' order
+            if xp is not np:
+                from pysnptools.util._gpu_warnings import warn_gpu_float64
+                # A kernel is never standardized natively, so CuPy's own pool serves it.
+                # Blocked kernels allocate one per block; CuPy reuses that memory, while
+                # bed-reader returns its allocations to CUDA as soon as they are dropped.
+                warn_gpu_float64(dtype, xp)
+                K = xp.empty((train.iid_count, train.iid_count), dtype=dtype,
+                             order="F" if order == "F" else "C")
+                # dot's out must be C-contiguous; the symmetric product can be
+                # written through a transpose to retain the requested F layout.
+                xp.dot(train.val, train.val.T, out=K.T if order == "F" else K)
+            elif order == "F":  # numpy's 'dot' always returns 'C' order
                 K = (train.val.dot(train.val.T)).T
             else:
                 K = train.val.dot(train.val.T)
@@ -285,7 +310,7 @@ class SnpData(PstData, SnpReader):
                 force_python_only=force_python_only,
                 view_ok=view_ok,
                 return_trained=return_trained,
-                num_threads=num_threads,
+                num_threads=num_threads, xp=xp,
             )
 
     def __repr__(self):

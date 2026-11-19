@@ -1,3 +1,4 @@
+import sys
 import warnings
 import numpy as np
 from itertools import *  # noqa: F403
@@ -12,6 +13,28 @@ def _default_empty_creator(count):
 
 def _default_empty_creator_val(row_count, col_count):
     return np.empty([row_count, col_count], dtype="str")
+
+
+
+def _as_array_module(input, xp, require_float32_64):
+    from pysnptools.util._array import asarray
+    # Return input as an xp array. An array (from xp or from the other module, numpy or
+    # cupy) keeps its dtype if it is float32 or float64, or always if require_float32_64
+    # is False; otherwise (including a list), use ARRAY_DTYPE, then float64.
+    def keeps_dtype(array):
+        return not require_float32_64 or array.dtype in (np.float32, np.float64)
+
+    if isinstance(input, xp.ndarray):  # same module
+        return input if keeps_dtype(input) else asarray(input, dtype=pstutil.array_dtype(), order="K", xp=xp)
+
+    cp = sys.modules.get("cupy")  # a cupy array exists only if cupy was imported
+    if isinstance(input, np.ndarray) or (cp is not None and isinstance(input, cp.ndarray)):
+        dtype = input.dtype if keeps_dtype(input) else pstutil.array_dtype()
+        if xp is np:
+            input = pstutil.asnumpy(input)  # cupy forbids implicit conversion to numpy
+        return asarray(input, dtype=dtype, order="K", xp=xp, copy=True)
+
+    return asarray(input, dtype=pstutil.array_dtype(), order="K", xp=xp)
 
 
 class PstData(PstReader):
@@ -183,11 +206,11 @@ class PstData(PstReader):
             assert (
                 row_count == 0 or col_count == 0
             ), "If val is None, either row_count or col_count must be 0"
-            input = _default_empty_creator_val(row_count, col_count)
-        elif not isinstance(input, xp.ndarray):
-            input = xp.array(input, dtype=xp.float64)
-        elif _require_float32_64 and input.dtype not in [xp.float32, xp.float64]:
-            input = xp.array(input, dtype=xp.float64)
+            input = empty_creator(row_count, col_count)
+            if xp is not np:
+                input = _as_array_module(input, xp, _require_float32_64)
+        else:
+            input = _as_array_module(input, xp, _require_float32_64)
 
         assert len(input.shape) in {2, 3}, "Expect val to be two or three dimensional."
         assert (
@@ -273,6 +296,13 @@ class PstData(PstReader):
         num_threads,
     ):
         dtype = np.dtype(dtype)
+        xp = pstutil.get_array_module(self.val)
+        if (xp is not np and PstReader._is_all_slice(row_index_or_none)
+                and PstReader._is_all_slice(col_index_or_none)):
+            if view_ok and PstReader._array_properties_are_ok(self.val, order, dtype):
+                return self.val
+            from pysnptools.util._array import asarray
+            return asarray(self.val, dtype=dtype, order=order, xp=xp, copy=True)
         val, shares_memory = self._apply_sparray_or_slice_to_val(
             self.val,
             row_index_or_none,
@@ -283,7 +313,11 @@ class PstData(PstReader):
             num_threads,
         )
         if shares_memory and not view_ok:
-            val = val.copy(order="K")
+            if xp is np:
+                val = val.copy(order="K")
+            else:
+                from pysnptools.util._array import asarray
+                val = asarray(val, dtype=val.dtype, order="K", xp=xp, copy=True)
         return val
 
 

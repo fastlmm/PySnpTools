@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0a1] - 2026-11-17
+
+* Add the `cupy` installation extra, using the published bed-reader 1.3.0a1
+  alpha for GPU reads and native allocations. CPU execution remains the
+  default. Initial GPU support targets Python 3.11 through 3.14 on NVIDIA
+  Windows/Linux x86-64, including WSL2, following CuPy's CUDA prerequisites.
+
+* Add `ARRAY_DTYPE` defaults for reads, kernels, submatrix copies, and untyped
+  containers, with explicit dtype taking precedence. Optional dtype signatures
+  now default to `None`; the unconfigured float64 defaults are unchanged.
+  Existing floating arrays and standardizers keep their precision.
+* Keep Pheno, Dense, Dat, and Ped text parsing on the CPU until a read chooses
+  its backend and precision, avoiding GPU allocation during metadata access.
+
+* Keep newly copied supported GPU subsets in CubeCL-backed storage so fitting
+  Unit/Beta can use native standardization, including FaST-LMM test-SNP blocks
+  from preloaded `SnpData`. Preserve caller-owned arrays and shared views.
+
+* Prefer bed-reader's CubeCL allocator for new supported GPU matrices and kernel
+  outputs, retaining caller-supplied CuPy storage. Fit Unit/Beta natively only
+  for complete registered matrices; use CuPy for other arrays/views and applying
+  trained statistics, without CPU fallback.
+  Honor empty-container factories so `val=None` retains the intended floating
+  dtype and backend for empty `SnpData` and `KernelData`.
+
+* Reject zero, negative, and nonfinite `DiagKtoN` normalization denominators with
+  `ValueError` before changing values on NumPy or CuPy, including empty inputs.
+  GPU SNP normalization now propagates NaNs into the denominator rather than
+  silently ignoring them.
+
+* Reject invalid kernel block sizes, including negative sizes that previously
+  could silently produce an all-zero kernel.
+
+* Apply Unit/Beta trained statistics across float32/float64 CPU arrays in either
+  memory order, fixing a native type error for Fortran-order targets.
+
+* Fix blocked kernel construction with `BetaTrained`: validate the complete
+  SNP ID order, reuse the matching fitted moments in each block, and preserve
+  the original trained standardizer when returning training information.
+
+* Fix Python CPU Beta standardization of constant SNPs with singular endpoint
+  densities (for example, `Beta(0.5, 0.5)`): return zeros without invalid
+  multiplications during fitting or application of trained statistics.
+
+* Validate `sub_matrix` indices before conversion on both NumPy and CuPy.
+  Reject floating-point indices, Boolean masks, invalid shapes, and out-of-range
+  values with `IndexError` instead of truncating, wrapping, or reaching a native panic.
+* Preserve float32/float64 when moving numerical values between NumPy and CuPy.
+* Support CuPy arrays in `sub_matrix`, preserving the input device, requested
+  layout, and dtype; reject negative or out-of-range CuPy indices and warn when
+  narrowing float64 to float32.
+* Support Beta standardization on CuPy and reject wholly missing SNPs when
+  fitting Python/CuPy Unit or Beta standardizers, matching the native path.
+* Add a GPU guide with examples and current backend and reader limitations.
+
 ## [1.0.1] - 2026-11-14
 
 * Make `Hashdown` downloads (used by `example_file`) more robust: retry

@@ -14,6 +14,11 @@ Core Python 3.15 qualification excludes both backends; HDF5 and BGEN remain
 covered by the Python 3.11 through 3.14 test matrix.
 
 
+NumPy is the default backend. The development GPU API supports explicit CuPy
+reads and device-preserving standardization. ARRAY_MODULE and ARRAY_DTYPE
+supply backend/precision defaults when their arguments are omitted; see :doc:`gpu` for prerequisites,
+options, exceptions, and complete examples.
+
 :Synopsis:
 
 * :mod:`.snpreader`: Efficiently read genetic PLINK formats including \*.bed/bim/fam and phenotype files. Also, efficiently read *parts* of files and standardize data.
@@ -51,6 +56,17 @@ covered by the Python 3.11 through 3.14 test matrix.
 * IPython Notebooks
    * `General Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/tutorial.ipynb>`_
    * `Distribution Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/Dist.ipynb>`_
+   * :download:`GPU workflow notebook <../ipynb/gpu_workflow.ipynb>` (development): BED reads, dosages, trained statistics, blocked kernels, and PCA.
+
+.. toctree::
+   :maxdepth: 2
+
+   gpu
+
+.. toctree::
+   :hidden:
+
+   gpu-api-preview
 
 :Code:
 
@@ -551,6 +567,8 @@ covered by the Python 3.11 through 3.14 test matrix.
     :members:
     :undoc-members:
 	:show-inheritance:
+
+.. autofunction:: pysnptools.util.array_dtype
 
 .. autofunction:: pysnptools.util.example_file
 

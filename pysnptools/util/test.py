@@ -120,6 +120,187 @@ class TestUtilTools(unittest.TestCase):
         submatrix = pstutil.sub_matrix(matrix,[0,2,11],[6,5,4,3,2,1,0])
         assert  matrix[2,0,1] == submatrix[1,6,1] #The row # 2 is now #1, the column #0 is now #6.
 
+    def test_sub_matrix_indices(self):
+        self._check_sub_matrix_indices(np)
+
+    def test_sub_matrix_indices_cupy(self):
+        try:
+            import cupy as cp
+        except ModuleNotFoundError:
+            raise unittest.SkipTest("cupy is not installed")
+        self._check_sub_matrix_indices(cp)
+
+    def _check_sub_matrix_indices(self, xp):
+        import pysnptools.util as pstutil
+
+        invalid_indices = [
+            [0.9], [-0.9], [1.0], [0, 0.9],
+            [np.nan], [np.inf], [-np.inf], [1 + 0j], ["1"],
+            [True], [False, 1], (np.bool_(True), 1),
+            np.array([True, False]), np.array([0.9], dtype=object),
+            [-1], [3], np.array([2**64 - 1], dtype=np.uint64),
+            [2**64], [2**100], [-2**100],
+            0, [[0]], np.empty((0, 1), dtype=np.int64),
+        ]
+        valid_indices = [
+            [2, 0, 2], (2, 0, 2), range(2, -1, -1),
+            np.array([2, 0, 2], dtype=np.int32),
+            np.array([2, 0, 2], dtype=np.uint64),
+            np.array([2, 0, 2], dtype=object),
+            [np.int64(2), np.uint64(0)], [],
+        ]
+        for shape in [(3, 3), (3, 3, 2)]:
+            for order in ["C", "F"]:
+                for dtype in [np.float32, np.float64]:
+                    values = np.arange(np.prod(shape), dtype=dtype).reshape(shape)
+                    matrix = xp.array(values, order=order)
+                    for indices in invalid_indices:
+                        for axis in ["row", "column"]:
+                            with self.subTest(shape=shape, order=order, dtype=dtype,
+                                              indices=repr(indices), axis=axis):
+                                rows, columns = (indices, [0]) if axis == "row" else ([0], indices)
+                                with self.assertRaisesRegex(IndexError, axis):
+                                    pstutil.sub_matrix(matrix, rows, columns, dtype=dtype)
+                    for indices in valid_indices:
+                        # Independent NumPy indexing supplies the expected Cartesian product.
+                        expected_indices = np.asarray(list(indices), dtype=np.intp)
+                        for rows, columns in [(indices, [2, 0]), ([2, 0], indices)]:
+                            with self.subTest(shape=shape, order=order, dtype=dtype,
+                                              rows=repr(rows), columns=repr(columns)):
+                                actual = pstutil.sub_matrix(matrix, rows, columns,
+                                                            order=order, dtype=dtype)
+                                expected_rows = expected_indices if rows is indices else [2, 0]
+                                expected_columns = expected_indices if columns is indices else [2, 0]
+                                expected = values[np.ix_(expected_rows, expected_columns)]
+                                self.assertIsInstance(actual, xp.ndarray)
+                                self.assertEqual(actual.dtype, dtype)
+                                self.assertTrue(actual.flags[order + "_CONTIGUOUS"])
+                                np.testing.assert_array_equal(pstutil.asnumpy(actual), expected)
+
+    def test_sub_matrix_cupy(self):
+        # cupy is optional; this test needs it and a GPU.
+        try:
+            import cupy as cp
+        except ModuleNotFoundError:
+            raise unittest.SkipTest("cupy is not installed")
+        import warnings
+        import pysnptools.util as pstutil
+
+        def sub_matrix_and_warnings(val, out_order, out_dtype):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                result = pstutil.sub_matrix(val, row_index_list, col_index_list, order=out_order, dtype=out_dtype)
+            return result, caught
+
+        rng = np.random.default_rng(0)
+        row_index_list = [0, 2, 11, 2]
+        col_index_list = [6, 5, 4, 3, 2, 1, 0]
+        for shape in [(12, 7), (12, 7, 3)]:
+            for in_order in ["F", "C"]:
+                for in_dtype in [np.float64, np.float32]:
+                    matrix = np.asarray(rng.random(shape), dtype=in_dtype, order=in_order)
+                    for out_order in ["A", "F", "C"]:
+                        for out_dtype in [np.float64, np.float32]:
+                            expected, expected_warnings = sub_matrix_and_warnings(matrix, out_order, out_dtype)
+                            actual, actual_warnings = sub_matrix_and_warnings(cp.asarray(matrix, order=in_order), out_order, out_dtype)
+                            # Both paths report narrowing; GPU float64 output additionally
+                            # reports its performance cost. Check every notice rather than
+                            # filtering the new category or weakening the precision check.
+                            import bed_reader
+                            warning_type = bed_reader.GpuFloat64Warning
+                            narrowing = in_dtype == np.float64 and out_dtype == np.float32
+                            precision_warning = ["Converting float64 to float32 can cause loss of information"]
+                            expected_messages = [str(warning.message) for warning in expected_warnings]
+                            assert expected_messages == (precision_warning if narrowing else []), expected_messages
+                            assert len(actual_warnings) == len(expected_warnings) + (out_dtype == np.float64)
+                            for warning in actual_warnings:
+                                if str(warning.message) not in expected_messages:
+                                    assert out_dtype == np.float64
+                                    assert issubclass(warning.category, warning_type)
+                                    assert "consumer GPUs" in str(warning.message)
+                            assert isinstance(actual, cp.ndarray)
+                            assert actual.dtype == expected.dtype
+                            assert actual.flags["F_CONTIGUOUS"] == expected.flags["F_CONTIGUOUS"]
+                            assert actual.flags["C_CONTIGUOUS"] == expected.flags["C_CONTIGUOUS"]
+                            np.testing.assert_array_equal(cp.asnumpy(actual), expected)
+        # cupy indexing would silently wrap these, so sub_matrix must reject them.
+        matrix = cp.asarray(rng.random((12, 7)))
+        for bad_rows, bad_cols in [([12], [0]), ([-1], [0]), (np.array([-1]), [0]), ([0], [7]), ([0], np.array([-7]))]:
+            with self.assertRaises(IndexError):
+                pstutil.sub_matrix(matrix, bad_rows, bad_cols)
+
+    def test_snpdata_subset_cupy(self):
+        # End to end: SnpData created under ARRAY_MODULE=cupy holds a cupy val and must subset.
+        try:
+            import cupy as cp
+        except ModuleNotFoundError:
+            raise unittest.SkipTest("cupy is not installed")
+        from unittest.mock import patch
+        from pysnptools.snpreader import SnpData
+        val = np.arange(24, dtype=np.float64).reshape(6, 4)
+        with patch.dict("os.environ", {"ARRAY_MODULE": "cupy"}):
+            snpdata = SnpData(iid=[["f", str(i)] for i in range(6)], sid=[f"s{j}" for j in range(4)], val=val)
+            assert isinstance(snpdata.val, cp.ndarray)
+            subset = snpdata[np.array([True, False, True, True, False, True]), [3, 1]].read()
+        # The subset stays on the GPU with its dtype (cp.asnumpy would also accept numpy).
+        assert isinstance(subset.val, cp.ndarray) and subset.val.dtype == np.float64
+        np.testing.assert_array_equal(cp.asnumpy(subset.val), val[[0, 2, 3, 5]][:, [3, 1]])
+
+    def test_snpdata_cupy_keeps_dtype(self):
+        # A val moved between numpy and cupy keeps the dtype that same-module input keeps.
+        try:
+            import cupy as cp
+        except ModuleNotFoundError:
+            raise unittest.SkipTest("cupy is not installed")
+        from unittest.mock import patch
+        from pysnptools.snpreader import SnpData
+        iid = [["f", str(i)] for i in range(3)]
+        sid = ["s0", "s1"]
+        cases = [  # (input dtype, _require_float32_64, expected dtype)
+            (np.float32, True, np.float32),
+            (np.float64, True, np.float64),
+            (np.int8, True, np.float64),
+            (np.int8, False, np.int8),
+        ]
+        for array_module, target in [("cupy", cp), ("numpy", np)]:
+            source = np if target is cp else cp
+            with patch.dict("os.environ", {"ARRAY_MODULE": array_module}):
+                for in_dtype, require, out_dtype in cases:
+                    val = source.ones((3, 2), dtype=in_dtype)
+                    snpdata = SnpData(iid=iid, sid=sid, val=val, _require_float32_64=require)
+                    assert isinstance(snpdata.val, target.ndarray), (array_module, in_dtype)
+                    assert snpdata.val.dtype == out_dtype, (array_module, in_dtype, require, snpdata.val.dtype)
+                    # Same-module input keeps the same dtype.
+                    same = SnpData(iid=iid, sid=sid, val=target.ones((3, 2), dtype=in_dtype), _require_float32_64=require)
+                    assert same.val.dtype == out_dtype, (array_module, in_dtype, require, same.val.dtype)
+                lists = SnpData(iid=iid, sid=sid, val=[[1, 2], [3, 4], [5, 6]])
+                assert isinstance(lists.val, target.ndarray) and lists.val.dtype == np.float64
+
+
+    def test_standardize_cupy_matches_rust(self):
+        # cupy arrays are standardized in Python; results and errors must match the Rust path.
+        try:
+            import cupy as cp
+        except ModuleNotFoundError:
+            raise unittest.SkipTest("cupy is not installed")
+        from pysnptools.standardizer import Unit, Beta
+        rng = np.random.default_rng(0)
+        val = rng.binomial(2, 0.3, (40, 5)).astype(np.float64)
+        val[[1, 5, 9], 0] = np.nan  # some missing
+        val[:, 1] = 1.0  # constant
+        val[:, 2] = np.nan  # one observed value
+        val[0, 2] = 2.0
+        for standardizer in [Unit(), Beta(1, 25)]:
+            for dtype in [np.float64, np.float32]:
+                expected = standardizer.standardize(np.asfortranarray(val.astype(dtype)))
+                actual = cp.asnumpy(standardizer.standardize(cp.asarray(val.astype(dtype), order="F")))
+                assert actual.dtype == expected.dtype
+                np.testing.assert_allclose(actual, expected, rtol=0, atol=8 * np.finfo(dtype).eps)
+            all_missing = val.copy()
+            all_missing[:, 3] = np.nan
+            for array in [np.asfortranarray(all_missing), cp.asarray(all_missing, order="F")]:
+                with self.assertRaisesRegex(ValueError, "No individual observed"):
+                    standardizer.standardize(array)
 
 
 def getTestSuite():

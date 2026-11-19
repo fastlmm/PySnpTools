@@ -29,7 +29,7 @@ class Bed(SnpReader):
                      * **iid** (an array of strings) -- The :attr:`SnpReader.iid` information. If not given, reads info from '.fam' file.
                      * **sid** (an array of strings) -- The :attr:`SnpReader.sid` information. If not given, reads info from '.bim' file.
                      * **pos** (optional, an array of strings) -- The :attr:`SnpReader.pos` information.  If not given, reads info from '.bim' file.
-                     * **num_threads** (optinal, int) -- The number of threads with which to read data. Defaults to all available processors.
+                     * **num_threads** (optional, int) -- The number of threads with which to read data. Defaults to all available processors.
                             Can also be set with these environment variables (listed in priority order):
                             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
                      * **skip_format_check** (*bool*) -- By default (False), checks that the '.bed' file starts with the expected bytes
@@ -50,8 +50,13 @@ class Bed(SnpReader):
     **Methods beyond** :class:`.SnpReader`
 
         The :meth:`.SnpReader.read` method returns a :class:`SnpData` with a :attr:`SnpData.val` ndarray. By default, this ndarray is
-        numpy.float32. Optionally, it can be numpy.float16. For :class:`Bed`, however, it can also be numpy.int8 with missing values
-        represented by -127.
+        numpy.float64. Optionally, it can be numpy.float32, or numpy.int8 with
+        ``_require_float32_64=False`` and missing values represented by -127.
+        Float16 is not supported. ``xp`` selects NumPy/CuPy at read time; native
+        GPU reads require a CUDA-enabled bed-reader build and reject
+        ``force_python_only=True``. CPU thread settings and ``view_ok`` do not
+        control GPU decoding. See :doc:`/gpu` for prerequisites, exceptions,
+        memory limits, and a complete synthetic BED example.
 
         When reading, any chromosome and position values of 0 (the PLINK standard for missing) will be represented in :attr:`pos` as NaN.
 
@@ -338,6 +343,53 @@ class Bed(SnpReader):
         )
 
         return val
+
+    def _read_array(self, row_index, col_index, order, dtype,
+                    force_python_only, view_ok, num_threads, xp):
+        self._run_once()
+        return self._open_bed.read(
+            index=(row_index, col_index), dtype=dtype,
+            order="F" if order == "A" else order, xp=xp,
+            force_python_only=force_python_only, num_threads=num_threads)
+
+    def _read_with_standardizing(self, standardizer, order="F", dtype=None,
+                                 xp=None, return_trained=False,
+                                 force_python_only=False, num_threads=None,
+                                 _row_index=None, _col_index=None):
+        import pysnptools.util as pstutil
+        from pysnptools.standardizer import Unit, Beta, UnitTrained, BetaTrained
+        from pysnptools.snpreader import SnpData
+
+        xp = pstutil.array_module(xp)
+        dtype = pstutil.array_dtype(dtype)
+        if xp is np or type(standardizer) not in (Unit, Beta) or force_python_only:
+            return super()._read_with_standardizing(
+                standardizer, order=order, dtype=dtype, xp=xp,
+                return_trained=return_trained, force_python_only=force_python_only,
+                num_threads=num_threads, _row_index=_row_index, _col_index=_col_index)
+        from bed_reader import bed_reader as native
+
+        self._run_once()
+        owner = self._open_bed._read_gpu(
+            (_row_index, _col_index), dtype, "F" if order == "A" else order)
+        is_beta = type(standardizer) is Beta
+        stats = native.standardize_gpu(
+            owner, is_beta, standardizer.a if is_beta else 1.0,
+            standardizer.b if is_beta else 25.0)
+        # No CuPy work precedes CubeCL here. Export waits for CubeCL to finish;
+        # CuPy keeps the owner alive, including when only a view remains.
+        metadata = self if _row_index is None and _col_index is None else self[_row_index, _col_index]
+        if hasattr(native, "allocate_gpu"):
+            from bed_reader._gpu import _as_cupy
+            values = _as_cupy(owner)
+        else:
+            values = xp.asarray(owner)
+        data = SnpData(iid=metadata.iid, sid=metadata.sid, pos=metadata.pos,
+                       val=values, xp=xp, name=str(metadata))
+        data._std_string_list.append(str(standardizer))
+        trained = (BetaTrained(standardizer.a, standardizer.b, data.sid, stats)
+                   if is_beta else UnitTrained(data.sid, stats))
+        return (data, trained) if return_trained else data
 
 
 if __name__ == "__main__":

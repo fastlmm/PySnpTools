@@ -99,7 +99,7 @@ class Pheno(_OneShot, SnpReader):
         col_property.fill(np.nan)
         val = pheno_input["vals"]
 
-        snpdata = SnpData(iid=row, sid=col, pos=col_property, val=val)
+        snpdata = SnpData(iid=row, sid=col, pos=col_property, val=val, xp=np)
         return snpdata
 
     @staticmethod

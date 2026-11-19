@@ -1,3 +1,4 @@
+import pysnptools.util as pstutil
 import numpy as np
 import logging
 import warnings
@@ -8,7 +9,12 @@ class Beta(Standardizer):
     """
     A :class:`.Standardizer` to beta standardize SNP data.
 
-    See :class:`.Standardizer` for more information about standardization.
+    Subtract the observed mean and multiply by the beta density at the minor
+    allele frequency; this does not divide by standard deviation. Native and
+    CuPy paths zero constant columns, impute NaNs with zero, and reject wholly
+    missing training SNPs and means outside [0, 2]. The CuPy path keeps the
+    matrix on its device but computes per-SNP beta weights with SciPy on CPU.
+    See :class:`.Standardizer` and :doc:`/gpu` for options and complete examples.
 
     **Constructor:**
         :Parameters: * **a** (*float*) -- The *a* parameter of the beta distribution
@@ -39,6 +45,13 @@ class Beta(Standardizer):
         force_python_only=False,
         num_threads=None,
     ):  # !!!later why is the 2nd argument called 'snpdata' here, but 'snps' in unit.py?
+        """Apply Beta in place on the current array device.
+
+        See :meth:`.Standardizer.standardize` for options and :doc:`/gpu` for
+        examples. Returns the input, or (input, BetaTrained) with NumPy stats when
+        return_trained=True. Direct block_size warns and is ignored. CuPy ignores
+        force_python_only and num_threads. Constant training columns remain zero,
+        including singular endpoint beta densities, on native and Python CPU paths."""
         if block_size is not None:
             warnings.warn(
                 "block_size is deprecated (and not needed, since standardization is in-place",
@@ -71,7 +84,7 @@ class Beta(Standardizer):
             assert hasattr(
                 snpdata, "val"
             ), "return_trained=True must be used with SnpData"
-            return snpdata, BetaTrained(self.a, self.b, snpdata.sid, stats)
+            return snpdata, BetaTrained(self.a, self.b, snpdata.sid, pstutil.asnumpy(stats))
         else:
             return snpdata
 

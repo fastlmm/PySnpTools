@@ -102,7 +102,7 @@ jobs:
         env:
           # cbgen's bundled zlib needs POSIX declarations on Linux.
           CFLAGS: ${{ runner.os == 'Linux' && '-D_POSIX_C_SOURCE=200809L' || '' }}
-        run: uv sync --frozen --all-extras
+        run: uv sync --frozen --extra dev --extra hdf5 --extra bgen
 
       - name: Run the optional BGEN suite
         run: uv run --frozen --no-sync pytest pysnptools/distreader/test_bgen2.py

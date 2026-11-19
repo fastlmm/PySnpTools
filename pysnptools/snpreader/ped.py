@@ -60,7 +60,7 @@ class Ped(_OneShot,SnpReader):
             vals=snpsstr[~inan[:,2*i],2*i:2*(i+1)]
             if vals.shape[0] > 0:
                 snps[~inan[:,2*i],i]+=(vals==vals[0,0]).sum(1)
-        snpdata = SnpData(iid=row,sid=col,pos=col_property,val=snps)
+        snpdata = SnpData(iid=row,sid=col,pos=col_property,val=snps,xp=np)
         return snpdata
 
     def copyinputs(self, copier):

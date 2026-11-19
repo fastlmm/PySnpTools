@@ -10,6 +10,11 @@ Main Features:
           New features include multi-threaded BED reading, cluster-ready BED data, on-the-fly SNP generation,
           and larger in-memory data.
 
+* **Experimental GPU arrays:** Read, standardize, and construct kernels with CuPy.
+  `ARRAY_MODULE` and `ARRAY_DTYPE` supply optional backend/precision environment defaults.
+  See the [GPU guide](https://github.com/fastlmm/PySnpTools/blob/cupy-sub-matrix/doc/source/gpu.rst) and [workflow notebook](https://github.com/fastlmm/PySnpTools/blob/cupy-sub-matrix/doc/ipynb/gpu_workflow.ipynb).
+  The `cupy` extra uses CUDA-enabled bed-reader wheels for native GPU BED reads.
+
 * [DistReader](https://fastlmm.github.io/PySnpTools/#module-pysnptools.distreader): Efficiently work with
          unphased BGEN format and other diploid, biallelic distribution data.
           Also, efficiently read parts of files. See [Distribution IPython Notebook](https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/Dist.ipynb).
@@ -29,6 +34,13 @@ Install
     pip install pysnptools
 
 Requires Python 3.11.5 or later. Python 3.15 qualification is in progress.
+
+For the experimental GPU alpha:
+
+    pip install "pysnptools[cupy]==1.1.0a1"
+
+GPU use requires compatible NVIDIA hardware, a driver, and CuPy's CUDA setup.
+Python 3.15 is currently CPU-only; see the GPU guide for platform limits.
 
 HDF5 support is optional. To read or write HDF5 files, install:
 
