@@ -280,9 +280,13 @@ class SnpData(PstData, SnpReader):
             # is_worth_logging = train.val.shape[0] * train.val.shape[1] * test.val.shape[0] > 1e9
             # if is_worth_logging: logging.info("  _read_kernel about to multiply train{0} x test{1}".format(train.val.shape,test.val.shape))
             if xp is not np:
-                from pysnptools.util._array import empty
-                K = empty((train.iid_count, train.iid_count), dtype=dtype,
-                          order="F" if order == "F" else "C", xp=xp)
+                from pysnptools.util._gpu_warnings import warn_gpu_float64
+                # A kernel is never standardized natively, so CuPy's own pool serves it.
+                # Blocked kernels allocate one per block; CuPy reuses that memory, while
+                # bed-reader returns its allocations to CUDA as soon as they are dropped.
+                warn_gpu_float64(dtype, xp)
+                K = xp.empty((train.iid_count, train.iid_count), dtype=dtype,
+                             order="F" if order == "F" else "C")
                 # dot's out must be C-contiguous; the symmetric product can be
                 # written through a transpose to retain the requested F layout.
                 xp.dot(train.val, train.val.T, out=K.T if order == "F" else K)

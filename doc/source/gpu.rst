@@ -75,7 +75,7 @@ ARRAY_DTYPE rather than silently ignoring it.
 Float64 arithmetic can be much slower than float32 on consumer GPUs; devices
 with strong float64 hardware can behave differently. Float64 storage also uses
 twice the memory. GPU float64 reads, allocations, and standardization emit
-bed-reader's ``GpuFloat64Warning`` (a ``UserWarning`` with older dependencies).
+bed-reader's ``GpuFloat64Warning`` (a ``UserWarning``).
 Warnings preserve the requested dtype and defaults. Nested library calls point
 to the user's call, so Python's default warning filter avoids repeated messages
 at that call site. Caller-owned float64 arrays are also covered when standardized.
@@ -148,9 +148,8 @@ views keep their original allocation; no complete matrix is standardized
 through a partial view.
 Unavailable native allocation does not move computation to the CPU. An error
 from an allocator that was selected propagates without retrying another one.
-CubeCL and CuPy cache allocations in separate pools. After dropping arrays and
-their views, ``bed_reader.gpu_memory_cleanup()`` releases unused native storage
-for other GPU libraries; it preserves live arrays and does not clear CuPy's pool.
+When an array backed by bed-reader and all its views are dropped, bed-reader
+returns its memory to CUDA, where CuPy and other libraries can use it.
 
 The following complete example checks both directions of environment overrides,
 actual array types, dtype, order, and a duplicate-preserving subset. It needs

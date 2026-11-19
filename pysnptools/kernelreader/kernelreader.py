@@ -342,8 +342,10 @@ class KernelReader(PstReader):
             return val
         if xp is np:
             val = pstutil.asnumpy(val)
-        from pysnptools.util._array import asarray
-        return asarray(val, dtype=dtype, order=order, xp=xp)
+        # Kernels are never standardized natively, so CuPy's own pool serves them.
+        from pysnptools.util._gpu_warnings import warn_gpu_float64
+        warn_gpu_float64(dtype, xp)
+        return xp.asarray(val, dtype=dtype, order=order)
 
     def iid_to_index(self, list):
         """Takes a list of iids and returns a list of index numbers.

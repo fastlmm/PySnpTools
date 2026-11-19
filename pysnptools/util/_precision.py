@@ -1,8 +1,5 @@
-"""Precision defaults shared with bed-reader without breaking older CPU installs."""
-import os
-
-import bed_reader
-import numpy as np
+"""Precision defaults shared with bed-reader."""
+from bed_reader._array_module import array_dtype as _array_dtype
 
 
 def array_dtype(dtype=None):
@@ -19,12 +16,4 @@ def array_dtype(dtype=None):
     ...     print(array_dtype(), array_dtype("float64"))
     float32 float64
     """
-    resolver = getattr(bed_reader, "array_dtype", None)
-    if resolver is not None:
-        return resolver(dtype)
-    # Supported older bed-reader releases lack this new optional policy. Keep
-    # their legacy defaults/explicit arguments working; never ignore a requested
-    # environment policy that the installed dependency cannot implement.
-    if dtype is None and "ARRAY_DTYPE" in os.environ:
-        raise RuntimeError("ARRAY_DTYPE requires bed-reader with array_dtype support")
-    return np.dtype("float64" if dtype is None else dtype)
+    return _array_dtype(dtype)

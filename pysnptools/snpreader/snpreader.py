@@ -801,13 +801,9 @@ class SnpReader(PstReader):
             )
             if xp is not np:
                 xp.cuda.get_current_stream().synchronize()
+                # bed-reader returns the dropped data's GPU memory to CUDA, where
+                # CuPy's eigensolver can use it for its workspace.
                 del train_data
-                # Return CubeCL's unused blocks to the driver before CuPy's
-                # eigensolver needs its workspace (the libraries have separate pools).
-                from bed_reader import has_gpu_support
-                if has_gpu_support():
-                    from bed_reader.bed_reader import gpu_memory_cleanup
-                    gpu_memory_cleanup()
             if return_trained:
                 return kernel, trained_standardizer
             else:
@@ -824,8 +820,10 @@ class SnpReader(PstReader):
             if order == "A":
                 order = "C"
             t0 = time.time()
-            from pysnptools.util._array import zeros
-            K = zeros((self.iid_count, self.iid_count), dtype=dtype, order=order, xp=xp)
+            # Kernels are never standardized natively, so CuPy's own pool serves them.
+            from pysnptools.util._gpu_warnings import warn_gpu_float64
+            warn_gpu_float64(dtype, xp)
+            K = xp.zeros((self.iid_count, self.iid_count), dtype=dtype, order=order)
             trained_standardizer_list = []
             logging.info(
                 f"reading {self.sid_count:,} SNPs in blocks of {block_size:,} and adding up kernels (for {self.iid_count:,} individuals) with {xp.__name__}."
@@ -874,11 +872,6 @@ class SnpReader(PstReader):
                         logging.info(f"read {ct:,} SNPs in {diff:.2f} seconds")
                         diff_last = diff
 
-            if xp is not np:
-                from bed_reader import has_gpu_support
-                if has_gpu_support():
-                    from bed_reader.bed_reader import gpu_memory_cleanup
-                    gpu_memory_cleanup()
             t1 = time.time()
             logging.info("%.2f seconds elapsed" % (t1 - t0))
 

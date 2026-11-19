@@ -70,7 +70,7 @@ def test_host_constructor_native_standardization(cupy, dtype, order, standardize
 
 
 def test_caller_arrays_and_native_views_remain_cupy(cupy):
-    from bed_reader import empty_gpu
+    from bed_reader._gpu import empty_gpu
 
     for source in (cupy.array([[0., 1.], [1., 1.], [2., 1.]]),
                    empty_gpu((3, 4))[:, :2], empty_gpu((3, 2)).T):
@@ -83,7 +83,7 @@ def test_caller_arrays_and_native_views_remain_cupy(cupy):
 
 
 def test_slice_standardizes_only_selected_columns(cupy):
-    from bed_reader import empty_gpu
+    from bed_reader._gpu import empty_gpu
 
     values = empty_gpu((3, 4))
     values[...] = cupy.array([[0, 1, 7, 8], [1, 1, 7, 8], [2, 1, 7, 8]])
@@ -92,8 +92,10 @@ def test_slice_standardizes_only_selected_columns(cupy):
 
 
 @pytest.mark.parametrize("order", ["C", "F"])
-def test_reads_and_kernel_outputs_are_native(cupy, order):
-    from bed_reader._gpu import _native_owner
+def test_snp_reads_are_native_and_kernels_use_cupy(cupy, order):
+    # Only SNP data can use bed-reader's native standardizer. Kernels come from
+    # CuPy's pool, which reuses memory across blocks instead of reallocating.
+    from bed_reader._gpu import _native_owner, is_cubecl_backed
 
     source = data(cupy.array([[0., 1.], [1., 1.], [2., 1.]]), cupy)
     copied = source.read(dtype="float64", order=order, xp=cupy)
@@ -101,11 +103,12 @@ def test_reads_and_kernel_outputs_are_native(cupy, order):
     assert _native_owner(copied.val) is not None
     for block_size in (None, 1):
         kernel = source.read_kernel(Identity(), block_size=block_size, dtype="float64", order=order, xp=cupy)
-        assert _native_owner(kernel.val) is not None
+        assert isinstance(kernel.val, cupy.ndarray) and not is_cubecl_backed(kernel.val)
         np.testing.assert_array_equal(cupy.asnumpy(kernel.val), [[1, 1, 1], [1, 2, 3], [1, 3, 5]])
         assert kernel.val.flags["C_CONTIGUOUS" if order == "C" else "F_CONTIGUOUS"]
     host = KernelData(iid=source.iid, val=np.eye(3), xp=np)
-    assert _native_owner(host.read(xp=cupy).val) is not None
+    on_gpu = host.read(xp=cupy).val
+    assert isinstance(on_gpu, cupy.ndarray) and not is_cubecl_backed(on_gpu)
 
 
 def test_cupy_allocation_without_native_feature(cupy, monkeypatch):
@@ -162,7 +165,7 @@ def test_subset_native_failure_propagates_and_unavailable_allocator_uses_cupy(cu
         raise RuntimeError("subset allocation failed")
 
     with monkeypatch.context() as context:
-        context.setattr(bed_reader, "empty_gpu", fail)
+        context.setattr(bed_reader._gpu, "empty_gpu", fail)
         with pytest.raises(RuntimeError, match="subset allocation failed"):
             source[[3, 0], [2, 1]].read(dtype="float32", xp=cupy)
     monkeypatch.delattr(native, "allocate_gpu")
@@ -230,7 +233,7 @@ def test_native_allocation_failure_propagates(cupy, monkeypatch):
     def fail(*args, **kwargs):
         raise RuntimeError("native allocation failed")
 
-    monkeypatch.setattr(bed_reader, "empty_gpu", fail)
+    monkeypatch.setattr(bed_reader._gpu, "empty_gpu", fail)
     with pytest.raises(RuntimeError, match="native allocation failed"):
         data(np.zeros((3, 2)), cupy)
     caller_values = cupy.zeros((3, 2))

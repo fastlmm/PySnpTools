@@ -9,7 +9,7 @@ import pytest
 from pysnptools.snpreader import SnpData
 from pysnptools.standardizer import Identity
 
-WarningType = getattr(bed_reader, "GpuFloat64Warning", UserWarning)
+WarningType = bed_reader.GpuFloat64Warning
 
 
 def data(values, xp):

@@ -207,7 +207,7 @@ class TestUtilTools(unittest.TestCase):
                             # reports its performance cost. Check every notice rather than
                             # filtering the new category or weakening the precision check.
                             import bed_reader
-                            warning_type = getattr(bed_reader, "GpuFloat64Warning", UserWarning)
+                            warning_type = bed_reader.GpuFloat64Warning
                             narrowing = in_dtype == np.float64 and out_dtype == np.float32
                             precision_warning = ["Converting float64 to float32 can cause loss of information"]
                             expected_messages = [str(warning.message) for warning in expected_warnings]

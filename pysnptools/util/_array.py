@@ -8,15 +8,15 @@ from pysnptools.util._gpu_warnings import warn_gpu_float64
 
 def _allocator(shape, dtype, xp):
     if xp is not np:
-        import bed_reader
         from bed_reader import bed_reader as native
+        from bed_reader._gpu import empty_gpu
 
-        allocator = getattr(bed_reader, "empty_gpu", None)
-        if (allocator is not None and hasattr(native, "allocate_gpu")
+        # CPU-only bed-reader builds lack the native CubeCL allocator.
+        if (hasattr(native, "allocate_gpu")
                 and len(shape) == 2 and max(*shape, shape[0] * shape[1]) <= 2**32 - 1
                 and dtype in (np.dtype("int8"), np.dtype("float32"), np.dtype("float64"))
                 and xp.cuda.Device().id == 0):
-            return allocator
+            return empty_gpu
     return None
 
 
@@ -73,13 +73,9 @@ def zeros(shape, dtype, order, xp):
 
 
 def native_owner(values):
-    # Older bed-reader releases and ordinary CuPy arrays retain the CuPy path.
+    # Ordinary CuPy arrays retain the CuPy path.
     # CubeCL's standardizer also indexes four reduction words per dimension.
     if max(values.shape) > (2**32 - 1) // 4:
-        return None
-    import bed_reader
-
-    if not hasattr(bed_reader, "empty_gpu"):
         return None
     from bed_reader._gpu import _native_owner
 

@@ -52,14 +52,12 @@ def test_generic_reader_and_untyped_containers(monkeypatch):
     assert KernelData(iid=[], val=None).val.dtype == np.float32
 
 
-def test_legacy_dependency_and_invalid_configuration(monkeypatch):
+def test_default_and_invalid_configuration(monkeypatch):
     monkeypatch.delenv("ARRAY_DTYPE", raising=False)
     assert array_dtype() == np.float64
-    monkeypatch.delattr(bed_reader, "array_dtype")
-    assert array_dtype() == np.float64
     assert array_dtype("float32") == np.float32
-    monkeypatch.setenv("ARRAY_DTYPE", "float32")
-    with pytest.raises(RuntimeError, match="bed-reader"):
+    monkeypatch.setenv("ARRAY_DTYPE", "float16")
+    with pytest.raises(ValueError, match="ARRAY_DTYPE"):
         array_dtype()
     assert array_dtype("float64") == np.float64
 
@@ -71,7 +69,7 @@ def test_pheno_metadata_does_not_allocate_gpu_float64(monkeypatch):
     with pytest.MonkeyPatch.context() as patch:
         def unexpected(*args, **kwargs):
             raise AssertionError("metadata inspection must not allocate GPU values")
-        patch.setattr(bed_reader, "empty_gpu", unexpected)
+        patch.setattr(bed_reader._gpu, "empty_gpu", unexpected)
         pheno = Pheno({"iid": np.array([["f", "0"]]), "header": ["y"], "vals": np.array([[1e-50]])})
         assert len(pheno.iid) == 1
         assert isinstance(pheno._data.val, np.ndarray)
