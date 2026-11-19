@@ -1,7 +1,8 @@
-"""Exercise real loaded BLAS pools and subprocess startup thread limits."""
+"""Exercise runner thread limits and BLAS pools visible to threadpoolctl."""
 import json
 import os
 import pickle
+import platform
 from inspect import signature
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -68,13 +69,47 @@ class TestRunnerThreads(unittest.TestCase):
         self.addCleanup(os.chdir, previous_directory)
         self.directory = Path(temporary.name)
         self.before = _snapshot()
-        self.assertTrue(self.before["pools"], "Requires an actual NumPy or SciPy BLAS pool")
+        self.assertBlasPools(self.before["pools"])
+
+    def assertBlasPools(self, pools):
+        # macOS wheels use Accelerate, which threadpoolctl cannot inspect.
+        # Windows ARM64 wheels can also lack a discoverable BLAS pool. Keep
+        # requiring real pools on Linux and Windows x86, and check every pool
+        # that is visible on any platform; an empty list is not a test skip.
+        system = platform.system()
+        windows_arm = system == "Windows" and platform.machine().lower() in ("arm64", "aarch64")
+        if system != "Darwin" and not windows_arm:
+            self.assertTrue(pools, "Requires an actual NumPy or SciPy BLAS pool")
 
     def assertLimited(self, snapshot, count):
-        self.assertTrue(snapshot["pools"], "No loaded BLAS pools were observed")
+        self.assertBlasPools(snapshot["pools"])
         self.assertTrue(all(threads == count for path, threads in snapshot["pools"]), snapshot)
         self.assertEqual(snapshot["bed_threads"], count)
         self.assertEqual(snapshot["environment"], {name: str(count) for name in _THREAD_VARIABLES})
+
+    def test_platform_specific_pool_checks(self):
+        for system, machine, requires_pool in (
+            ("Darwin", "arm64", False), ("Darwin", "x86_64", False),
+            ("Windows", "ARM64", False), ("Windows", "aarch64", False),
+            ("Windows", "AMD64", True), ("Windows", "x86", True),
+            ("Linux", "x86_64", True), ("Linux", "aarch64", True),
+        ):
+            with self.subTest(system=system, machine=machine):
+                with patch.object(platform, "system", return_value=system), patch.object(platform, "machine", return_value=machine):
+                    snapshot = {"pools": [], "bed_threads": 2,
+                                "environment": {name: "2" for name in _THREAD_VARIABLES}}
+                    if requires_pool:
+                        with self.assertRaisesRegex(AssertionError, "Requires an actual"):
+                            self.assertLimited(snapshot, 2)
+                    else:
+                        self.assertLimited(snapshot, 2)
+                        with self.assertRaises(AssertionError):
+                            self.assertLimited(dict(snapshot, bed_threads=1), 2)
+                        with self.assertRaises(AssertionError):
+                            self.assertLimited(dict(snapshot, environment={}), 2)
+                    self.assertLimited(dict(snapshot, pools=[("blas", 2)]), 2)
+                    with self.assertRaises(AssertionError):
+                        self.assertLimited(dict(snapshot, pools=[("blas", 1)]), 2)
 
     def test_canonical_signature_and_positional_compatibility(self):
         for constructor, positional in ((LocalMultiProc, (2,)), (LocalInParts, (0, 2))):
@@ -265,7 +300,7 @@ Path(os.environ["PYSNPTOOLS_THREAD_STARTUP"], str(os.getpid()) + ".json").write_
         records = [json.loads(path.read_text()) for path in startup.glob("*.json")]
         self.assertEqual(len(records), 2, records)
         for record in records:
-            self.assertTrue(record["pools"])
+            self.assertBlasPools(record["pools"])
             self.assertTrue(all(threads == 1 for path, threads in record["pools"]), record)
             self.assertEqual(record["environment"], {name: "1" for name in _THREAD_VARIABLES})
         self.assertEqual(_snapshot(), self.before)
