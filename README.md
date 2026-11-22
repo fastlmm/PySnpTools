@@ -72,3 +72,25 @@ Contacts
 * Email the developers at <fastlmm-dev@python.org>.
 * [Join](mailto:fastlmm-user-join@python.org?subject=Subscribe) the user discussion and announcement list (or use [web sign up](https://mail.python.org/mailman3/lists/fastlmm-user.python.org)).
 * [Open an issue](https://github.com/fastlmm/PySnpTools/issues) on GitHub.
+
+## Testing
+
+PySnpTools has two test runners. Run `pytest` from the repository root for
+pytest tests and doctests in Python modules, reStructuredText, and Markdown.
+Run `python -m pysnptools.test` for the legacy unittest suite, which assembles
+reader, standardizer, utility, optional-format, and doctest checks. These runners
+cover overlapping but different sets of tests.
+
+Two doctest examples in `pysnptools.distreader.bgen` require external QCTool v2:
+`Bgen.genwrite` and `Bgen.write`. Install QCTool v2 from the [official QCTool
+site](https://www.well.ox.ac.uk/~gav/qctool/), then set `QCTOOLPATH` to the
+command or executable path used to launch it. For example, on Linux or macOS:
+
+```sh
+export QCTOOLPATH=/absolute/path/to/qctool
+```
+
+On Windows, install QCTool in WSL and set `QCTOOLPATH` to the WSL launch command
+and Linux executable path, as described in the `Bgen.write` API documentation.
+The BGEN doctest fails with a message naming qctool when this configuration is
+missing; it does not silently skip.

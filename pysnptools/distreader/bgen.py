@@ -710,9 +710,10 @@ class TestBgen(unittest.TestCase):
     def test_memmap(self):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        assert (
-            "QCTOOLPATH" in os.environ
-        ), "To run test_read_write_round_trip, QCTOOLPATH environment variable must be set. (On Windows, install QcTools in 'Ubuntu on Windows' and set to 'ubuntu run <qctoolLinuxPath>')."
+        self.assertTrue(
+            os.environ.get("QCTOOLPATH"),
+            f"{self.id()} requires external qctool. Install QCTool v2 and set QCTOOLPATH; see the Testing section in README.md.",
+        )
 
         distgen0data = Bgen("../examples/example.bgen")[:, 10].read()
         assert distgen0data.iid[0, 0] == "0"
@@ -730,9 +731,10 @@ class TestBgen(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
-        assert (
-            "QCTOOLPATH" in os.environ
-        ), "To run test_read_write_round_trip, QCTOOLPATH environment variable must be set. (On Windows, install QcTools in 'Ubuntu on Windows' and set to 'ubuntu run <qctoolLinuxPath>')."
+        self.assertTrue(
+            os.environ.get("QCTOOLPATH"),
+            f"{self.id()} requires external qctool. Install QCTool v2 and set QCTOOLPATH; see the Testing section in README.md.",
+        )
 
         exampledata = Bgen("../examples/example.bgen")[:, 10].read()
         distgen0data = DistGen(seed=332, iid_count=50, sid_count=5).read()
@@ -762,9 +764,10 @@ class TestBgen(unittest.TestCase):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         Path("temp").mkdir(parents=True, exist_ok=True)
 
-        assert (
-            "QCTOOLPATH" in os.environ
-        ), "To run test_read_write_round_trip, QCTOOLPATH environment variable must be set. (On Windows, install QcTools in 'Ubuntu on Windows' and set to 'ubuntu run <qctoolLinuxPath>')."
+        self.assertTrue(
+            os.environ.get("QCTOOLPATH"),
+            f"{self.id()} requires external qctool. Install QCTool v2 and set QCTOOLPATH; see the Testing section in README.md.",
+        )
 
         distdata = Bgen("../examples/example.bgen")[:5, :5].read()
 
@@ -943,6 +946,11 @@ class TestBgen(unittest.TestCase):
         assert bgen.sid_count == 199
 
     def test_doctest(self):
+        self.assertTrue(
+            os.environ.get("QCTOOLPATH"),
+            "The Bgen.genwrite and Bgen.write doctests require external qctool. "
+            "Install QCTool v2 and set QCTOOLPATH; see the Testing section in README.md.",
+        )
         import doctest
         import pysnptools.distreader.bgen as bgen_mod
 

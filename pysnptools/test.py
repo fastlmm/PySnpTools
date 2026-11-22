@@ -1639,6 +1639,15 @@ class NaNCNCTestCases(unittest.TestCase):
 # We do it this way instead of using doctest.DocTestSuite because doctest.DocTestSuite requires modules to be pickled,
 # which python doesn't allow. We need tests to be pickleable so that they can be run on a cluster.
 class TestSnpDocStrings(unittest.TestCase):
+    def _run_doctest_without_progress_logs(self, module):
+        root_logger = logging.getLogger()
+        old_level = root_logger.level
+        root_logger.setLevel(logging.WARN)
+        try:
+            return doctest.testmod(module, optionflags=doctest.ELLIPSIS)
+        finally:
+            root_logger.setLevel(old_level)
+
     def test_bed(self):
         import pysnptools.snpreader.bed
 
@@ -1727,9 +1736,7 @@ class TestSnpDocStrings(unittest.TestCase):
         os.chdir(os.path.dirname(os.path.realpath(__file__)) + "/snpreader")
         import pysnptools.snpreader.snpmemmap
 
-        result = doctest.testmod(
-            pysnptools.snpreader.snpmemmap, optionflags=doctest.ELLIPSIS
-        )
+        result = self._run_doctest_without_progress_logs(pysnptools.snpreader.snpmemmap)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
@@ -1738,9 +1745,7 @@ class TestSnpDocStrings(unittest.TestCase):
         os.chdir(os.path.dirname(os.path.realpath(__file__)) + "/util")
         import pysnptools.snpreader.snpgen
 
-        result = doctest.testmod(
-            pysnptools.snpreader.snpgen, optionflags=doctest.ELLIPSIS
-        )
+        result = self._run_doctest_without_progress_logs(pysnptools.snpreader.snpgen)
         os.chdir(old_dir)
         assert result.failed == 0, "failed doc test: " + __file__
 
