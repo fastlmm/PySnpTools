@@ -2,7 +2,9 @@ GPU arrays, readers, and standardization
 ========================================
 
 This guide describes the development CuPy backend with CPU-only bed-reader.
-BED values are decoded on the CPU, copied to CuPy, and standardized on the GPU.
+Every reader decodes on the CPU; with ``xp=cupy``, the values are then copied
+to CuPy and standardized on the GPU. BED, NPZ, memory-mapped, HDF5, and
+``DistReader.as_snp()`` sources all use this same path.
 NumPy runs on the CPU. CuPy support targets NVIDIA CUDA; Python HIP support is
 not implemented. These changes require the upcoming PySnpTools release;
 the published 1.1.0a1 still uses bed-reader's former GPU API.
@@ -110,7 +112,7 @@ do not emit this warning. Float32 storage does not remove every float64 operatio
    * - ``num_threads``
      - ``None``
      - CPU thread count, also controlled by ``PST_NUM_THREADS``, ``NUM_THREADS``,
-       then ``MKL_NUM_THREADS``. Applies to CPU BED decoding; ignored by CuPy math.
+       then ``MKL_NUM_THREADS``. Applies to CPU decoding; ignored by CuPy math.
    * - ``force_python_only`` on reads
      - ``False``
      - Selects the CPU reader's Python path where supported before transfer
@@ -293,16 +295,19 @@ applying training moments to different values, on both devices::
             else:
                 raise AssertionError("wholly missing training SNP must fail")
 
-BED reads and GPU kernel construction
---------------------------------------
+Reader decoding and GPU kernel construction
+-------------------------------------------
 
-BED decoding runs on the CPU using bed-reader, followed by ``cupy.asarray``
-and PySnpTools' CuPy standardizer. Metadata remains on the CPU.
+Every ``SnpReader`` and ``KernelReader`` decodes on the CPU with its own reader
+(bed-reader for BED), then copies the requested subset to CuPy. Standardization
+uses PySnpTools' CuPy standardizer. Metadata remains on the CPU. A custom reader
+needs only the ordinary CPU ``_read`` method to support ``xp=cupy``.
+``DistReader.read`` has no ``xp`` argument; use ``as_snp()`` for GPU work.
 ``pysnptools.util.gpu.has_gpu_support()`` checks whether CuPy is importable and
 can allocate and synchronize on its current CUDA device. No special bed-reader
 build is needed. CUDA errors propagate without CPU fallback.
 
-This complete example creates its own BED/BIM/FAM files. It checks selected
+This complete example uses BED; other readers behave the same. It creates its own BED/BIM/FAM files. It checks selected
 values, int8 missing representation, and blocked Unit/Beta kernels against
 independent NumPy products. Kernel construction reads and standardizes each
 block; callers use the public read methods::

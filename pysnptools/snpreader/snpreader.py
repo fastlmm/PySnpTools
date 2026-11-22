@@ -453,8 +453,8 @@ class SnpReader(PstReader):
         :type dtype: data-type.
 
         :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
-            use a Python CPU path where supported. GPU BED reads reject True with ValueError;
-            this does not select a CPU backend. CuPy standardization ignores this flag.
+            use a Python CPU path where supported. Readers decode on the CPU, so this also applies
+            before transfer to CuPy; it does not select the output backend. CuPy standardization ignores this flag.
         :type force_python_only: bool
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`SnpData.val`'s ndarray. If True,
@@ -466,7 +466,7 @@ class SnpReader(PstReader):
             share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
         :type view_ok: bool
 
-        :param num_threads: optional -- The CPU thread count (ignored by native GPU BED reads and CuPy math). Defaults to all available
+        :param num_threads: optional -- The CPU thread count, which also applies to CPU decoding before transfer to CuPy (ignored by CuPy math). Defaults to all available
             processors. Can also be set with these environment variables (listed in priority order):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
@@ -633,13 +633,13 @@ class SnpReader(PstReader):
             multiplication and accumulation use this dtype; statistics can use float64.
         :type dtype: data-type
         :param force_python_only: Request a Python CPU read/standardization path.
-            GPU BED reads reject True; it does not move computation to the CPU.
+            Reads decode on the CPU either way; this flag does not move GPU computation to the CPU.
         :type force_python_only: bool
         :param view_ok: Accepted for reader compatibility; the kernel product
             allocates new memory regardless of this suggestion.
         :type view_ok: bool
         :param num_threads: CPU thread count, or None for environment/default selection.
-            Ignored by native GPU BED reads and CuPy math.
+            Applies to CPU decoding before transfer to CuPy; ignored by CuPy math.
         :type num_threads: int or None
 
         :param xp: NumPy or CuPy module or name. An explicit value overrides

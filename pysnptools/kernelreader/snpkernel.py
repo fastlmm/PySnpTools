@@ -231,7 +231,7 @@ class SnpKernel(KernelReader):
         :type dtype: data-type
 
         :param force_python_only: Request a Python CPU path where supported.
-            Native GPU BED reads reject True; this flag does not select a CPU backend.
+            Reads decode on the CPU either way; this flag does not select the output backend.
         :type force_python_only: bool
 
         :param view_ok: Accepted for compatibility but ignored. This method reads

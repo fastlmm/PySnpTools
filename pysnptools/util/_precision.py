@@ -1,5 +1,7 @@
-"""Precision defaults shared with bed-reader."""
-from bed_reader._array_module import array_dtype as _array_dtype
+"""Precision defaults for PySnpTools reads, kernels, and allocations."""
+import os
+
+import numpy as np
 
 
 def array_dtype(dtype=None):
@@ -16,4 +18,13 @@ def array_dtype(dtype=None):
     ...     print(array_dtype(), array_dtype("float64"))
     float32 float64
     """
-    return _array_dtype(dtype)
+    # Same semantics as bed-reader's ARRAY_DTYPE policy, kept here so PySnpTools
+    # does not depend on a private bed-reader module.
+    if dtype is not None:
+        return np.dtype(dtype)
+    configured = os.environ.get("ARRAY_DTYPE")
+    if configured is None:
+        return np.dtype("float64")
+    if configured not in ("float32", "float64"):
+        raise ValueError(f"ARRAY_DTYPE must be 'float32' or 'float64', not {configured!r}")
+    return np.dtype(configured)

@@ -268,8 +268,8 @@ class KernelReader(PstReader):
         :type dtype: data-type
 
         :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
-            use a Python CPU path where supported. GPU BED reads reject True with ValueError;
-            this does not select a CPU backend. CuPy standardization ignores this flag.
+            use a Python CPU path where supported. Readers decode on the CPU, so this also applies
+            before transfer to CuPy; it does not select the output backend. CuPy standardization ignores this flag.
         :type force_python_only: bool
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`KernelData.val`'s ndarray. If True,
@@ -342,7 +342,6 @@ class KernelReader(PstReader):
             return val
         if xp is np:
             val = pstutil.asnumpy(val)
-        # Kernels are never standardized natively, so CuPy's own pool serves them.
         from pysnptools.util._gpu_warnings import warn_gpu_float64
         warn_gpu_float64(dtype, xp)
         return xp.asarray(val, dtype=dtype, order=order)

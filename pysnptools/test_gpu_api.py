@@ -153,3 +153,38 @@ def test_standardize_workspace_is_not_matrix_sized(cupy, order):
         # Four MiB allows reduction scratch space and several per-SNP vectors.
         assert pool.total_bytes() - baseline < 4 * 2**20
         assert bool(cupy.isfinite(data.val).all())
+
+
+def _non_bed_reader(kind, tmp_path):
+    from pysnptools.distreader import DistNpz
+    from pysnptools.snpreader import SnpMemMap, SnpNpz
+    from pysnptools.util import example_file
+
+    if kind == "dist_as_snp":
+        return DistNpz(example_file("pysnptools/examples/toydata.dist.npz")).as_snp()[:, :40]
+    source = Bed(sample_file("small.bed"), count_A1=True).read(dtype="float32", xp=np)
+    if kind == "npz":
+        return SnpNpz.write(str(tmp_path / "small.snp.npz"), source)
+    if kind == "memmap":
+        return SnpMemMap.write(str(tmp_path / "small.snp.memmap"), source)
+    raise ValueError(f"unknown reader kind {kind!r}")
+
+
+@pytest.mark.parametrize("kind", ["npz", "memmap", "dist_as_snp"])
+@pytest.mark.parametrize("order", ["C", "F"])
+def test_non_bed_readers_decode_on_cpu_then_use_cupy(cupy, tmp_path, kind, order):
+    # Every reader shares SnpReader._read_array: CPU decoding, then transfer.
+    reader = _non_bed_reader(kind, tmp_path)
+    rows = list(range(reader.iid_count - 1, -1, -2))
+    subset = reader[rows, 1:]
+    gpu = subset.read(dtype="float32", order=order, xp=cupy)
+    assert isinstance(gpu.val, cupy.ndarray) and gpu.val.dtype == np.float32
+    assert gpu.val.flags["C_CONTIGUOUS" if order == "C" else "F_CONTIGUOUS"]
+    np.testing.assert_array_equal(cupy.asnumpy(gpu.val), subset.read(dtype="float32", xp=np).val)
+
+    cpu_kernel = reader.read_kernel(Unit(), block_size=2, dtype="float64", xp=np).val
+    gpu_kernel = reader.read_kernel(Unit(), block_size=2, dtype="float64", xp=cupy).val
+    assert isinstance(gpu_kernel, cupy.ndarray)
+    # Float64 blocked accumulation; only the reduction order differs.
+    np.testing.assert_allclose(cupy.asnumpy(gpu_kernel), cpu_kernel,
+                               rtol=1e-12, atol=1e-12 * np.abs(cpu_kernel).max())
