@@ -18,7 +18,7 @@ class SnpData(PstData, SnpReader):
     transfers, GPU subsetting, and in-place standardization examples. Float32 and
     float64 arrays keep their dtype when transferred between NumPy and CuPy;
     lists and integer arrays use ARRAY_DTYPE, then float64.
-    New supported GPU matrices prefer CubeCL-owned storage when available;
+    New GPU matrices use CuPy-owned storage;
     existing CuPy arrays are retained when no conversion is needed. See
     :doc:`/gpu` for allocation and standardization dispatch details.
 

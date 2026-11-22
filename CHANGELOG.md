@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Use CPU bed-reader decoding followed by CuPy transfer and standardization.
+  PySnpTools owns GPU availability detection and float64 warnings through
+  `pysnptools.util.gpu`; GPU arrays use CuPy allocations.
+
 ## [1.1.0a1] - 2026-11-17
 
 * Add the `cupy` installation extra, using the published bed-reader 1.3.0a1

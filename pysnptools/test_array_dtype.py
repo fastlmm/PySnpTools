@@ -1,4 +1,5 @@
 """Resolve precision consistently across readers, kernels, and constructors."""
+
 import numpy as np
 import pytest
 import bed_reader
@@ -7,6 +8,7 @@ from pysnptools.pstreader import PstData
 from pysnptools.snpreader import SnpData, Bed, Pheno
 from pysnptools.standardizer import Identity, Unit
 from pysnptools.util import array_dtype, sub_matrix
+from pysnptools.util.gpu import GpuFloat64Warning, has_gpu_support
 
 
 def source(xp=np):
@@ -18,8 +20,8 @@ def source(xp=np):
 @pytest.mark.parametrize("backend", ["numpy", "cupy"])
 def test_read_and_kernel_defaults(monkeypatch, configured, backend):
     xp = np if backend == "numpy" else pytest.importorskip("cupy")
-    if backend == "cupy" and not bed_reader.has_gpu_support():
-        pytest.skip("requires the cubecl-cuda Cargo feature")
+    if backend == "cupy" and not has_gpu_support():
+        pytest.skip("requires CuPy and a usable CUDA device")
     monkeypatch.setenv("ARRAY_MODULE", backend)
     monkeypatch.setenv("ARRAY_DTYPE", configured)
     snps = source(xp)
@@ -69,7 +71,8 @@ def test_pheno_metadata_does_not_allocate_gpu_float64(monkeypatch):
     with pytest.MonkeyPatch.context() as patch:
         def unexpected(*args, **kwargs):
             raise AssertionError("metadata inspection must not allocate GPU values")
-        patch.setattr(bed_reader._gpu, "empty_gpu", unexpected)
+        patch.setattr(cupy, "array", unexpected)
+        patch.setattr(cupy, "asarray", unexpected)
         pheno = Pheno({"iid": np.array([["f", "0"]]), "header": ["y"], "vals": np.array([[1e-50]])})
         assert len(pheno.iid) == 1
         assert isinstance(pheno._data.val, np.ndarray)
@@ -94,7 +97,7 @@ def test_text_parsing_keeps_raw_values_on_cpu(tmp_path, monkeypatch, format_name
     monkeypatch.setenv("ARRAY_DTYPE", "float32")
     reader = reader_type(path)
     with warnings.catch_warnings():
-        warnings.simplefilter("error", bed_reader.GpuFloat64Warning)
+        warnings.simplefilter("error", GpuFloat64Warning)
         assert reader.iid_count == snps.iid_count
         assert isinstance(reader._data.val, np.ndarray)
         actual = reader.read(xp=cupy)

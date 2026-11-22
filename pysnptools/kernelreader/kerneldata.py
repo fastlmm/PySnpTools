@@ -17,7 +17,7 @@ class KernelData(KernelReader, PstData):
     See :class:`.KernelReader` for details and examples, and :doc:`/gpu` for
     backend selection and device-transfer examples. Existing float32 and float64
     arrays retain their dtype when transferred between NumPy and CuPy.
-    New supported GPU matrices prefer CubeCL-owned storage when available;
+    New GPU matrices use CuPy-owned storage;
     existing CuPy arrays retain their storage when no conversion is needed.
 
     **Constructor:**

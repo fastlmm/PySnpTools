@@ -13,7 +13,8 @@ Main Features:
 * **Experimental GPU arrays:** Read, standardize, and construct kernels with CuPy.
   `ARRAY_MODULE` and `ARRAY_DTYPE` supply optional backend/precision environment defaults.
   See the [GPU guide](https://github.com/fastlmm/PySnpTools/blob/cupy-sub-matrix/doc/source/gpu.rst) and [workflow notebook](https://github.com/fastlmm/PySnpTools/blob/cupy-sub-matrix/doc/ipynb/gpu_workflow.ipynb).
-  The `cupy` extra uses CUDA-enabled bed-reader wheels for native GPU BED reads.
+  The `cupy` extra installs CuPy directly. BED reads decode on the CPU, then
+  transfer to CuPy for GPU standardization and kernel construction.
 
 * [DistReader](https://fastlmm.github.io/PySnpTools/#module-pysnptools.distreader): Efficiently work with
          unphased BGEN format and other diploid, biallelic distribution data.

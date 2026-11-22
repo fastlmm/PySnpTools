@@ -543,7 +543,7 @@ class SnpReader(PstReader):
                                  xp=None, return_trained=False,
                                  force_python_only=False, num_threads=None,
                                  _row_index=None, _col_index=None):
-        """Internal read/standardize operation; Bed can keep both steps in CubeCL."""
+        """Read on the selected backend, then standardize its array in place."""
         dtype = pstutil.array_dtype(dtype)
         reader = self if _row_index is None and _col_index is None else self[_row_index, _col_index]
         return reader.read(order=order, dtype=dtype, xp=xp,
@@ -799,11 +799,6 @@ class SnpReader(PstReader):
                 view_ok=False,
                 num_threads=num_threads, xp=xp,
             )
-            if xp is not np:
-                xp.cuda.get_current_stream().synchronize()
-                # bed-reader returns the dropped data's GPU memory to CUDA, where
-                # CuPy's eigensolver can use it for its workspace.
-                del train_data
             if return_trained:
                 return kernel, trained_standardizer
             else:
@@ -861,10 +856,6 @@ class SnpReader(PstReader):
                     view_ok=False,
                     num_threads=num_threads, xp=xp,
                 )
-                if xp is not np:
-                    # CuPy and CubeCL use different streams. Finish the multiply
-                    # before dropping/recycling a block that may be CubeCL-owned.
-                    xp.cuda.get_current_stream().synchronize()
                 del train_data
                 if ct % block_size == 0:
                     diff = time.time() - ts

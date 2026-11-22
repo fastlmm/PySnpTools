@@ -1,15 +1,15 @@
-"""Propagate precision warnings for native and ordinary CuPy allocations/math."""
+"""Report precision warnings for CuPy allocations and computation."""
 
 import warnings
 
-import bed_reader
 import numpy as np
 import pytest
+from pysnptools.util.gpu import GpuFloat64Warning
 
 from pysnptools.snpreader import SnpData
 from pysnptools.standardizer import Identity
 
-WarningType = bed_reader.GpuFloat64Warning
+WarningType = GpuFloat64Warning
 
 
 def data(values, xp):
@@ -22,16 +22,10 @@ def cupy():
     return pytest.importorskip("cupy")
 
 
-def test_allocations_warn_for_both_native_and_cupy(cupy, monkeypatch):
-    from bed_reader import bed_reader as native
-
-    for native_enabled in (True, False):
-        with monkeypatch.context() as patch:
-            if not native_enabled:
-                patch.delattr(native, "allocate_gpu", raising=False)
-            with pytest.warns(WarningType, match="consumer GPUs") as caught:
-                result = data(np.ones((3, 2)), cupy)
-            assert len(caught) == 1 and result.val.dtype == np.float64
+def test_cupy_allocations_warn(cupy):
+    with pytest.warns(WarningType, match="consumer GPUs") as caught:
+        result = data(np.ones((3, 2)), cupy)
+    assert len(caught) == 1 and result.val.dtype == np.float64
 
 
 def test_existing_arrays_warn_on_math_and_float32_reductions_do_not(cupy):

@@ -1,4 +1,4 @@
-"""GPU API regressions. Requires the CUDA bed-reader build and a working CuPy GPU."""
+"""GPU API regressions. Requires a working CuPy GPU."""
 import numpy as np
 import pytest
 from unittest.mock import patch
@@ -12,28 +12,34 @@ from pysnptools.standardizer import Unit, Beta
 @pytest.fixture
 def cupy():
     # Optional GPU qualification is explicitly reported on CPU-only installations.
-    from bed_reader import has_gpu_support
+    from pysnptools.util.gpu import has_gpu_support
     if not has_gpu_support():
-        pytest.skip("requires bed-reader built with the cubecl-cuda Cargo feature")
+        pytest.skip("requires CuPy and a usable CUDA device")
     return pytest.importorskip("cupy")
 
 
 @pytest.mark.parametrize("dtype", [np.float32, np.float64])
 @pytest.mark.parametrize("standardizer", [Unit(), Beta(1, 25)])
-def test_subset_fused_and_blocked(cupy, dtype, standardizer):
+def test_subset_and_blocked(cupy, dtype, standardizer):
     reader = Bed(sample_file("toydata.5chrom.bed"), count_A1=True)[::-3, ::97][::-1, ::-1]
-    expected, trained = reader._read_with_standardizing(
-        standardizer, dtype=dtype, xp=np, return_trained=True)
-    with patch("bed_reader.bed_reader.standardize_gpu", wraps=__import__(
-            "bed_reader.bed_reader", fromlist=["standardize_gpu"]).standardize_gpu) as native:
-        actual, gpu_trained = reader._read_with_standardizing(
-            standardizer, dtype=dtype, xp=cupy, return_trained=True)
-        assert native.call_count == 1
-        np.testing.assert_array_equal(cupy.asnumpy(actual.val), expected.val)
-        np.testing.assert_array_equal(gpu_trained.stats, trained.stats)
-        kernel = reader.read_kernel(standardizer, block_size=7, dtype=dtype, xp=cupy)
-        assert native.call_count > 2  # the requested blocks were actually used
-    # BLAS accumulation order differs between blocked GPU and whole CPU products.
+    actual, gpu_trained = reader._read_with_standardizing(
+        standardizer, dtype=dtype, xp=cupy, return_trained=True)
+    # CPU read and transfer are exact, before the CuPy standardizer is applied.
+    np.testing.assert_array_equal(cupy.asnumpy(reader.read(dtype=dtype, xp=cupy).val),
+                                  reader.read(dtype=dtype, xp=np).val)
+    # The removed native-dispatch test required bitwise CPU/native parity.
+    # Verify the replacement CPU-read/transfer/CuPy pipeline exactly; independent
+    # CPU/reference accuracy bounds are covered in the general standardizer tests.
+    explicit, explicit_trained = reader.read(dtype=dtype, xp=cupy).standardize(
+        standardizer, return_trained=True)
+    np.testing.assert_array_equal(cupy.asnumpy(actual.val), cupy.asnumpy(explicit.val))
+    np.testing.assert_array_equal(gpu_trained.stats, explicit_trained.stats)
+    kernel = reader.read_kernel(standardizer, block_size=7, dtype=dtype, xp=cupy)
+    # CPU Python and CuPy both use SciPy Beta PDFs. Compare their independent
+    # reductions/products at the original blocked-kernel tolerance; CPU Rust's
+    # statrs PDF has a known different normalization in the last bits.
+    expected = reader.read(dtype=dtype, xp=np).standardize(
+        standardizer, force_python_only=True)
     tolerance = 32 * np.finfo(dtype).eps
     np.testing.assert_allclose(cupy.asnumpy(kernel.val), expected.val @ expected.val.T,
                                atol=tolerance * reader.sid_count, rtol=tolerance)

@@ -138,12 +138,6 @@ class Standardizer(object):
         if xp is not np:
             from pysnptools.util._gpu_warnings import warn_gpu_float64
             warn_gpu_float64(snps.dtype, xp)
-            if apply_in_place and not use_stats:
-                from pysnptools.util._array import native_owner
-                owner = native_owner(snps)
-                if owner is not None:
-                    from bed_reader import bed_reader as native
-                    return native.standardize_gpu(owner, is_beta, a, b)
             return Standardizer._standardize_cupy(
                 snps, is_beta, a, b, apply_in_place, use_stats, stats, xp)
 

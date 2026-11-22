@@ -3,6 +3,7 @@ import numpy as np
 import logging
 import doctest
 import unittest
+from pysnptools.util.gpu import GpuFloat64Warning
 
 class TestUtilTools(unittest.TestCase):
 
@@ -206,8 +207,7 @@ class TestUtilTools(unittest.TestCase):
                             # Both paths report narrowing; GPU float64 output additionally
                             # reports its performance cost. Check every notice rather than
                             # filtering the new category or weakening the precision check.
-                            import bed_reader
-                            warning_type = bed_reader.GpuFloat64Warning
+                            warning_type = GpuFloat64Warning
                             narrowing = in_dtype == np.float64 and out_dtype == np.float32
                             precision_warning = ["Converting float64 to float32 can cause loss of information"]
                             expected_messages = [str(warning.message) for warning in expected_warnings]
