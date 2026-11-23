@@ -1,20 +1,20 @@
 GPU arrays, readers, and standardization
 ========================================
 
-This guide describes the development CuPy backend with CPU-only bed-reader.
+This guide describes the beta CuPy backend with CPU-only bed-reader.
 Every reader decodes on the CPU; with ``xp=cupy``, the values are then copied
 to CuPy and standardized on the GPU. BED, NPZ, memory-mapped, HDF5, and
 ``DistReader.as_snp()`` sources all use this same path.
 NumPy runs on the CPU. CuPy support targets NVIDIA CUDA; Python HIP support is
-not implemented. These changes require the upcoming PySnpTools release;
-the published 1.1.0a1 still uses bed-reader's former GPU API.
+not implemented. This path requires PySnpTools 1.1.0b1 or later;
+1.1.0a1 used bed-reader's former GPU API, which bed-reader 1.3.0b2 removed.
 
 Installing GPU support
 ----------------------
 
-Install the development PySnpTools checkout with its ``cupy`` extra::
+Install PySnpTools with its ``cupy`` extra::
 
-    uv pip install ".[cupy]"
+    pip install "pysnptools[cupy]==1.1.0b1"
 
 The extra directly installs ``cupy-cuda13x>=14.2,<15``. Follow
 `CuPy's installation guide <https://docs.cupy.dev/en/stable/install.html>`_
@@ -60,7 +60,7 @@ Set backend and precision together for a workflow::
     # Previous settings are restored, even after an exception.
 
 These environment settings are process-wide; use one consistent policy per
-process. This policy requires the alpha versions described above; older
+process. This policy requires the beta versions described above; older
 dependencies retain their original defaults but reject
 ARRAY_DTYPE rather than silently ignoring it.
 

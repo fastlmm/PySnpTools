@@ -36,9 +36,9 @@ Install
 
 Requires Python 3.11.5 or later. Python 3.15 qualification is in progress.
 
-For the experimental GPU alpha:
+For the experimental GPU beta:
 
-    pip install "pysnptools[cupy]==1.1.0a1"
+    pip install "pysnptools[cupy]==1.1.0b1"
 
 GPU use requires compatible NVIDIA hardware, a driver, and CuPy's CUDA setup.
 Python 3.15 is currently CPU-only; see the GPU guide for platform limits.
