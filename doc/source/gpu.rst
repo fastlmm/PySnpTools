@@ -221,6 +221,19 @@ values, including negative values; Beta is for allele counts/dosages with valid
 allele-frequency means. CPU and GPU rounding need not be identical, especially
 for large offsets and small variance.
 
+.. TODO Remove this note once PySnpTools requires a bed-reader release whose
+   CPU standardizer zeros constant fractional SNPs.
+
+.. note::
+
+   With bed-reader 1.3.0b2, the default NumPy path (``force_python_only=False``)
+   does not recognize a constant column of fractional dosages, such as all 0.1.
+   It leaves small nonzero values (up to about 3e-3 in float32) and trains a tiny
+   finite standard deviation instead of infinity, so applying the trained
+   standardizer to new values of that SNP gives nonzero results (very large for
+   Unit). Integer genotypes, CuPy arrays, and ``force_python_only=True`` are
+   unaffected.
+
 For Unit/Beta standardizer methods, ``block_size`` is deprecated, ignored, and
 warns when supplied directly. ``SnpData.standardize(block_size=...)`` currently
 ignores it without forwarding a warning. ``force_python_only=True`` selects the
