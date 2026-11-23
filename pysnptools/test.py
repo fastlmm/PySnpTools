@@ -217,6 +217,62 @@ class TestBetaPython(unittest.TestCase):
                     with self.assertRaisesRegex(AssertionError, "stats must have size"):
                         reader.read_kernel(wrong_stats, block_size=3, dtype=dtype, xp=xp)
 
+    def test_trained_checks_survive_optimize(self):
+        # Under python -O, plain assert statements vanish. Run each user-input
+        # check in a subprocess with -O and require its AssertionError.
+        import subprocess
+        import sys
+
+        script = r"""
+import numpy as np
+from pysnptools.snpreader import SnpData
+from pysnptools.standardizer import Beta, BetaTrained
+assert False, "expected -O to strip this assert"
+"""
+        cases = {
+            "sid in training and use": """
+values = np.array([[0.0, 1.0], [1.0, 2.0], [2.0, 0.0]])
+data = SnpData(iid=[["f", str(i)] for i in range(3)], sid=["s0", "s1"], val=values)
+_, trained = data.read().standardize(Beta(1, 25), return_trained=True)
+data[:, ::-1].read().standardize(trained)
+""",
+            "stats must have size": """
+values = np.array([[0.0, 1.0], [1.0, 2.0], [2.0, 0.0]])
+data = SnpData(iid=[["f", str(i)] for i in range(3)], sid=["s0", "s1"], val=values)
+BetaTrained(1, 25, data.sid, np.ones((3, 2)))._standardize_unit_and_beta(
+    data.val, is_beta=True, a=1, b=25, apply_in_place=True, use_stats=True,
+    stats=np.ones((3, 2)), num_threads=1)
+""",
+            "blocked sid": """
+values = np.array([[0.0, 1.0], [1.0, 2.0], [2.0, 0.0]])
+data = SnpData(iid=[["f", str(i)] for i in range(3)], sid=["s0", "s1"], val=values)
+_, trained = data.read().standardize(Beta(1, 25), return_trained=True)
+data[:, ::-1].read_kernel(trained, block_size=1)
+""",
+            "blocked stats": """
+values = np.array([[0.0, 1.0], [1.0, 2.0], [2.0, 0.0]])
+data = SnpData(iid=[["f", str(i)] for i in range(3)], sid=["s0", "s1"], val=values)
+data.read_kernel(BetaTrained(1, 25, data.sid, np.ones((3, 2))), block_size=1)
+""",
+            "same 'a'": """
+Beta(1, 25)._merge_trained([BetaTrained(1, 25, ["s0"], np.ones((1, 2))),
+                            BetaTrained(2, 25, ["s1"], np.ones((1, 2)))])
+""",
+            "same 'b'": """
+Beta(1, 25)._merge_trained([BetaTrained(1, 25, ["s0"], np.ones((1, 2))),
+                            BetaTrained(1, 26, ["s1"], np.ones((1, 2)))])
+""",
+        }
+        messages = {"blocked sid": "sid in training and use", "blocked stats": "stats must have size"}
+        for name, body in cases.items():
+            with self.subTest(check=name):
+                completed = subprocess.run([sys.executable, "-O", "-c", script + body],
+                                           capture_output=True, text=True, check=False)
+                self.assertNotEqual(completed.returncode, 0, completed.stdout)
+                last_line = completed.stderr.strip().splitlines()[-1]
+                self.assertTrue(last_line.startswith("AssertionError: "), completed.stderr)
+                self.assertIn(messages.get(name, name), last_line)
+
     def test_constant_columns(self):
         from scipy.stats import beta as beta_distribution
         from pysnptools.snpreader import SnpData

@@ -809,8 +809,11 @@ class SnpReader(PstReader):
             if is_trained_beta:
                 # Validate the whole SNP order before slicing moments. Positional
                 # slices also preserve distinct moments for repeated SNP IDs.
-                assert np.array_equal(standardizer.sid, self.sid), "sid in training and use must be the same and in the same order"
-                assert standardizer.stats.shape == (self.sid_count, 2), "stats must have size [sid_count,2]"
+                # Raise explicitly, not with assert, so these checks survive python -O.
+                if not np.array_equal(standardizer.sid, self.sid):
+                    raise AssertionError("sid in training and use must be the same and in the same order")
+                if standardizer.stats.shape != (self.sid_count, 2):
+                    raise AssertionError("stats must have size [sid_count,2]")
             # Set the default order to 'C' because with kernels any order is fine and the Python .dot method likes 'C' best.
             if order == "A":
                 order = "C"

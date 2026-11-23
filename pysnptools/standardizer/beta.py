@@ -105,8 +105,11 @@ class Beta(Standardizer):
         stats = np.concatenate([trained.stats for trained in trained_list])
         a_set = set([trained.a for trained in trained_list])
         b_set = set([trained.b for trained in trained_list])
-        assert len(a_set) <= 1, "Expect all BetaTrained's to have the same 'a'"
-        assert len(b_set) <= 1, "Expect all BetaTrained's to have the same 'b'"
+        # Raise explicitly, not with assert, so these checks survive python -O.
+        if len(a_set) > 1:
+            raise AssertionError("Expect all BetaTrained's to have the same 'a'")
+        if len(b_set) > 1:
+            raise AssertionError("Expect all BetaTrained's to have the same 'b'")
         a = list(a_set)[0] if a_set else None
         b = list(b_set)[0] if b_set else None
         return BetaTrained(a, b, sid, stats)

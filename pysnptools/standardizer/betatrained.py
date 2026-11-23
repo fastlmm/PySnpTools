@@ -60,7 +60,9 @@ class BetaTrained(Standardizer):
 
         if hasattr(snps,"val"):
             val = snps.val
-            assert np.array_equal(self.sid,snps.sid), "sid in training and use must be the same and in the same order"
+            # Raise explicitly, not with assert, so the check survives python -O.
+            if not np.array_equal(self.sid,snps.sid):
+                raise AssertionError("sid in training and use must be the same and in the same order")
         else:
             warnings.warn("standardizing an nparray instead of a SnpData is deprecated", DeprecationWarning) #LATER test coverage
             val = snps

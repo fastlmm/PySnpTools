@@ -170,7 +170,9 @@ class Standardizer(object):
                 dtype=snps.dtype,
                 order="F" if snps.flags["F_CONTIGUOUS"] else "C",
             )
-        assert stats.shape == (snps.shape[1], 2), "stats must have size [sid_count,2]"
+        # Raise explicitly, not with assert, so the check survives python -O.
+        if stats.shape != (snps.shape[1], 2):
+            raise AssertionError("stats must have size [sid_count,2]")
 
         if not force_python_only and xp is np:
             num_threads = get_num_threads(num_threads)
