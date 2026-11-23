@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`force_python_only=True`), and train them with an infinite deviation. A
   rounded mean left a tiny nonzero variance, so these SNPs previously
   standardized to +/-1. Constant 0/1/2 genotypes were unaffected.
+* `Unit().standardize` no longer consults `ARRAY_MODULE` to move NumPy values
+  to CuPy; like every standardizer, it now works on the values' existing
+  device. Read with `xp="cupy"` (or with `ARRAY_MODULE=cupy` set) to get GPU
+  values. Trained statistics are always NumPy arrays.
 * Use CPU bed-reader decoding followed by CuPy transfer and standardization.
   PySnpTools owns GPU availability detection and float64 warnings through
   `pysnptools.util.gpu`; GPU arrays use CuPy allocations. Every reader, not
