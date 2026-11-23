@@ -89,6 +89,46 @@ class TestBetaPython(unittest.TestCase):
                             np.testing.assert_array_equal(trained.stats, original_stats)
                             self.assertEqual(trained.stats.dtype, training_dtype)
 
+    def test_constant_fractional_snps(self):
+        # bed-reader's native CPU standardizer (force_python_only=False) is not
+        # covered: it leaves small nonzero residues for these inputs, tracked
+        # for bed-reader rather than fixed here.
+        self._check_constant_fractional_snps(np, force_python_only=True)
+
+    def test_constant_fractional_snps_cupy(self):
+        try:
+            import cupy
+        except ModuleNotFoundError:
+            self.skipTest("requires CuPy and a working CUDA GPU")
+        self._check_constant_fractional_snps(cupy, force_python_only=False)
+
+    def _check_constant_fractional_snps(self, xp, force_python_only):
+        # A constant dosage such as 0.1 has a rounded mean (0.1 averages to
+        # 0.09999999999999999), so its computed variance can be tiny but
+        # nonzero. It must still be treated as constant: standardized to zero,
+        # with an infinite trained deviation, not to +/-1.
+        from pysnptools.snpreader import SnpData
+        from pysnptools.util import asnumpy
+
+        # Each case standardized a constant column to +/-1 before the fix.
+        for dtype, value, count in ((np.float64, 0.1, 3), (np.float64, 0.3, 7), (np.float64, 1.7, 7),
+                                    (np.float32, 0.1, 7), (np.float32, 1.7, 3)):
+            values = np.empty((count + 1, 2), dtype=dtype)
+            values[:, 0] = value
+            values[-1, 0] = np.nan  # missing values do not break constancy
+            values[:, 1] = np.arange(count + 1) % 3
+            for order in ("C", "F"):
+                for standardizer in (Unit(), Beta(1, 25)):
+                    with self.subTest(dtype=dtype, value=value, count=count, order=order,
+                                      standardizer=standardizer):
+                        data = SnpData(iid=[["f", str(row)] for row in range(count + 1)], sid=["constant", "varying"],
+                                       val=xp.array(values, order=order), xp=xp)
+                        _, trained = data.standardize(standardizer, return_trained=True,
+                                                      force_python_only=force_python_only)
+                        np.testing.assert_array_equal(asnumpy(data.val)[:, 0], 0)
+                        self.assertTrue(np.isinf(asnumpy(trained.stats)[0, 1]))
+                        self.assertTrue(np.isfinite(asnumpy(trained.stats)[1, 1]))
+
     def test_blocked_trained_kernel(self):
         self._check_blocked_trained_kernel(np)
 

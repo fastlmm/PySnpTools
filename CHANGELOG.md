@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `bed-reader[cupy]` dependency. bed-reader 1.3.0b2 is CPU-only; GPU support now
   reads on the CPU, copies to CuPy, and standardizes with CuPy. The `cupy` extra
   now installs `cupy-cuda13x` directly. Require `bed-reader>=1.3.0b2`.
+* Standardize constant fractional SNPs (for example, dosages that are all 0.1)
+  to zero with Unit and Beta on CuPy and on the Python CPU path
+  (`force_python_only=True`), and train them with an infinite deviation. A
+  rounded mean left a tiny nonzero variance, so these SNPs previously
+  standardized to +/-1. Constant 0/1/2 genotypes were unaffected.
 * Use CPU bed-reader decoding followed by CuPy transfer and standardization.
   PySnpTools owns GPU availability detection and float64 warnings through
   `pysnptools.util.gpu`; GPU arrays use CuPy allocations. Every reader, not

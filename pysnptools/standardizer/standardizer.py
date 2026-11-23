@@ -7,10 +7,19 @@ from bed_reader import get_num_threads, standardize_f64, standardize_f32
 
 def _check_observed(imissX):
     # Match the Rust standardizer, which raises for a SNP with no observed values. (The
-    # Python path, used for cupy arrays, would otherwise silently set that SNP to 0.)
+    # Python CPU path would otherwise silently set that SNP to 0.)
     observed_count = (~imissX).sum(axis=0)
     if bool((observed_count == 0).any()):
         raise ValueError("No individual observed for the SNP.")
+
+
+def _is_constant(snps, axis=0):
+    # A SNP whose observed values are all equal is constant. Test that directly rather
+    # than relying on a zero variance: a fractional mean rounds (0.1 averages to
+    # 0.09999999999999999), leaving a tiny nonzero variance that would standardize
+    # every value to +/-1. Requires at least one observed value per SNP.
+    xp = pstutil.get_array_module(snps)
+    return xp.nanmin(snps, axis=axis) == xp.nanmax(snps, axis=axis)
 
 
 class Standardizer(object):
@@ -247,7 +256,7 @@ class Standardizer(object):
             mean = sum_kernel(values, axis=axis) / count
             variance = variance_kernel(values, expand(mean), axis=axis) / count
             deviation = xp.sqrt(variance).astype(snps.dtype)
-            deviation[deviation == 0] = xp.inf
+            deviation[(deviation == 0) | _is_constant(values, axis)] = xp.inf
             stats = xp.empty((snps.shape[1], 2), dtype=snps.dtype)
             stats[:, 0] = mean
             stats[:, 1] = deviation
@@ -301,7 +310,7 @@ class Standardizer(object):
             # avoid div by 0 when standardizing
             # Don't need this warning because SNCs are still meaning full in QQ plots because they should be thought of as SNPs without enough data.
             # logging.warn("A least one snps has only one value, that is, its standard deviation is zero")
-            snp_std[snp_std == 0.0] = (
+            snp_std[(snp_std == 0.0) | _is_constant(snps)] = (
                 xp.inf
             )  # We make the stdev infinity so that applying as a trained_standardizer will turn any input to 0. Thus if a variable has no variation in the training data, then it will be set to 0 in test data, too.
             stats[:, 0] = snp_mean
@@ -344,10 +353,9 @@ class Standardizer(object):
             _check_observed(imissX)
             snp_mean = (snp_sum * 1.0) / n_obs_sum
             snp_std = np.sqrt(np.nansum((snps - snp_mean) ** 2, axis=0) / n_obs_sum)
-            if 0.0 in snp_std:
-                # Don't need this warning because SNCs are still meaning full in QQ plots because they should be thought of as SNPs without enough data.
-                # logging.warn("A least one snps has only one value, that is, its standard deviation is zero")
-                snp_std[snp_std == 0] = np.inf
+            # Don't need this warning because SNCs are still meaning full in QQ plots because they should be thought of as SNPs without enough data.
+            # logging.warn("A least one snps has only one value, that is, its standard deviation is zero")
+            snp_std[(snp_std == 0) | _is_constant(snps)] = np.inf
             stats[:, 0] = snp_mean
             stats[:, 1] = snp_std
 
