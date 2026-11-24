@@ -228,6 +228,46 @@ class TestBetaPython(unittest.TestCase):
                     with self.assertRaisesRegex(AssertionError, "stats must have size"):
                         reader.read_kernel(wrong_stats, block_size=3, dtype=dtype, xp=xp)
 
+    def test_beta_illegal_mean_every_path(self):
+        # Native, Python, and CuPy Beta training all reject a mean outside [0, 2]
+        # before changing any values.
+        from pysnptools.snpreader import SnpData
+        from pysnptools.util import asnumpy
+
+        backends = [(np, False), (np, True)]
+        try:
+            import cupy
+            backends.append((cupy, False))
+        except ModuleNotFoundError:
+            pass
+        for xp, force_python_only in backends:
+            for value in (-1.0, 3.0):
+                with self.subTest(backend=xp.__name__, force_python_only=force_python_only, value=value):
+                    values = np.array([[value], [value + 0.5], [value]])
+                    data = SnpData(iid=[["f", str(row)] for row in range(3)], sid=["s"],
+                                   val=xp.asarray(values), xp=xp)
+                    with self.assertRaisesRegex(ValueError, "Illegal SNP mean"):
+                        data.standardize(Beta(1, 25), force_python_only=force_python_only)
+                    np.testing.assert_array_equal(asnumpy(data.val), values)
+
+    def test_unit_trained_repeated_ids(self):
+        # Exact-order use matches positionally, so repeated training IDs are fine;
+        # selecting or reordering by a repeated ID is ambiguous and must raise.
+        from pysnptools.snpreader import SnpData
+
+        iid = [["f", str(row)] for row in range(4)]
+        values = np.array([[0.0, 10.0], [1.0, 20.0], [2.0, 30.0], [1.0, 40.0]])
+        _, trained = SnpData(iid=iid, sid=["a", "a"], val=values.copy()).standardize(
+            Unit(), return_trained=True)
+        same = SnpData(iid=iid, sid=["a", "a"], val=values.copy()).standardize(trained)
+        expected = SnpData(iid=iid, sid=["a", "a"], val=values.copy()).standardize(Unit())
+        np.testing.assert_array_equal(same.val, expected.val)
+        for sid in (["a"], ["a", "a", "a"]):
+            with self.subTest(sid=sid):
+                target = SnpData(iid=iid, sid=sid, val=values[:, :1].repeat(len(sid), axis=1).copy())
+                with self.assertRaisesRegex(ValueError, "training SNP IDs repeat"):
+                    target.standardize(trained)
+
     def test_trained_checks_survive_optimize(self):
         # Under python -O, plain assert statements vanish. Run each user-input
         # check in a subprocess with -O and require its AssertionError.

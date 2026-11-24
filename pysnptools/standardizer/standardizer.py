@@ -354,6 +354,10 @@ class Standardizer(object):
         else:
             _check_observed(imissX)
             snp_mean = (snp_sum * 1.0) / n_obs_sum
+            # Match the native and CuPy paths, which reject a mean outside [0, 2]
+            # before changing any values.
+            if bool(((snp_mean < 0) | (snp_mean > 2)).any()):
+                raise ValueError("Illegal SNP mean.")
             snp_std = np.sqrt(np.nansum((snps - snp_mean) ** 2, axis=0) / n_obs_sum)
             # Don't need this warning because SNCs are still meaning full in QQ plots because they should be thought of as SNPs without enough data.
             # logging.warn("A least one snps has only one value, that is, its standard deviation is zero")

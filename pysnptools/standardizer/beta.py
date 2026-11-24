@@ -10,8 +10,8 @@ class Beta(Standardizer):
     A :class:`.Standardizer` to beta standardize SNP data.
 
     Subtract the observed mean and multiply by the beta density at the minor
-    allele frequency; this does not divide by standard deviation. Native and
-    CuPy paths zero constant columns, impute NaNs with zero, and reject wholly
+    allele frequency; this does not divide by standard deviation. Every path
+    zeros constant columns, imputes NaNs with zero, and rejects wholly
     missing training SNPs and means outside [0, 2]. The CuPy path keeps the
     matrix on its device but computes per-SNP beta weights with SciPy on CPU.
     See :class:`.Standardizer` and :doc:`/gpu` for options and complete examples.

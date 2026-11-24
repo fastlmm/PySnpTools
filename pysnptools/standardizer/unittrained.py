@@ -8,13 +8,15 @@ class UnitTrained(Standardizer):
     """A :class:`.Standardizer` to unit standardize one set of SNP data based on the mean and stddev of another set of SNP data.
     NaN values are then filled with zero.
 
-    Known SNP IDs can be selected or reordered; unknown IDs raise KeyError.
+    Known SNP IDs can be selected or reordered; unknown IDs raise KeyError, and
+    selecting or reordering with repeated training IDs raises ValueError.
     Training moments are reused without refitting. Infinite stored deviation
     marks a training constant and zeros later values, including varying ones.
     See :class:`.Standardizer` and :doc:`/gpu` for complete examples.
 
     **Constructor:**
-        :Parameters: * **sid** (*array of strings*) -- Unique training SNP IDs.
+        :Parameters: * **sid** (*array of strings*) -- Training SNP IDs, in order. IDs must be unique
+                       unless the target matches them exactly, in the same order.
                      * **stats** (*ndarray of float*) -- Shape (sid_count, 2), training means and population stddevs.
 
     >>> from pysnptools.standardizer import Unit
@@ -76,9 +78,17 @@ class UnitTrained(Standardizer):
                 stats = self.stats
             else:
                 if self.sid_to_index is None:
-                    self.sid_to_index = {
+                    sid_to_index = {
                         sid: index for index, sid in enumerate(self.sid)
                     }
+                    if len(sid_to_index) != len(self.sid):
+                        # A repeated ID would silently select one column's moments for all copies.
+                        _, counts = np.unique(np.asarray(self.sid), return_counts=True)
+                        repeated = np.unique(np.asarray(self.sid))[counts > 1]
+                        raise ValueError(
+                            "UnitTrained cannot select or reorder SNPs by ID because training "
+                            f"SNP IDs repeat (for example, {repeated[0]!r}); use the training order")
+                    self.sid_to_index = sid_to_index
                 stats = np.array(
                     [self.stats[self.sid_to_index[sid]] for sid in snps.sid]
                 )
