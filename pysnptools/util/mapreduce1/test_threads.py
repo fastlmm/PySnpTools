@@ -321,3 +321,9 @@ class TestRunnerContext(unittest.TestCase):
         finally:
             variable.reset(token)
         self.assertEqual(seen, ["caller"] * 4)
+
+    def test_unset_num_threads_is_an_attribute_error(self):
+        # hasattr and getattr(default) catch only AttributeError.
+        runner = LocalMultiProc.__new__(LocalMultiProc)
+        self.assertFalse(hasattr(runner, "num_threads"))
+        self.assertEqual(getattr(runner, "num_threads", "default"), "default")

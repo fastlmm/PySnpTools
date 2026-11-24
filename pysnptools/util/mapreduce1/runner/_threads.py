@@ -81,9 +81,11 @@ def _legacy_set(runner, num_threads):
 legacy_num_threads = property(_legacy_get, _legacy_set, doc="Deprecated alias of num_threads.")
 
 
-
 def _current_threads(runner):
-    return runner.__dict__["mkl_num_threads"]
+    try:
+        return runner.__dict__["mkl_num_threads"]
+    except KeyError as error:  # never set, for example when __init__ was not run
+        raise AttributeError(f"{type(runner).__name__!r} object has no attribute 'num_threads'") from error
 
 
 def _set_current_threads(runner, num_threads):
