@@ -268,6 +268,28 @@ class TestBetaPython(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "training SNP IDs repeat"):
                     target.standardize(trained)
 
+    def test_unit_trained_rejects_invalid_deviation(self):
+        from pysnptools.snpreader import SnpData
+        from pysnptools.standardizer import UnitTrained
+
+        values = np.array([[0.0], [2.0]])
+        for deviation in (0.0, -1.0, np.nan, -np.inf):
+            with self.subTest(deviation=deviation):
+                trained = UnitTrained(
+                    sid=np.array(["s"]),
+                    stats=np.array([[1.0, deviation]]),
+                )
+                target = SnpData(
+                    iid=[["f", "0"], ["f", "1"]],
+                    sid=["s"],
+                    val=values.copy(),
+                )
+                with self.assertRaisesRegex(
+                    ValueError, "deviations must be positive or positive infinity"
+                ):
+                    target.standardize(trained)
+                np.testing.assert_array_equal(target.val, values)
+
     def test_snpdata_standardize_block_size_warns(self):
         # Like the standardizers themselves, the SnpData wrapper warns for the
         # deprecated, ignored block_size instead of dropping it silently.

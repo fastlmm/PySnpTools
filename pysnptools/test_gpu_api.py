@@ -6,7 +6,7 @@ from unittest.mock import patch
 from bed_reader import sample_file
 from pysnptools.snpreader import Bed, SnpData
 from pysnptools.kernelreader import SnpKernel
-from pysnptools.standardizer import Unit, Beta
+from pysnptools.standardizer import Unit, Beta, DiagKtoN, DiagKtoNTrained
 
 
 @pytest.fixture
@@ -48,6 +48,29 @@ def test_subset_and_blocked(cupy, dtype, standardizer):
             to_kerneldata, dtype=dtype, xp=cupy)
         val = result.val if to_kerneldata else result.snpreader.val
         assert val.dtype == dtype and isinstance(val, cupy.ndarray)
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+def test_blocked_diag_k_to_n(cupy, dtype):
+    rng = np.random.default_rng(41)
+    values = rng.integers(0, 3, size=(20, 50)).astype(dtype)
+    source = SnpData(
+        iid=[["family", str(sample)] for sample in range(values.shape[0])],
+        sid=[f"snp{index}" for index in range(values.shape[1])],
+        val=cupy.array(values),
+        xp=cupy,
+    )
+    expected, expected_trained = source._read_kernel(
+        DiagKtoN(), block_size=None, dtype=dtype, return_trained=True, xp=cupy)
+    actual, actual_trained = source._read_kernel(
+        DiagKtoN(), block_size=7, dtype=dtype, return_trained=True, xp=cupy)
+    tolerance = 64 * np.finfo(dtype).eps
+    cupy.testing.assert_allclose(actual, expected, rtol=tolerance, atol=0)
+    assert isinstance(actual_trained, DiagKtoNTrained)
+    np.testing.assert_allclose(actual_trained.factor, expected_trained.factor,
+                               rtol=tolerance, atol=0)
+    np.testing.assert_allclose(float(cupy.trace(actual)), values.shape[0],
+                               rtol=tolerance, atol=0)
 
 
 @pytest.mark.parametrize("dtype", [np.float32, np.float64])

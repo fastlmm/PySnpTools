@@ -11,7 +11,8 @@ class UnitTrained(Standardizer):
     Known SNP IDs can be selected or reordered; unknown IDs raise KeyError, and
     selecting or reordering with repeated training IDs raises ValueError.
     Training moments are reused without refitting. Infinite stored deviation
-    marks a training constant and zeros later values, including varying ones.
+    marks a training constant and zeros later values, including varying ones;
+    every other deviation must be finite and positive.
     See :class:`.Standardizer` and :doc:`/gpu` for complete examples.
 
     **Constructor:**
@@ -99,6 +100,13 @@ class UnitTrained(Standardizer):
             )  # LATER test coverage
             val = snps
             stats = self.stats
+
+        deviations = np.asarray(stats)[:, 1]
+        valid_deviations = (deviations > 0) | np.isposinf(deviations)
+        if not np.all(valid_deviations):
+            raise ValueError(
+                "UnitTrained deviations must be positive or positive infinity"
+            )
 
         self._standardize_unit_and_beta(
             val,

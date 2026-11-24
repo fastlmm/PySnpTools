@@ -59,6 +59,33 @@ class TestKernelReader(unittest.TestCase):
             actual = source.read_kernel(stdizer.Unit(), block_size=block_size, xp=np).val
             np.testing.assert_allclose(actual, expected, rtol=8 * np.finfo(float).eps, atol=0)
 
+    def test_blocked_diag_k_to_n_matches_unblocked(self):
+        # DiagKtoN fits one factor to all SNPs. Blocked kernels previously applied it to
+        # each block, giving a trace of iid_count per block instead of iid_count overall.
+        rng = np.random.default_rng(0)
+        for iid_count, sid_count in ((20, 50), (50, 20)):  # wide and narrow
+            for dtype, rtol in ((np.float64, 1e-12), (np.float32, 1e-5)):
+                with self.subTest(iid_count=iid_count, sid_count=sid_count, dtype=dtype):
+                    source = SnpData(
+                        iid=[["family", str(sample)] for sample in range(iid_count)],
+                        sid=[f"snp{index}" for index in range(sid_count)],
+                        val=rng.integers(0, 3, size=(iid_count, sid_count)).astype(dtype),
+                        xp=np,
+                    )
+                    expected, expected_trained = source._read_kernel(
+                        stdizer.DiagKtoN(), block_size=None, dtype=dtype,
+                        return_trained=True, xp=np)
+                    actual, actual_trained = source._read_kernel(
+                        stdizer.DiagKtoN(), block_size=7, dtype=dtype,
+                        return_trained=True, xp=np)
+                    self.assertEqual(actual.dtype, dtype)
+                    np.testing.assert_allclose(actual, expected, rtol=rtol, atol=0)
+                    np.testing.assert_allclose(np.trace(actual), iid_count, rtol=rtol)
+                    self.assertIsInstance(actual_trained, stdizer.DiagKtoNTrained)
+                    np.testing.assert_allclose(actual_trained.factor, expected_trained.factor, rtol=rtol)
+                    kernel = SnpKernel(source, stdizer.DiagKtoN(), block_size=7).read(dtype=dtype, xp=np)
+                    np.testing.assert_allclose(kernel.val, expected, rtol=rtol, atol=0)
+
     @classmethod
     def setUpClass(self):
         self.currentFolder = os.path.dirname(os.path.realpath(__file__))

@@ -826,6 +826,12 @@ class SnpReader(PstReader):
                     raise AssertionError("sid in training and use must be the same and in the same order")
                 if standardizer.stats.shape != (self.sid_count, 2):
                     raise AssertionError("stats must have size [sid_count,2]")
+            # DiagKtoN scales the whole SNP matrix by one factor fitted to all SNPs, so
+            # applying it per block would fit a different factor to each block. Instead,
+            # sum unstandardized block kernels and then scale the total: the kernel's
+            # trace equals the SNP values' sum of squares, so this matches the
+            # all-at-once result.
+            is_diag_k_to_n = type(standardizer) is stdizer.DiagKtoN
             # Set the default order to 'C' because with kernels any order is fine and the Python .dot method likes 'C' best.
             if order == "A":
                 order = "C"
@@ -845,7 +851,7 @@ class SnpReader(PstReader):
 
             for start in range(0, self.sid_count, block_size):
                 ct += block_size
-                block_standardizer = standardizer
+                block_standardizer = stdizer.Identity() if is_diag_k_to_n else standardizer
                 if is_trained_beta:
                     selection = slice(start, start + block_size)
                     block_standardizer = stdizer.BetaTrained(
@@ -860,7 +866,7 @@ class SnpReader(PstReader):
                     force_python_only=force_python_only,
                     num_threads=num_threads, xp=xp,
                 )
-                if not is_trained_beta:
+                if not (is_trained_beta or is_diag_k_to_n):
                     trained_standardizer_list.append(trained_standardizer)
                 K += train_data._read_kernel(
                     stdizer.Identity(),
@@ -880,6 +886,16 @@ class SnpReader(PstReader):
 
             t1 = time.time()
             logging.info("%.2f seconds elapsed" % (t1 - t0))
+
+            if is_diag_k_to_n:
+                from pysnptools.standardizer.diag_K_to_N import _normalization_factor
+                trace = float(xp.trace(K, dtype=np.float64))
+                factor = _normalization_factor(self.iid_count, trace)
+                if abs(factor - 1.0) > 1e-15:
+                    K *= factor
+                if return_trained:
+                    return K, stdizer.DiagKtoNTrained(factor)
+                return K
 
             if return_trained:
                 if is_trained_beta:

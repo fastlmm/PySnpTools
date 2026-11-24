@@ -45,7 +45,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repeated training SNP ID when the choice of fitted moments would be
   ambiguous. BetaTrained's SNP-ID and statistics-shape checks, and
   `Beta._merge_trained`'s beta-parameter checks, remain active under optimized
-  Python (`python -O`).
+  Python (`python -O`). `UnitTrained` now raises `ValueError` before changing
+  values when manually supplied deviations are zero or otherwise invalid;
+  positive infinity remains the marker for a constant training SNP.
+* Fix blocked kernel construction with `DiagKtoN` as the SNP standardizer. It
+  fit a separate factor to each SNP block, so the kernel's diagonal summed to
+  iid_count times the number of blocks; with `return_trained=True` it raised
+  instead. The blocked kernel is now scaled once, by the factor fitted to all
+  SNPs, and matches the unblocked kernel.
 * `read_kernel` now honors an explicit `block_size` even when the SNP count does
   not exceed the sample count (it previously computed such kernels in one
   product), so those kernels can differ in the last bits of rounding.
