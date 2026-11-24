@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0b2] - Unreleased
+
+* Update the build backend to `uv_build 0.13.9` and refresh the resolved
+  `cloudpickle` and Ruff versions.
+* Remove stale “new” labels from the documentation.
+
 ## [1.1.0b1] - 2026-11-24
 
 * Withdraw the 1.1.0a1 GPU features that were built on bed-reader's GPU code:

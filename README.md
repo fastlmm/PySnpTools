@@ -7,7 +7,7 @@ Main Features:
 
 * [SnpReader](http://fastlmm.github.io/PySnpTools): Efficiently read genetic PLINK formats including \*.bed/bim/fam files.
           Also, efficiently read parts of files, read kernel data, and standardize data.
-          New features include multi-threaded BED reading, cluster-ready BED data, on-the-fly SNP generation,
+          Features include multi-threaded BED reading, cluster-ready BED data, on-the-fly SNP generation,
           and larger in-memory data.
 
 * **Experimental GPU arrays:** Read, standardize, and construct kernels with CuPy.

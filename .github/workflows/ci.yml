@@ -37,7 +37,7 @@ jobs:
           enable-cache: true
 
       - name: Ruff
-        run: uvx ruff@0.17.5 check
+        run: uvx ruff@0.17.6 check
 
   documentation:
     name: Documentation

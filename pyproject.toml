@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "pysnptools"
-version = "1.1.0b1"
+version = "1.1.0b2"
 description = "PySnpTools"
 readme = "README.md"
 requires-python = ">=3.11.5"
