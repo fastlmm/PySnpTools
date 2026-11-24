@@ -293,8 +293,9 @@ def sub_matrix(
         If order is 'F', then the array will be in F-contiguous order (first index varies the fastest).
         If order is 'A', then sub-matrix may be in any order F or C.
     :type order: str
-    :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for sub-matrix created.
-    :type dtype: data-type
+    :param dtype: {None (default), numpy.float64, numpy.float32}, optional -- The data-type for sub-matrix created.
+        None uses ARRAY_DTYPE, then float64.
+    :type dtype: data-type or None
     :param num_threads: optional -- The CPU thread count, ignored for CuPy. Defaults to all available
         processors. Can also be set with these environment variables (listed in priority order):
         'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
