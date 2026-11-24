@@ -278,6 +278,29 @@ class TestBetaPython(unittest.TestCase):
             data.standardize(Unit(), block_size=1)
         np.testing.assert_array_equal(data.val, [[-1.0], [1.0]])
 
+    def test_identity_kernel_honors_block_size(self):
+        # SnpData's Identity fast path computes one full product; an explicit
+        # block_size that splits the SNPs must use the blocked path instead.
+        from unittest.mock import patch
+        from pysnptools.snpreader import SnpData, SnpReader
+        from pysnptools.standardizer import Identity
+
+        values = np.arange(12.0).reshape(4, 3)
+        data = SnpData(iid=[["f", str(row)] for row in range(4)], sid=["a", "b", "c"], val=values)
+        original = SnpReader._as_snpdata
+        for block_size, expected_reads in ((None, 0), (3, 0), (5, 0), (2, 2), (1, 3)):
+            with self.subTest(block_size=block_size):
+                reads = []
+
+                def counting(*args, **kwargs):
+                    reads.append(1)
+                    return original(*args, **kwargs)
+
+                with patch.object(SnpReader, "_as_snpdata", staticmethod(counting)):
+                    kernel = data.read_kernel(Identity(), block_size=block_size)
+                self.assertEqual(len(reads), expected_reads)
+                np.testing.assert_allclose(kernel.val, values @ values.T, rtol=1e-15)
+
     def test_trained_checks_survive_optimize(self):
         # Under python -O, plain assert statements vanish. Run each user-input
         # check in a subprocess with -O and require its AssertionError.

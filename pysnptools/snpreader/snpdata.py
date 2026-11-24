@@ -280,9 +280,11 @@ class SnpData(PstData, SnpReader):
         dtype = pstutil.array_dtype(dtype)
         xp = pstutil.array_module(xp)
 
-        # Just do a 'python' dot, if no standardization is needed and everything is the right type
+        # Just do a 'python' dot, if no standardization is needed and everything is the right type.
+        # An explicit block size that splits the SNPs is honored by the blocked path below.
         if (isinstance(standardizer, Identity) and train.val.dtype == dtype
-                and pstutil.get_array_module(train.val) is xp):
+                and pstutil.get_array_module(train.val) is xp
+                and (block_size is None or train.sid_count <= block_size)):
             time.time()
             # is_worth_logging = train.val.shape[0] * train.val.shape[1] * test.val.shape[0] > 1e9
             # if is_worth_logging: logging.info("  _read_kernel about to multiply train{0} x test{1}".format(train.val.shape,test.val.shape))
