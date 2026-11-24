@@ -25,15 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `PstData` from a NumPy or CuPy array of the other module, reading or building
   a kernel from such in-memory values, or assigning one to `.val` now raises
   `ValueError` instead of silently copying it; pass `xp=` explicitly to copy.
-  Lists, `val=None`, and values decoded from files (including text formats and
-  memory maps) still follow `ARRAY_MODULE`. `DistData`, `PstData`,
-  `DistReader.read`, and `PstReader.read` gain an `xp` parameter. Memory-mapped
-  readers now keep their values as NumPy arrays under `ARRAY_MODULE=cupy`.
+  Lists, `val=None`, and file-backed `read()` results (including text formats
+  and memory-mapped readers) still follow `ARRAY_MODULE`. The raw memory map
+  itself remains a NumPy array. `DistData`, `PstData`, `DistReader.read`, and
+  `PstReader.read` gain an `xp` parameter.
   Data containers preserve their backend across pickle round trips, including
   when loading older states that did not store the array module.
-  Every writer now accepts CuPy-backed data (and readers over it) and copies
-  the values to NumPy; some writers previously failed with CuPy's
-  implicit-conversion error.
+  Every writer now accepts CuPy-backed in-memory data and copies the values to
+  NumPy; block writers also accept readers over that data. Some writers
+  previously failed with CuPy's implicit-conversion error.
 * Rename the local process runners' thread limit from `mkl_num_threads` to
   `num_threads`, retaining the old name as a deprecated alias and its historical
   pickle state. The limit now covers loaded MKL, OpenBLAS, and BLIS pools,
@@ -43,8 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Reject allele-count means outside [0, 2] in the Python Beta path, matching the
   native and CuPy paths. `UnitTrained` now rejects selection or reordering by a
   repeated training SNP ID when the choice of fitted moments would be
-  ambiguous. BetaTrained's SNP-ID, statistics-shape, and beta-parameter checks
-  remain active under optimized Python (`python -O`).
+  ambiguous. BetaTrained's SNP-ID and statistics-shape checks, and
+  `Beta._merge_trained`'s beta-parameter checks, remain active under optimized
+  Python (`python -O`).
 * `read_kernel` now honors an explicit `block_size` even when the SNP count does
   not exceed the sample count (it previously computed such kernels in one
   product), so those kernels can differ in the last bits of rounding.

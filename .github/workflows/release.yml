@@ -159,6 +159,20 @@ jobs:
           assert '.artifact-venv' in pysnptools.__file__;
           print(pysnptools.__file__)"
 
+      - name: Install pytest for Python 3.15 artifact tests
+        if: matrix.python-version == '3.15'
+        run: uv pip install --python .artifact-venv/bin/python pytest==9.2.0
+
+      - name: Run the installed CPU pytest-only modules on Python 3.15
+        if: matrix.python-version == '3.15'
+        run: >-
+          .artifact-venv/bin/python -m pytest -rs --pyargs
+          pysnptools.test_array_dtype
+          pysnptools.test_optional_dependencies
+          pysnptools.util.mapreduce1.test_threads
+          pysnptools.util.filecache.test_hashdown_retry
+          pysnptools.test_gpu_support
+
   publish:
     name: Publish to PyPI
     needs: artifact-test

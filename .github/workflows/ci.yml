@@ -160,6 +160,7 @@ jobs:
         run: |
           uv venv --python ${{ matrix.python-version }} .core-venv
           uv pip install --python .core-venv --only-binary :all: --editable .
+          uv pip install --python .core-venv pytest==9.2.0
 
       - name: Verify optional backends are absent
         run: >-
@@ -172,6 +173,17 @@ jobs:
         shell: bash
         run: |
           uv run --no-sync python tests/test.py
+
+      # These modules exercise CPU behavior without HDF5, BGEN, or CuPy. The
+      # remaining pytest-only modules require a usable CUDA device to do work.
+      - name: Run the CPU pytest-only modules
+        run: >-
+          uv run --no-sync pytest -rs
+          pysnptools/test_array_dtype.py
+          pysnptools/test_optional_dependencies.py
+          pysnptools/util/mapreduce1/test_threads.py
+          pysnptools/util/filecache/test_hashdown_retry.py
+          pysnptools/test_gpu_support.py
 
   build:
     name: Build distributions

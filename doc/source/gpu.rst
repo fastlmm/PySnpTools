@@ -39,10 +39,12 @@ hardware availability. There is no automatic CPU retry after a GPU error.
 constructor (``SnpData``, ``KernelData``, ``DistData``, or ``PstData``) receives a
 NumPy or CuPy ``val`` from the other module, or a read or kernel's in-memory
 source is on the other module, PySnpTools raises ``ValueError``; pass ``xp=``
-explicitly to copy the values. Lists, ``val=None``, and values decoded from files
-(including memory maps) have no device, so they follow the default. Writers accept
-CuPy-backed data and copy it to NumPy, since writing a file is itself a request to
-leave the GPU. Assigning to ``.val`` requires an array from the object's own module::
+explicitly to copy the values. Lists, ``val=None``, and file-backed ``read()``
+results (including reads from memory-mapped readers) have no preselected output
+device, so they follow the default. The raw memory map itself remains a NumPy
+array. Writers accept CuPy-backed data and copy it to NumPy, since writing a file
+is itself a request to leave the GPU. Assigning to ``.val`` requires an array
+from the object's own module::
 
     import cupy as cp
     from pysnptools.snpreader import SnpData
@@ -227,12 +229,14 @@ Using a float64 target cannot restore precision lost during float32 training.
    * - ``Beta(a, b)``
      - Center and multiply by the beta density at the minor allele frequency
        ``min(mean / 2, 1 - mean / 2)``; do not divide by standard deviation.
-       Native and CuPy paths validate means in [0, 2] and beta parameters.
+       Every path validates means in [0, 2] and beta parameters.
        CuPy reduces on the GPU but evaluates the per-SNP density with SciPy
        on the CPU, then transfers weights back.
    * - ``UnitTrained``
      - Reuse fitted moments. Can select/reorder known SNP IDs automatically;
-       an unknown ID raises ``KeyError``. Unique training IDs avoid ambiguity.
+       an unknown ID raises ``KeyError``. Exact-order use remains valid with
+       repeated training IDs, but selecting or reordering them raises
+       ``ValueError`` because the fitted moments would be ambiguous.
    * - ``BetaTrained``
      - Reuse fitted moments and beta parameters. Requires exactly the same
        SNP IDs in the same order; a mismatch raises ``AssertionError``.

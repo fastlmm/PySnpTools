@@ -34,7 +34,8 @@ Install
 
     pip install pysnptools
 
-Requires Python 3.11.5 or later. Python 3.15 qualification is in progress.
+Requires Python 3.11.5 or later. Core Python 3.15 support excludes HDF5, BGEN,
+and CuPy because their required wheels are not currently available together.
 
 For the experimental GPU beta:
 
