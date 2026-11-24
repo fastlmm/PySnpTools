@@ -6,6 +6,7 @@ import shutil
 import doctest
 import pysnptools.util as pstutil
 from pysnptools.pstreader import PstReader, PstData
+from pysnptools.util import _device
 
 _magic_number = 22891
 
@@ -349,6 +350,7 @@ class PstMemMap(PstData):
         PstMemMap('tempdir/tiny.pst.memmap')
         """
 
+        pstdata = _device.numpy_for_write(pstdata)  # writing is an explicit copy to the CPU
         self = PstMemMap.empty(
             pstdata.row,
             pstdata.col,

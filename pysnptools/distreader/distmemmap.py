@@ -8,6 +8,7 @@ import pysnptools.util as pstutil
 from pysnptools.pstreader import PstMemMap
 from pysnptools.distreader import DistData
 from pysnptools.util import log_in_place
+from pysnptools.util import _device
 
 
 class DistMemMap(PstMemMap, DistData):
@@ -180,6 +181,7 @@ class DistMemMap(PstMemMap, DistData):
         DistMemMap('tempdir/tiny.dist.memmap')
 
         """
+        distreader = _device.numpy_for_write(distreader)  # writing is an explicit copy to the CPU
         block_size = block_size or max((100_000) // max(1, distreader.row_count), 1)
 
         if hasattr(distreader, "val"):
@@ -208,7 +210,7 @@ class DistMemMap(PstMemMap, DistData):
                 while start < distreader.sid_count:
                     updater("{0} of {1}".format(start, distreader.sid_count))
                     distdata = distreader[:, start : start + block_size].read(
-                        order=order, dtype=dtype, num_threads=num_threads
+                        order=order, dtype=dtype, num_threads=num_threads, xp=np
                     )
                     self.val[:, start : start + distdata.sid_count, :] = distdata.val
                     start += distdata.sid_count

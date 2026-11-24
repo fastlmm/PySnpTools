@@ -11,6 +11,7 @@ import subprocess
 import pysnptools.util as pstutil
 from pysnptools.distreader import DistReader
 from bed_reader import get_num_threads
+from pysnptools.util import _device
 
 
 def _require_bgen_reader():
@@ -439,6 +440,7 @@ class Bgen(DistReader):
         >>> Bgen.write("tempdir/toydata10.bgen",distreader)        # Write data in BGEN format
         Bgen('tempdir/toydata10.bgen')
         """
+        distreader = _device.numpy_for_write(distreader)  # writing is an explicit copy to the CPU
         open_bgen, _ = _require_bgen_reader()
         qctool_path = qctool_path or os.environ.get("QCTOOLPATH")
         assert (
@@ -543,6 +545,7 @@ class Bgen(DistReader):
         # https://www.cog-genomics.org/plink2/formats#gen
         # https://web.archive.org/web/20181010160322/http://www.stats.ox.ac.uk/~marchini/software/gwas/file_format.html
 
+        distreader = _device.numpy_for_write(distreader)  # writing is an explicit copy to the CPU
         block_size = block_size or max((100 * 1000) // max(1, distreader.row_count), 1)
 
         if decimal_places is None:
@@ -565,7 +568,7 @@ class Bgen(DistReader):
             with open(filename + ".temp", "w", newline="\n") as genfp:
                 while start < distreader.sid_count:
                     distdata = distreader[:, start : start + block_size].read(
-                        view_ok=True
+                        view_ok=True, xp=np
                     )
                     for sid_index in range(distdata.sid_count):
                         id, rsid = id_rsid_function(distdata.sid[sid_index])

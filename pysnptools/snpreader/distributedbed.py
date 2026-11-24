@@ -10,6 +10,7 @@ from pysnptools.util import _multiopen
 from pysnptools.snpreader import _snps_fixup
 from pysnptools.util.mapreduce1 import map_reduce
 from pysnptools.util.filecache import FileCache
+from pysnptools.util import _device
 
 
 class DistributedBed(SnpReader):
@@ -178,6 +179,7 @@ class DistributedBed(SnpReader):
 
 
         """
+        snpreader = _device.numpy_for_write(snpreader)  # writing is an explicit copy to the CPU
         from pysnptools.util import _file_transfer_reporter
         from pysnptools.util.filecache import FileCache
 
@@ -236,7 +238,7 @@ class DistributedBed(SnpReader):
                         _Distributed1Bed.write(
                             _piece_name_list[-1],
                             storage,
-                            piece_reader.read(),
+                            piece_reader.read(xp=np),
                             count_A1=count_A1,
                             updater=updater2,
                         )
@@ -383,6 +385,7 @@ class _Distributed1Bed(SnpReader):
 
     @staticmethod
     def write(path, storage, snpdata, count_A1=True, updater=None):
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         file_list = [
             SnpReader._name_of_other_file(
                 path, remove_suffix="bed", add_suffix=new_suffix

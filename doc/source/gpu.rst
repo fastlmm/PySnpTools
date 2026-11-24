@@ -40,8 +40,9 @@ constructor (``SnpData``, ``KernelData``, ``DistData``, or ``PstData``) receives
 NumPy or CuPy ``val`` from the other module, or a read or kernel's in-memory
 source is on the other module, PySnpTools raises ``ValueError``; pass ``xp=``
 explicitly to copy the values. Lists, ``val=None``, and values decoded from files
-(including memory maps) have no device, so they follow the default. Assigning to
-``.val`` requires an array from the object's own module::
+(including memory maps) have no device, so they follow the default. Writers accept
+CuPy-backed data and copy it to NumPy, since writing a file is itself a request to
+leave the GPU. Assigning to ``.val`` requires an array from the object's own module::
 
     import cupy as cp
     from pysnptools.snpreader import SnpData

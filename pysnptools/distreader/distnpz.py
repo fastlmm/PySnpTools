@@ -2,6 +2,7 @@ from pysnptools.pstreader import PstNpz
 from pysnptools.distreader import DistReader
 import logging
 import numpy as np
+from pysnptools.util import _device
 
 
 class DistNpz(PstNpz, DistReader):
@@ -65,6 +66,7 @@ class DistNpz(PstNpz, DistReader):
         >>> DistNpz.write("tempdir/toydata10.dist.npz",distdata)          # Write data in DistNpz format
         DistNpz('tempdir/toydata10.dist.npz')
         """
+        distdata = _device.numpy_for_write(distdata)  # writing is an explicit copy to the CPU
         row_ascii = np.array(
             distdata.row, dtype="S"
         )  # !!! would be nice to avoid this copy when not needed.

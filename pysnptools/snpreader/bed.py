@@ -5,6 +5,7 @@ from bed_reader import open_bed, to_bed
 from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
 import warnings
+from pysnptools.util import _device
 
 
 plink_chrom_map = {"X": 23, "Y": 24, "XY": 25, "MT": 26}
@@ -269,6 +270,7 @@ class Bed(SnpReader):
         Bed('tempdir/everyother.bed',count_A1=False)
         """
 
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         if isinstance(filename, SnpData) and isinstance(
             snpdata, str
         ):  # For backwards compatibility, reverse inputs if necessary

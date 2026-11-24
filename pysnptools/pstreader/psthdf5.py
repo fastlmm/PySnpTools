@@ -2,6 +2,7 @@ import logging
 import numpy as np
 from pysnptools.pstreader import PstReader
 from pysnptools.pstreader.pstdata import PstData
+from pysnptools.util import _device
 
 
 def _require_h5py():
@@ -407,6 +408,7 @@ class PstHdf5(PstReader):
         PstHdf5('tempdir/tiny.pst.hdf5')
         """
 
+        pstdata = _device.numpy_for_write(pstdata)  # writing is an explicit copy to the CPU
         assert hdf5_dtype is None or (
             isinstance(hdf5_dtype, str)
             and len(hdf5_dtype) == 2

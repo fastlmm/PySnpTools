@@ -5,6 +5,7 @@ from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
 import warnings
 from pysnptools.pstreader import _OneShot
+from pysnptools.util import _device
 
 
 class Ped(_OneShot,SnpReader):
@@ -91,6 +92,7 @@ class Ped(_OneShot,SnpReader):
         Ped('tempdir/toydata10.ped')
         """
 
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         if isinstance(filename,SnpData) and isinstance(snpdata,str): #For backwards compatibility, reverse inputs if necessary
             warnings.warn("write statement should have filename before data to write", DeprecationWarning)
             filename, snpdata = snpdata, filename

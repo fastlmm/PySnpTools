@@ -307,3 +307,70 @@ def test_text_readers_follow_array_module(cupy, tmp_path, kind):
         for result in (reader.read(), reader[:2, :].read()):
             assert isinstance(result.val, cupy.ndarray)
         np.testing.assert_array_equal(cupy.asnumpy(reader.read().val), reader.read(xp=np).val)
+
+
+def test_writers_copy_gpu_values_to_numpy(cupy, tmp_path, monkeypatch):
+    # Writing a file is an explicit request to leave the GPU: every writer
+    # accepts CuPy-backed data (and GPU subsets) and writes the same values.
+    import os
+    from pysnptools.distreader import Bgen, DistData, DistHdf5, DistMemMap, DistNpz
+    from pysnptools.kernelreader import KernelData, KernelHdf5, KernelNpz
+    from pysnptools.pstreader import PstData, PstHdf5, PstMemMap, PstNpz
+    from pysnptools.snpreader import (Dat, Dense, DistributedBed, Ped, Pheno, SnpHdf5,
+                                      SnpMemMap, SnpNpz)
+
+    monkeypatch.delenv("ARRAY_MODULE", raising=False)
+    iid = [["f", str(row)] for row in range(4)]
+    sid = ["s0", "s1", "s2"]
+    pos = [[1, 0, 1], [1, 0, 2], [1, 0, 3]]
+    snp_values = np.array([[0, 1, 2], [2, 1, 0], [1, 1, 1], [0, 2, np.nan]], dtype=np.float32)
+    snp_gpu = SnpData(iid=iid, sid=sid, pos=pos, val=cupy.asarray(snp_values), xp=cupy)
+    kernel_values = np.array([[2.0, 1.0], [1.0, 2.0]])
+    kernel_gpu = KernelData(iid=iid[:2], val=cupy.asarray(kernel_values), xp=cupy)
+    pst_gpu = PstData(row=["r0", "r1", "r2", "r3"], col=sid, val=cupy.asarray(snp_values), xp=cupy)
+    dist_values = np.full((4, 3, 3), 1 / 3)
+    dist_gpu = DistData(iid=iid, sid=sid, pos=pos, val=cupy.asarray(dist_values), xp=cupy)
+
+    def path(name):
+        return str(tmp_path / name)
+
+    snp_writers = {
+        "SnpNpz": lambda data, label: SnpNpz.write(path(label + ".snp.npz"), data),
+        "Bed": lambda data, label: Bed.write(path(label + ".bed"), data, count_A1=True),
+        "Dat": lambda data, label: Dat.write(path(label + ".dat"), data),
+        "Dense": lambda data, label: Dense.write(path(label + ".dense.txt"), data),
+        "Ped": lambda data, label: Ped.write(path(label + ".ped"), data),
+        "SnpHdf5": lambda data, label: SnpHdf5.write(path(label + ".snp.hdf5"), data),
+        "SnpMemMap": lambda data, label: SnpMemMap.write(path(label + ".snp.memmap"), data),
+        "DistributedBed": lambda data, label: DistributedBed.write(path(label + "-distributed"), data),
+    }
+    reader_writers = {"SnpMemMap", "DistributedBed"}  # the others take in-memory SnpData only
+    for name, write in snp_writers.items():
+        sources = [("data", snp_gpu)] + ([("subset", snp_gpu[:, :])] if name in reader_writers else [])
+        for label, source in sources:
+            written = write(source, label)
+            values = written.read(xp=np).val
+            if name == "Ped":  # PED may count either allele, so a column can read back as 2 - value
+                for column in range(snp_values.shape[1]):
+                    expected = snp_values[:, column]
+                    assert (np.array_equal(values[:, column], expected, equal_nan=True)
+                            or np.array_equal(values[:, column], 2 - expected, equal_nan=True)), column
+            else:
+                np.testing.assert_array_equal(values, snp_values, err_msg=f"{name} {label}")
+    pheno = Pheno.write(path("a.pheno.txt"), snp_gpu[:, :1].read(xp=cupy))
+    np.testing.assert_array_equal(pheno.read(xp=np).val, snp_values[:, :1])
+
+    for written in (KernelNpz.write(path("a.kernel.npz"), kernel_gpu),
+                    KernelHdf5.write(path("a.kernel.hdf5"), kernel_gpu)):
+        np.testing.assert_array_equal(written.read(xp=np).val, kernel_values)
+    for written in (PstNpz.write(path("a.pst.npz"), pst_gpu), PstHdf5.write(path("a.pst.hdf5"), pst_gpu),
+                    PstMemMap.write(path("a.pst.memmap"), pst_gpu)):
+        np.testing.assert_array_equal(written.read(xp=np).val, snp_values)
+    for written in (DistNpz.write(path("a.dist.npz"), dist_gpu), DistHdf5.write(path("a.dist.hdf5"), dist_gpu),
+                    DistMemMap.write(path("a.dist.memmap"), dist_gpu),
+                    DistMemMap.write(path("b.dist.memmap"), dist_gpu[:, :])):
+        np.testing.assert_allclose(written.read(xp=np).val, dist_values, rtol=1e-15)
+    if os.environ.get("QCTOOLPATH"):  # Bgen.write runs the external qctool
+        written = Bgen.write(path("a.bgen"), dist_gpu[:, :], bits=32)
+        np.testing.assert_allclose(written.read(xp=np).val, dist_values, atol=1e-6)
+        del written

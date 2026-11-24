@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `DistReader.read`, and `PstReader.read` gain an `xp` parameter. Memory-mapped
   readers now keep their values as NumPy arrays under `ARRAY_MODULE=cupy`.
   `LocalMultiThread` runs each task in a copy of the caller's context.
+  Every writer now accepts CuPy-backed data (and readers over it) and copies
+  the values to NumPy; some writers previously failed with CuPy's
+  implicit-conversion error.
 * `read_kernel` now honors an explicit `block_size` even when the SNP count does
   not exceed the sample count (it previously computed such kernels in one
   product), so those kernels can differ in the last bits of rounding.

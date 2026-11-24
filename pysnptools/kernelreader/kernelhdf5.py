@@ -2,6 +2,7 @@ import logging
 import numpy as np
 from pysnptools.kernelreader import KernelReader
 from pysnptools.pstreader import PstHdf5
+from pysnptools.util import _device
 
 class KernelHdf5(PstHdf5,KernelReader):
     r'''
@@ -77,6 +78,7 @@ class KernelHdf5(PstHdf5,KernelReader):
         >>> KernelHdf5.write("tempdir/toydata.kernel.hdf5",kerneldata)          # Write data in KernelHdf5 format
         KernelHdf5('tempdir/toydata.kernel.hdf5')
         """
+        kerneldata = _device.numpy_for_write(kerneldata)  # writing is an explicit copy to the CPU
         PstHdf5.write(filename,kerneldata,hdf5_dtype=hdf5_dtype,col_major=sid_major)
         return KernelHdf5(filename)
 

@@ -4,6 +4,7 @@ from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
 import warnings
 from pysnptools.pstreader import _OneShot
+from pysnptools.util import _device
 
 
 def zero_family(s):
@@ -151,6 +152,7 @@ class Dense(_OneShot, SnpReader):
         Dense('tempdir/toydata10.dense.txt')
         """
 
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         if isinstance(filename, SnpData) and isinstance(
             snpdata, "str"
         ):  # For backwards compatibility, reverse inputs if necessary

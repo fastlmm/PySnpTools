@@ -67,6 +67,22 @@ def check_assignment(value, xp, what):
             f"Convert it first, or construct a new object with xp='{source.__name__}'.")
 
 
+def numpy_for_write(data):
+    """Return ``data`` with NumPy values for a writer.
+
+    Writing a file is an explicit request to leave the GPU, so in-memory CuPy
+    values are copied to NumPy, keeping their dtype and layout. Anything else,
+    including readers that hold no values, is returned unchanged; writers that
+    read their input in blocks pass ``xp=np`` to those reads instead."""
+    val = getattr(data, "val", None)
+    if module_of(val) in (None, np):
+        return data
+    options = {}
+    if val.dtype not in (np.float32, np.float64):
+        options["_require_float32_64"] = False  # for example, int8 SnpData
+    return data.read(xp=np, dtype=val.dtype, order="A", view_ok=True, **options)
+
+
 def read_entry(function):
     """Record a public read's ``xp`` request for :func:`check_source`."""
     signature = inspect.signature(function)
