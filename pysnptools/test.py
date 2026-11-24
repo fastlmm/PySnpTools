@@ -90,10 +90,11 @@ class TestBetaPython(unittest.TestCase):
                             self.assertEqual(trained.stats.dtype, training_dtype)
 
     def test_constant_fractional_snps(self):
-        # bed-reader's native CPU standardizer (force_python_only=False) is not
-        # covered: it leaves small nonzero residues for these inputs, tracked
-        # for bed-reader rather than fixed here.
         self._check_constant_fractional_snps(np, force_python_only=True)
+
+    def test_constant_fractional_snps_native(self):
+        # bed-reader's native CPU standardizer; fixed in bed-reader 1.3.0b3.
+        self._check_constant_fractional_snps(np, force_python_only=False)
 
     def test_constant_fractional_snps_cupy(self):
         try:
@@ -110,9 +111,12 @@ class TestBetaPython(unittest.TestCase):
         from pysnptools.snpreader import SnpData
         from pysnptools.util import asnumpy
 
-        # Each case standardized a constant column to +/-1 before the fix.
+        # The small cases standardized a constant column to +/-1 on CuPy and the
+        # Python path before their fix; the 1,000-value cases left nonzero
+        # residues on bed-reader's native path before 1.3.0b3.
         for dtype, value, count in ((np.float64, 0.1, 3), (np.float64, 0.3, 7), (np.float64, 1.7, 7),
-                                    (np.float32, 0.1, 7), (np.float32, 1.7, 3)):
+                                    (np.float32, 0.1, 7), (np.float32, 1.7, 3),
+                                    (np.float64, 0.1, 1_000), (np.float32, 1.7, 1_000)):
             values = np.empty((count + 1, 2), dtype=dtype)
             values[:, 0] = value
             values[-1, 0] = np.nan  # missing values do not break constancy
@@ -128,6 +132,13 @@ class TestBetaPython(unittest.TestCase):
                         np.testing.assert_array_equal(asnumpy(data.val)[:, 0], 0)
                         self.assertTrue(np.isinf(asnumpy(trained.stats)[0, 1]))
                         self.assertTrue(np.isfinite(asnumpy(trained.stats)[1, 1]))
+
+                        # Applying the trained standardizer to new values of the SNP gives zero.
+                        new_values = np.empty_like(values)
+                        new_values[:, :] = ((np.arange(count + 1) % 5) * dtype(value))[:, np.newaxis]
+                        new_data = SnpData(iid=data.iid, sid=data.sid, val=xp.array(new_values, order=order), xp=xp)
+                        new_data.standardize(trained, force_python_only=force_python_only)
+                        np.testing.assert_array_equal(asnumpy(new_data.val)[:, 0], 0)
 
     def test_blocked_trained_kernel(self):
         self._check_blocked_trained_kernel(np)

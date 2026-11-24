@@ -5,21 +5,12 @@ from pysnptools.standardizer.unittrained import UnitTrained
 import warnings
 import pysnptools.util as pstutil
 
-# TODO Remove the native constant-column caveat in this docstring once PySnpTools requires a bed-reader release whose CPU standardizer zeros constant fractional SNPs.
 class Unit(Standardizer):
     """A :class:`.Standardizer` to unit standardize SNP data. Observed nonconstant values are centered and scaled to standard deviation one.
     Observed values use population standard deviation (ddof=0); NaNs then become
     zero, so final variance can be below one. Constant columns become zero;
     wholly missing training columns raise ValueError. NumPy/CuPy arrays stay on
     their device, regardless of ARRAY_MODULE. See :doc:`/gpu` for complete examples.
-
-    Native-path caveat: with bed-reader 1.3.0b2, the default NumPy path
-    (``force_python_only=False``) does not recognize a constant column of
-    fractional dosages, such as all 0.1. It leaves small nonzero values (up to
-    about 3e-3 in float32) and trains a tiny finite standard deviation instead
-    of infinity, so applying the trained standardizer to new values of that SNP
-    gives nonzero, often very large, results. Integer genotypes, CuPy arrays, and
-    ``force_python_only=True`` are unaffected.
 
     See :class:`.Standardizer` for more information about standardization.
 

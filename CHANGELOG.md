@@ -11,12 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   CubeCL-backed GPU allocation and storage, native GPU standardization, and the
   `bed-reader[cupy]` dependency. bed-reader 1.3.0b2 is CPU-only; GPU support now
   reads on the CPU, copies to CuPy, and standardizes with CuPy. The `cupy` extra
-  now installs `cupy-cuda13x` directly. Require `bed-reader>=1.3.0b2`.
+  now installs `cupy-cuda13x` directly. Require `bed-reader>=1.3.0b3`.
 * Standardize constant fractional SNPs (for example, dosages that are all 0.1)
-  to zero with Unit and Beta on CuPy and on the Python CPU path
-  (`force_python_only=True`), and train them with an infinite deviation. A
-  rounded mean left a tiny nonzero variance, so these SNPs previously
-  standardized to +/-1. Constant 0/1/2 genotypes were unaffected.
+  to zero with Unit and Beta on every path, and train them with an infinite
+  deviation, so applying the trained standardizer to new values also gives
+  zero. A rounded mean left a tiny nonzero variance: on CuPy and the Python CPU
+  path (`force_python_only=True`) these SNPs standardized to +/-1, and on the
+  default native CPU path (fixed in bed-reader 1.3.0b3) they kept small
+  nonzero residues and trained a finite deviation. Constant 0/1/2 genotypes
+  were unaffected.
 * `xp=None` (`ARRAY_MODULE`, then NumPy) never copies existing values between
   the CPU and the GPU. Constructing `SnpData`, `KernelData`, `DistData`, or
   `PstData` from a NumPy or CuPy array of the other module, reading or building
