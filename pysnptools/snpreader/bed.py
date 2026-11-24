@@ -270,7 +270,6 @@ class Bed(SnpReader):
         Bed('tempdir/everyother.bed',count_A1=False)
         """
 
-        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         if isinstance(filename, SnpData) and isinstance(
             snpdata, str
         ):  # For backwards compatibility, reverse inputs if necessary
@@ -279,6 +278,7 @@ class Bed(SnpReader):
                 DeprecationWarning,
             )
             filename, snpdata = snpdata, filename
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
 
         if count_A1 is None:
             warnings.warn(

@@ -92,10 +92,10 @@ class Ped(_OneShot,SnpReader):
         Ped('tempdir/toydata10.ped')
         """
 
-        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         if isinstance(filename,SnpData) and isinstance(snpdata,str): #For backwards compatibility, reverse inputs if necessary
             warnings.warn("write statement should have filename before data to write", DeprecationWarning)
             filename, snpdata = snpdata, filename
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
 
         SnpReader._write_map_or_bim(snpdata, filename, remove_suffix="ped", add_suffix="map")
 

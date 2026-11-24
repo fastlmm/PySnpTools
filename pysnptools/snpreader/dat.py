@@ -121,7 +121,6 @@ class Dat(_OneShot, SnpReader):
         Dat('tempdir/toydata10.dat')
         """
 
-        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         if isinstance(filename, SnpData) and isinstance(
             snpdata, str
         ):  # For backwards compatibility, reverse inputs if necessary
@@ -130,6 +129,7 @@ class Dat(_OneShot, SnpReader):
                 DeprecationWarning,
             )
             filename, snpdata = snpdata, filename
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
 
         SnpReader._write_fam(snpdata, filename, remove_suffix="dat")
         SnpReader._write_map_or_bim(

@@ -152,15 +152,15 @@ class Dense(_OneShot, SnpReader):
         Dense('tempdir/toydata10.dense.txt')
         """
 
-        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         if isinstance(filename, SnpData) and isinstance(
-            snpdata, "str"
+            snpdata, str
         ):  # For backwards compatibility, reverse inputs if necessary
             warnings.warn(
                 "write statement should have filename before data to write",
                 DeprecationWarning,
             )
             filename, snpdata = snpdata, filename
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
 
         snpsarray = snpdata.val
         with open(filename, "w") as filepointer:

@@ -312,8 +312,8 @@ def test_text_readers_follow_array_module(cupy, tmp_path, kind):
 def test_writers_copy_gpu_values_to_numpy(cupy, tmp_path, monkeypatch):
     # Writing a file is an explicit request to leave the GPU: every writer
     # accepts CuPy-backed data (and GPU subsets) and writes the same values.
-    import os
-    from pysnptools.distreader import Bgen, DistData, DistHdf5, DistMemMap, DistNpz
+    # Bgen, which needs qctool, has its own test below.
+    from pysnptools.distreader import DistData, DistHdf5, DistMemMap, DistNpz
     from pysnptools.kernelreader import KernelData, KernelHdf5, KernelNpz
     from pysnptools.pstreader import PstData, PstHdf5, PstMemMap, PstNpz
     from pysnptools.snpreader import (Dat, Dense, DistributedBed, Ped, Pheno, SnpHdf5,
@@ -370,7 +370,50 @@ def test_writers_copy_gpu_values_to_numpy(cupy, tmp_path, monkeypatch):
                     DistMemMap.write(path("a.dist.memmap"), dist_gpu),
                     DistMemMap.write(path("b.dist.memmap"), dist_gpu[:, :])):
         np.testing.assert_allclose(written.read(xp=np).val, dist_values, rtol=1e-15)
-    if os.environ.get("QCTOOLPATH"):  # Bgen.write runs the external qctool
-        written = Bgen.write(path("a.bgen"), dist_gpu[:, :], bits=32)
+
+
+def test_bgen_writer_copies_gpu_values_to_numpy(cupy, tmp_path, monkeypatch):
+    # Bgen.write runs the external qctool; report a skip rather than passing silently.
+    import os
+    from pysnptools.distreader import Bgen, DistData
+
+    if not os.environ.get("QCTOOLPATH"):
+        pytest.skip("Bgen.write requires external qctool; set QCTOOLPATH (see the Testing section in README.md)")
+    monkeypatch.delenv("ARRAY_MODULE", raising=False)
+    iid = [["f", str(row)] for row in range(4)]
+    sid = ["s0", "s1", "s2"]
+    dist_values = np.full((4, 3, 3), 1 / 3)
+    dist_gpu = DistData(iid=iid, sid=sid, pos=[[1, 0, 1], [1, 0, 2], [1, 0, 3]],
+                        val=cupy.asarray(dist_values), xp=cupy)
+    for label, source in (("data", dist_gpu), ("subset", dist_gpu[:, :])):
+        written = Bgen.write(str(tmp_path / f"{label}.bgen"), source, bits=32)
         np.testing.assert_allclose(written.read(xp=np).val, dist_values, atol=1e-6)
         del written
+
+
+def test_writers_keep_layout_and_reversed_arguments(cupy, tmp_path, monkeypatch):
+    # The NumPy copy keeps F/C layout, and the deprecated (data, filename)
+    # order is normalized before the copy.
+    from pysnptools.snpreader import Dat, Dense, Ped
+    from pysnptools.util import _device, asnumpy
+
+    monkeypatch.delenv("ARRAY_MODULE", raising=False)
+    values = np.array([[0, 1, 2], [2, 1, 0], [1, 1, 1], [0, 2, 2]], dtype=np.float64)
+    for order in ("C", "F"):
+        gpu_values = cupy.array(values, order=order)
+        host = asnumpy(gpu_values)
+        assert host.flags["C_CONTIGUOUS" if order == "C" else "F_CONTIGUOUS"], order
+        data = SnpData(iid=[["f", str(row)] for row in range(4)], sid=["s0", "s1", "s2"],
+                       val=gpu_values, xp=cupy)
+        copied = _device.numpy_for_write(data)
+        assert isinstance(copied.val, np.ndarray)
+        assert copied.val.flags["C_CONTIGUOUS" if order == "C" else "F_CONTIGUOUS"], order
+    for name, reader_class in (("bed", Bed), ("dat", Dat), ("ped", Ped), ("dense", Dense)):
+        filename = str(tmp_path / f"reversed.{name}")
+        options = {"count_A1": True} if reader_class is Bed else {}
+        with pytest.warns(DeprecationWarning, match="filename before data"):
+            written = reader_class.write(data, filename, **options)
+        result = written.read(xp=np).val
+        for column in range(values.shape[1]):  # PED may count either allele
+            assert (np.array_equal(result[:, column], values[:, column])
+                    or (name == "ped" and np.array_equal(result[:, column], 2 - values[:, column]))), (name, column)

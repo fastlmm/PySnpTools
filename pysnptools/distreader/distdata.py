@@ -126,7 +126,7 @@ class DistData(PstData, DistReader):
 
     @property
     def val(self):
-        """The 3D NumPy array of floats that represents the distribution of SNP values. You can get or set this property.
+        """The 3D NumPy or CuPy array of floats that represents the distribution of SNP values. You can get or set this property.
 
         >>> from pysnptools.distreader import Bgen
         >>> from pysnptools.util import example_file # Download and return local file name

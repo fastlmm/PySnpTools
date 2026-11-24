@@ -787,7 +787,8 @@ def asnumpy(a):
     """
     if isinstance(a, np.ndarray):
         return a
-    return a.get()
+    # CuPy's get() defaults to C order; keep an F-contiguous array F-contiguous.
+    return a.get(order="F" if a.flags.f_contiguous and not a.flags.c_contiguous else "C")
 
 
 def get_array_module(a):
