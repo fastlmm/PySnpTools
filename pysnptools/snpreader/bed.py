@@ -49,8 +49,8 @@ class Bed(SnpReader):
 
     **Methods beyond** :class:`.SnpReader`
 
-        The :meth:`.SnpReader.read` method returns a :class:`SnpData` with a :attr:`SnpData.val` ndarray. By default, this ndarray is
-        numpy.float64. Optionally, it can be numpy.float32, or numpy.int8 with
+        The :meth:`.SnpReader.read` method returns a :class:`SnpData` with a :attr:`SnpData.val` ndarray. By default, this ndarray uses
+        ARRAY_DTYPE, then numpy.float64. Optionally, it can be numpy.float32, or numpy.int8 with
         ``_require_float32_64=False`` and missing values represented by -127.
         Float16 is not supported. ``xp`` selects NumPy/CuPy at read time.
         BED decoding uses the CPU, including ``force_python_only`` and CPU thread
@@ -342,7 +342,6 @@ class Bed(SnpReader):
         )
 
         return val
-
 
 
 if __name__ == "__main__":

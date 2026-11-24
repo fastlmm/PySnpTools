@@ -30,6 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `DistReader.read`, and `PstReader.read` gain an `xp` parameter. Memory-mapped
   readers now keep their values as NumPy arrays under `ARRAY_MODULE=cupy`.
   `LocalMultiThread` runs each task in a copy of the caller's context.
+* `read_kernel` now honors an explicit `block_size` even when the SNP count does
+  not exceed the sample count (it previously computed such kernels in one
+  product), so those kernels can differ in the last bits of rounding.
+  `SnpData.standardize(block_size=...)` now warns that `block_size` is
+  deprecated, like the standardizers themselves.
 * `Unit().standardize` no longer consults `ARRAY_MODULE` to move NumPy values
   to CuPy; like every standardizer, it now works on the values' existing
   device. Read with `xp="cupy"` (or with `ARRAY_MODULE=cupy` set) to get GPU

@@ -210,7 +210,7 @@ class SnpData(PstData, SnpReader):
              values before filling missing values with zero) and :class:`.Beta`.
         :type standardizer: :class:`.Standardizer`
 
-        :param block_size: Deprecated and ignored; this wrapper does not forward it.
+        :param block_size: Deprecated and ignored; supplying a value warns.
         :type block_size: None
 
         :param return_trained: If true, returns a second value containing a constant :class:`.Standardizer` trained on this data.
@@ -244,6 +244,8 @@ class SnpData(PstData, SnpReader):
         >>> print('{0:.6f}'.format(snpdata2.val[0,0]))
         0.229416
         """
+        if block_size is not None:
+            warnings.warn("block_size is deprecated (and not needed, since standardization is in-place", DeprecationWarning)
         self._std_string_list.append(str(standardizer))
         _, trained = standardizer.standardize(
             self,

@@ -246,9 +246,8 @@ values, including negative values; Beta is for allele counts/dosages with valid
 allele-frequency means. CPU and GPU rounding need not be identical, especially
 for large offsets and small variance.
 
-For Unit/Beta standardizer methods, ``block_size`` is deprecated, ignored, and
-warns when supplied directly. ``SnpData.standardize(block_size=...)`` currently
-ignores it without forwarding a warning. ``force_python_only=True`` selects the
+For Unit/Beta standardizer methods and ``SnpData.standardize``, ``block_size`` is
+deprecated, ignored, and warns when supplied. ``force_python_only=True`` selects the
 NumPy implementation on CPU but is ignored for CuPy arrays; it never transfers
 them to the CPU. ``num_threads`` applies to native CPU standardization and is
 ignored for CuPy. Constant training columns receive zero Beta weight before

@@ -268,6 +268,16 @@ class TestBetaPython(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "training SNP IDs repeat"):
                     target.standardize(trained)
 
+    def test_snpdata_standardize_block_size_warns(self):
+        # Like the standardizers themselves, the SnpData wrapper warns for the
+        # deprecated, ignored block_size instead of dropping it silently.
+        from pysnptools.snpreader import SnpData
+
+        data = SnpData(iid=[["f", "0"], ["f", "1"]], sid=["s"], val=np.array([[0.0], [2.0]]))
+        with self.assertWarnsRegex(DeprecationWarning, "block_size is deprecated"):
+            data.standardize(Unit(), block_size=1)
+        np.testing.assert_array_equal(data.val, [[-1.0], [1.0]])
+
     def test_trained_checks_survive_optimize(self):
         # Under python -O, plain assert statements vanish. Run each user-input
         # check in a subprocess with -O and require its AssertionError.
