@@ -10,14 +10,13 @@ Never publish, approve a PyPI deployment, push a release tag, or merge to
 ## Where things stand
 
 - Branch `cupy-sub-matrix`, open as PR #25 against `main`.
-- Last pushed commit: `d200e3b`. CI run 45315324932 passed every job. It
-  superseded and canceled run 45313830400 on `d48b746`.
-- Committed locally, **not yet pushed**: `1036b40` (batch 8 agent-review
-  fixes), `0369f49` (Carl's blocking batch 8 adjustments, broader supported-
-  platform pytest coverage, and deletion of two completed specs), and `4645f66`
-  (the refreshed handoff), followed by this approval update. Carl approved
-  batch 8. Push these commits, then monitor every new CI job and report status
-  changes (see Carl's CI rule in
+- Last pushed commit: `8a9c624`. CI run 45318470876 passed all 39 jobs.
+- Committed locally, **not yet pushed**: `9d6f294`. A post-approval review found
+  that blocked `DiagKtoN` kernels fitted one normalization factor per block;
+  the commit scales the summed kernel once, returns `DiagKtoNTrained`, adds CPU
+  and GPU regressions, and rejects invalid manually supplied `UnitTrained`
+  deviations before mutation. This handoff refresh follows it. Push both, then
+  monitor every new CI job and report status changes (see Carl's CI rule in
   `~/.codex/AGENTS.md`).
 - Version `1.1.0b1`; requires `bed-reader[samples]>=1.3.0b3` (published on
   PyPI and crates.io). `uv.lock` is refreshed against the published b3.
@@ -66,6 +65,25 @@ After each approval, update the batch row in FaST-LMM
 - Carl approved deleting `GPU_DOCUMENTATION_AUDIT.md` (materially stale) and
   `SAMPLE_MANIFEST_INTEGRITY_SPEC.md` (released in 1.0.1); `0369f49` deletes
   both. Keep this handoff through publication.
+
+### Post-approval correctness fix
+
+Review after the eight batches found one real kernel bug in code already marked
+approved. On the blocked path, `DiagKtoN()` was fitted independently to every
+SNP block, making the kernel trace equal `iid_count` times the block count; the
+old code also failed to merge its trained results. Commit `9d6f294` accumulates
+unstandardized block kernels, fits one factor to the complete sum, and returns a
+`DiagKtoNTrained`. Its regression covers wide and narrow inputs, both dtypes,
+and `SnpKernel`; a small GPU regression covers the device-specific trace path.
+The same review noted that a manually constructed `UnitTrained` with zero
+deviation produced NaN/infinity. The commit makes nonpositive/nonfinite
+deviations fail with `ValueError`; positive infinity remains the constant-SNP
+marker.
+
+Focused validation at `9d6f294`: kernel-reader module 22 tests plus 12 subtests;
+`UnitTrained` focused tests 2 tests plus 6 subtests; its doctest and Ruff passed.
+The newly added GPU test was collected but skipped because the current process
+had no usable CUDA device; rerun GPU qualification before release.
 
 ## Decisions Carl made (do not reopen)
 
