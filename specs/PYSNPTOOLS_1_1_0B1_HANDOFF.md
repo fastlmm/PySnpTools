@@ -2,7 +2,7 @@
 
 # PySnpTools 1.1.0b1: handoff
 
-Written November 23, 2026, for the agent taking over. Read `AGENTS.md` here
+Written November 23, 2026, and refreshed November 24, 2026. Read `AGENTS.md` here
 and in FaST-LMM first; Carl's personal rules are in `~/.codex/AGENTS.md`.
 Never publish, approve a PyPI deployment, push a release tag, or merge to
 `main` yourself: prepare everything and give Carl the exact commands.
@@ -10,22 +10,19 @@ Never publish, approve a PyPI deployment, push a release tag, or merge to
 ## Where things stand
 
 - Branch `cupy-sub-matrix`, open as PR #25 against `main`.
-- Last pushed commit: `8a9c624`. CI run 45318470876 passed all 39 jobs.
-- Committed locally, **not yet pushed**: `9d6f294`. A post-approval review found
-  that blocked `DiagKtoN` kernels fitted one normalization factor per block;
-  the commit scales the summed kernel once, returns `DiagKtoNTrained`, adds CPU
-  and GPU regressions, and rejects invalid manually supplied `UnitTrained`
-  deviations before mutation. This handoff refresh follows it. Push both, then
-  monitor every new CI job and report status changes (see Carl's CI rule in
-  `~/.codex/AGENTS.md`).
+- Corrected implementation head: `0510bfc`. CI run 45417729712 passed all 39
+  jobs on attempt 3. On attempts 1 and 2, GitHub cancelled the same
+  `macos-15` Python 3.11 job before assigning a runner or running a step; the
+  failed-job rerun eventually executed it successfully, then the aggregate
+  `CI result` gate passed.
 - Version `1.1.0b1`; requires `bed-reader[samples]>=1.3.0b3` (published on
   PyPI and crates.io). `uv.lock` is refreshed against the published b3.
-- Full local validation passed against the published b3 (legacy runner, full
-  pytest, GPU tests, BGEN, strict docs, wheel and sdist installed in clean
-  venvs on Python 3.11 and 3.14 with CuPy and 3.15 without). Later commits
-  passed the legacy runner, full pytest, GPU tests, and docs locally, but
-  the full artifact validation must be **rerun on the final head** (see
-  below).
+- Full local validation passed at `0510bfc` against the published b3: legacy
+  runner, full pytest, explicit GPU tests, BGEN, strict docs, and wheel and
+  sdist installed outside the repository in clean Python 3.11 and 3.14
+  environments with CuPy, HDF5, and BGEN and Python 3.15 core environments
+  without CuPy. The release-record refresh after that validation is
+  documentation-only; rerun the applicable final checks and CI on its commit.
 
 ## Carl's review against `main`
 
@@ -82,8 +79,20 @@ marker.
 
 Focused validation at `9d6f294`: kernel-reader module 22 tests plus 12 subtests;
 `UnitTrained` focused tests 2 tests plus 6 subtests; its doctest and Ruff passed.
-The newly added GPU test was collected but skipped because the current process
-had no usable CUDA device; rerun GPU qualification before release.
+Final source validation at `0510bfc` ran on a usable CUDA device: 781 legacy
+tests; 348 pytest tests, 59 subtests, and one expected macOS-only skip; 114
+explicit GPU tests with no skips; 20 BGEN tests with one expected skip; and
+strict documentation all passed. The GPU set includes the new blocked
+`DiagKtoN` regression.
+
+Clean installed-artifact validation at `0510bfc` passed for both the wheel and
+sdist. Python 3.11 and 3.14, with the CuPy, HDF5, and BGEN extras, each passed
+146 tests and 59 subtests and resolved published `bed-reader 1.3.0b3`. Python
+3.15 core-only wheel and sdist environments each passed 43 CPU tests and 59
+subtests; the 103 CuPy tests skipped as expected because CuPy 14.2 does not
+publish Python 3.15 artifacts. The first artifact-harness attempt requested
+only the CuPy extra while running HDF5/BGEN writer tests; after correcting the
+external harness to install all three tested extras, the full matrix passed.
 
 ## Decisions Carl made (do not reopen)
 
@@ -103,34 +112,31 @@ had no usable CUDA device; rerun GPU qualification before release.
 
 ## Remaining steps, in order
 
-1. Push the local PySnpTools commits, then monitor the new PR CI run job by job
-   through its final result.
-2. Rerun the full validation on the final pushed head:
-   `bash /mnt/c/deldir/pysnptools-1.1.0b1/validate.sh source` then
-   `... validate.sh artifacts` (logs in `/mnt/c/deldir/pysnptools-1.1.0b1/logs/`).
-   Confirm the logged commit is the final head and the tree is clean.
-3. Release gate (`AGENTS.md`, `RELEASING.md` "Publish"): re-read FaST-LMM
+1. Commit and push this documentation-only release-record refresh. Rerun the
+   applicable final checks on that exact head and monitor PR CI through its
+   final result.
+2. Release gate (`AGENTS.md`, `RELEASING.md` "Publish"): re-read FaST-LMM
    `specs/todo.md` (shared), this `specs/` folder, open issues and PRs
    (`gh issue list`, `gh pr list`), and `git grep -niE "todo0|cmk0"`. List
    every item for Carl as included or deferred, with the reason. At handoff:
    issue #26 is fixed on this branch (PR #27 is superseded: recommend closing
    it, and closing #26 when #25 merges); PR #24 (Dependabot `uv_build`
    0.12.24 to 0.13.7) was deferred as a separate build-backend change.
-4. Give Carl the publish commands (RELEASING.md requires a clean commit on
+3. Give Carl the publish commands (RELEASING.md requires a clean commit on
    `main`): merge PR #25 (Carl's action), confirm `main` CI, confirm
    1.1.0b1 is not on PyPI, then
    `git tag -a v1.1.0b1 -m "PySnpTools 1.1.0b1"` and
    `git push origin v1.1.0b1`; Carl approves the `pypi` environment and
    creates the GitHub release from the changelog.
-5. After Carl publishes, remind him to consider yanking PySnpTools 1.1.0a1
+4. After Carl publishes, remind him to consider yanking PySnpTools 1.1.0a1
    (its unbounded `bed-reader>=1.3.0a1` and `bed-reader[cupy]` extra no
    longer work with the CPU-only bed-reader).
 
 ## FaST-LMM side (Part 2 of the original request)
 
-Branch `gpu-bed-reader`, pushed at `1a4c88d`. Local commits `b88c6bd` and
-`d3dc0e9` record Carl's PySnpTools batch 7 and 8 approvals and are not yet
-pushed. Already done there:
+Branch `gpu-bed-reader`, pushed through `3744a9b`. It records Carl's eight
+PySnpTools batch approvals and the post-review kernel correction. Already done
+there:
 
 - `a958625`: the CPU-only predictor methods read covariates and phenotypes
   with `xp=np` (found by running FaST-LMM under `ARRAY_MODULE=cupy` against

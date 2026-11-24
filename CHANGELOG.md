@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0b1] - 2026-11-23
+## [1.1.0b1] - 2026-11-24
 
 * Withdraw the 1.1.0a1 GPU features that were built on bed-reader's GPU code:
   CubeCL-backed GPU allocation and storage, native GPU standardization, and the
