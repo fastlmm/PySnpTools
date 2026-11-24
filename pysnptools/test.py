@@ -220,6 +220,7 @@ class TestBetaPython(unittest.TestCase):
     def test_trained_checks_survive_optimize(self):
         # Under python -O, plain assert statements vanish. Run each user-input
         # check in a subprocess with -O and require its AssertionError.
+        import os
         import subprocess
         import sys
 
@@ -266,8 +267,9 @@ Beta(1, 25)._merge_trained([BetaTrained(1, 25, ["s0"], np.ones((1, 2))),
         messages = {"blocked sid": "sid in training and use", "blocked stats": "stats must have size"}
         for name, body in cases.items():
             with self.subTest(check=name):
+                environment = {name: value for name, value in os.environ.items() if name != "ARRAY_MODULE"}
                 completed = subprocess.run([sys.executable, "-O", "-c", script + body],
-                                           capture_output=True, text=True, check=False)
+                                           capture_output=True, text=True, check=False, env=environment)
                 self.assertNotEqual(completed.returncode, 0, completed.stdout)
                 last_line = completed.stderr.strip().splitlines()[-1]
                 self.assertTrue(last_line.startswith("AssertionError: "), completed.stderr)

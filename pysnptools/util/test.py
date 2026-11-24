@@ -231,6 +231,7 @@ class TestUtilTools(unittest.TestCase):
 
     def test_snpdata_subset_cupy(self):
         # End to end: SnpData created under ARRAY_MODULE=cupy holds a cupy val and must subset.
+        # An existing NumPy array needs an explicit xp; xp=None never copies it to the GPU.
         try:
             import cupy as cp
         except ModuleNotFoundError:
@@ -239,7 +240,10 @@ class TestUtilTools(unittest.TestCase):
         from pysnptools.snpreader import SnpData
         val = np.arange(24, dtype=np.float64).reshape(6, 4)
         with patch.dict("os.environ", {"ARRAY_MODULE": "cupy"}):
-            snpdata = SnpData(iid=[["f", str(i)] for i in range(6)], sid=[f"s{j}" for j in range(4)], val=val)
+            iid, sid = [["f", str(i)] for i in range(6)], [f"s{j}" for j in range(4)]
+            with self.assertRaisesRegex(ValueError, "xp=None selects cupy"):
+                SnpData(iid=iid, sid=sid, val=val)
+            snpdata = SnpData(iid=iid, sid=sid, val=val, xp="cupy")
             assert isinstance(snpdata.val, cp.ndarray)
             subset = snpdata[np.array([True, False, True, True, False, True]), [3, 1]].read()
         # The subset stays on the GPU with its dtype (cp.asnumpy would also accept numpy).
@@ -247,7 +251,8 @@ class TestUtilTools(unittest.TestCase):
         np.testing.assert_array_equal(cp.asnumpy(subset.val), val[[0, 2, 3, 5]][:, [3, 1]])
 
     def test_snpdata_cupy_keeps_dtype(self):
-        # A val moved between numpy and cupy keeps the dtype that same-module input keeps.
+        # A val moved between numpy and cupy (explicit xp; xp=None raises) keeps the
+        # dtype that same-module input keeps.
         try:
             import cupy as cp
         except ModuleNotFoundError:
@@ -267,7 +272,9 @@ class TestUtilTools(unittest.TestCase):
             with patch.dict("os.environ", {"ARRAY_MODULE": array_module}):
                 for in_dtype, require, out_dtype in cases:
                     val = source.ones((3, 2), dtype=in_dtype)
-                    snpdata = SnpData(iid=iid, sid=sid, val=val, _require_float32_64=require)
+                    with self.assertRaisesRegex(ValueError, f"xp=None selects {target.__name__}"):
+                        SnpData(iid=iid, sid=sid, val=val, _require_float32_64=require)
+                    snpdata = SnpData(iid=iid, sid=sid, val=val, _require_float32_64=require, xp=target)
                     assert isinstance(snpdata.val, target.ndarray), (array_module, in_dtype)
                     assert snpdata.val.dtype == out_dtype, (array_module, in_dtype, require, snpdata.val.dtype)
                     # Same-module input keeps the same dtype.

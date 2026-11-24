@@ -211,6 +211,7 @@ class PstMemMap(PstData):
             row_property,
             col_property,
             name="np.memmap('{0}')".format(filename),
+            xp=np,  # a memory map is always a NumPy array
         )
 
     def _run_once(self):
@@ -225,6 +226,7 @@ class PstMemMap(PstData):
             row_property,
             col_property,
             name="np.memmap('{0}')".format(self._filename),
+            xp=np,  # a memory map is always a NumPy array
         )
 
     def _run_once_inner(self):

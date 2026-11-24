@@ -2,6 +2,7 @@ import numpy as np
 from itertools import *  # noqa: F403
 import logging
 import pysnptools.util as pstutil
+from pysnptools.util import _device
 import numbers
 
 try:
@@ -421,6 +422,7 @@ class PstReader(object):
         raise NotImplementedError
 
     # !!check that views always return contiguous memory by default
+    @_device.read_entry
     def read(
         self,
         order="F",
@@ -428,6 +430,7 @@ class PstReader(object):
         force_python_only=False,
         view_ok=False,
         num_threads=None,
+        xp=None,
     ):
         """Reads the matrix values and returns a :class:`.PstData` (with :attr:`PstData.val` property containing a new ndarray of the matrix values).
 
@@ -461,6 +464,15 @@ class PstReader(object):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
 
+        :param xp: NumPy or CuPy module or name. An explicit value overrides
+            ARRAY_MODULE and copies in-memory values to that module if needed.
+            Only None consults the environment; NumPy is the final default. With
+            None, reading in-memory NumPy or CuPy values from the other module
+            raises ValueError instead of copying them between devices; values
+            read from files follow the default.
+            Missing CuPy raises ImportError. See :doc:`/gpu` for complete examples.
+        :type xp: module, str, or None
+
 
         :rtype: :class:`.PstData`
 
@@ -485,6 +497,7 @@ class PstReader(object):
         >>> # print(np.may_share_memory(subset_snpdata.val, subsub_snpdata.val)) # Do the two ndarray's share memory? They could. Currently they won't.
         """
         dtype = pstutil.array_dtype(dtype)
+        xp = pstutil.array_module(xp)
         val = self._read(
             None, None, order, dtype, force_python_only, view_ok, num_threads
         )
@@ -497,6 +510,7 @@ class PstReader(object):
             row_property=self.row_property,
             col_property=self.col_property,
             name=str(self),
+            xp=xp,
         )
         return ret
 

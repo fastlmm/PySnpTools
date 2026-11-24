@@ -188,7 +188,10 @@ def test_other_ranks_and_int8_remain_supported_storage(cupy):
 
     values = np.arange(12, dtype=np.float32).reshape(2, 3, 2)
     with patch.dict("os.environ", {"ARRAY_MODULE": "cupy"}):
-        target = PstData(row=["0", "1"], col=["s0", "s1", "s2"], val=values)
+        # An existing NumPy array never moves to CuPy implicitly.
+        with pytest.raises(ValueError, match="xp=None selects cupy"):
+            PstData(row=["0", "1"], col=["s0", "s1", "s2"], val=values)
+    target = PstData(row=["0", "1"], col=["s0", "s1", "s2"], val=values, xp=cupy)
     np.testing.assert_array_equal(cupy.asnumpy(target.val), values)
     integer = SnpData(iid=[["f", "0"], ["f", "1"]], sid=["s"],
                       val=cupy.ones((2, 1), dtype=cupy.int8), xp=cupy, _require_float32_64=False)

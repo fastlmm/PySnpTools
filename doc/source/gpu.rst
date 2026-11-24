@@ -35,6 +35,26 @@ both, NumPy is used. Missing CuPy raises ``ImportError``. An unknown module name
 raises ``ValueError``; a successful CuPy import does not establish driver or
 hardware availability. There is no automatic CPU retry after a GPU error.
 
+``xp=None`` never copies existing values between the CPU and the GPU. If a
+constructor (``SnpData``, ``KernelData``, ``DistData``, or ``PstData``) receives a
+NumPy or CuPy ``val`` from the other module, or a read or kernel's in-memory
+source is on the other module, PySnpTools raises ``ValueError``; pass ``xp=``
+explicitly to copy the values. Lists, ``val=None``, and values decoded from files
+(including memory maps) have no device, so they follow the default. Assigning to
+``.val`` requires an array from the object's own module::
+
+    import cupy as cp
+    from pysnptools.snpreader import SnpData
+
+    iid = [["family", "0"], ["family", "1"]]
+    gpu_values = cp.array([[0.0], [2.0]], dtype=cp.float32)
+    try:
+        SnpData(iid=iid, sid=["snp0"], val=gpu_values)  # ARRAY_MODULE unset
+    except ValueError:
+        pass  # xp=None selects NumPy, but the values are on the GPU
+    gpu = SnpData(iid=iid, sid=["snp0"], val=gpu_values, xp="cupy")  # stays on the GPU
+    host = gpu.read(xp="numpy")  # explicit copy to the CPU
+
 ``ARRAY_DTYPE`` supplies a shared precision default for reads, kernels, GPU
 allocation, and untyped/list construction. Explicit dtype wins; None or omission
 uses this environment variable, then each API's original default. PySnpTools
@@ -85,21 +105,26 @@ do not emit this warning. Float32 storage does not remove every float64 operatio
    * - API or option
      - Default
      - Behavior
-   * - ``SnpData(..., xp=...)``, ``KernelData(..., xp=...)``
+   * - ``SnpData``, ``KernelData``, ``DistData``, ``PstData`` (``xp=...``)
      - ``xp=None``
-     - Selects the module for values; metadata remains NumPy. Float32/float64
-       inputs keep their dtype across transfers. Lists and integers normally
-       use ARRAY_DTYPE, then float64. Same-module floating arrays can share storage.
-   * - ``SnpReader.read``, ``KernelReader.read``
+     - Selects the module for values; metadata remains NumPy. Explicit ``xp``
+       copies an array from the other module; ``xp=None`` raises ``ValueError``
+       for one. Float32/float64 inputs keep their dtype across transfers. Lists
+       and integers normally use ARRAY_DTYPE, then float64. Same-module floating
+       arrays can share storage.
+   * - ``SnpReader.read``, ``KernelReader.read``, ``DistReader.read``, ``PstReader.read``
      - ``xp=None``, ``dtype=None``, ``order="F"``
-     - Return ``SnpData`` or ``KernelData``. Every read chooses its backend
-       independently of the constructor. None uses ARRAY_DTYPE, then float64,
-       independently of the source dtype. Explicit dtype overrides the environment.
+     - Return ``SnpData``, ``KernelData``, ``DistData``, or ``PstData``. Explicit
+       ``xp`` chooses the backend, copying in-memory values if needed; with
+       ``xp=None``, in-memory values from the other module raise ``ValueError``.
+       None dtype uses ARRAY_DTYPE, then float64, independently of the source
+       dtype. Explicit dtype overrides the environment.
    * - ``SnpReader.read_kernel``
      - ``standardizer=None``, ``block_size=None``, ``order="A"``
      - A standardizer is required despite the ``None`` signature default;
        omitting it raises ``AssertionError``. Returns ``KernelData``.
-       Omitted dtype uses ARRAY_DTYPE, then float64; ``xp=None`` uses ARRAY_MODULE.
+       Omitted dtype uses ARRAY_DTYPE, then float64; ``xp=None`` uses ARRAY_MODULE
+       and raises ``ValueError`` if the in-memory SNP values are on the other module.
    * - ``order``
      - As above
      - ``F`` varies the first index fastest; ``C`` varies the last index

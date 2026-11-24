@@ -6,6 +6,7 @@ from pysnptools.kernelreader import KernelReader
 from pysnptools.pstreader import PstData
 from pysnptools.kernelstandardizer import DiagKtoN
 import pysnptools.util as pstutil
+from pysnptools.util import _device
 
 
 class KernelData(KernelReader, PstData):
@@ -27,8 +28,10 @@ class KernelData(KernelReader, PstData):
                      * **val** (a 2-D array of floats) -- The kernel values
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **xp** (optional, a Python module or string) -- The array module that controls **val**,
-                               for example, 'numpy' or 'cupy'. An explicit choice overrides ARRAY_MODULE;
-                               None uses the environment, then NumPy. Missing CuPy raises ImportError.
+                               for example, 'numpy' or 'cupy'. An explicit choice overrides ARRAY_MODULE and
+                               copies **val** to that module if needed. None uses the environment, then NumPy,
+                               and raises ValueError if **val** is a NumPy or CuPy array from the other module.
+                               Missing CuPy raises ImportError.
 
         If *iid* is provided, don't provide *iid0* and *iid1*. Likewise, if *iid0* and *iid1* are provided, don't provide *iid*.
 
@@ -83,7 +86,7 @@ class KernelData(KernelReader, PstData):
         xp=None,
     ):  # !!!autodoc doesn't generate good doc for this constructor
         # We don't have a 'super(KernelData, self).__init__()' here because KernelData takes full responsibility for initializing both its superclasses
-        xp = pstutil.array_module(xp)
+        xp = _device.resolve(xp, val, "KernelData val")
         self._val = None
 
         # !!why does SnpData __init__ have a copy_inputs, but KernelData doesn't?
@@ -155,6 +158,7 @@ class KernelData(KernelReader, PstData):
 
     @val.setter
     def val(self, new_value):
+        _device.check_assignment(new_value, self._xp, "KernelData val")
         self._val = PstData._fixup_input_val(
             new_value,
             row_count=len(self._row),

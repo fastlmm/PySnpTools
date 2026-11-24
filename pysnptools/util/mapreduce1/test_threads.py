@@ -304,3 +304,20 @@ Path(os.environ["PYSNPTOOLS_THREAD_STARTUP"], str(os.getpid()) + ".json").write_
             self.assertTrue(all(threads == 1 for path, threads in record["pools"]), record)
             self.assertEqual(record["environment"], {name: "1" for name in _THREAD_VARIABLES})
         self.assertEqual(_snapshot(), self.before)
+
+
+class TestRunnerContext(unittest.TestCase):
+    def test_local_multi_thread_copies_caller_context(self):
+        # PySnpTools' implicit-xp read check lives in a context variable; worker
+        # threads must see the caller's value (Python 3.11-3.13 threads start empty).
+        from contextvars import ContextVar
+        from pysnptools.util.mapreduce1.runner import LocalMultiThread
+
+        variable = ContextVar("pysnptools_test_runner_context", default="unset")
+        token = variable.set("caller")
+        try:
+            seen = map_reduce(range(4), mapper=lambda _: variable.get(), reducer=list,
+                              runner=LocalMultiThread(2))
+        finally:
+            variable.reset(token)
+        self.assertEqual(seen, ["caller"] * 4)

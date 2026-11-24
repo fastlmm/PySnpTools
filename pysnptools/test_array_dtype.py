@@ -119,3 +119,35 @@ def test_distribution_reader_precision(monkeypatch, configured):
     np.testing.assert_array_equal(actual.val, values)
     assert distributions.read(dtype="float64").val.dtype == np.float64
     assert distributions.as_snp().read().val.dtype == np.dtype(configured)
+
+
+@pytest.mark.parametrize("backend", ["numpy", "cupy"])
+def test_containers_pickle(backend):
+    # Containers store their array module, which pickle cannot serialize directly.
+    import pickle
+
+    from pysnptools.distreader import DistData
+
+    if backend == "cupy" and not has_gpu_support():
+        pytest.skip("requires CuPy and a usable CUDA device")
+    xp = np if backend == "numpy" else __import__("cupy")
+    iid = [["f", "0"], ["f", "1"]]
+    containers = [
+        SnpData(iid=iid, sid=["s"], val=xp.zeros((2, 1)), xp=xp),
+        KernelData(iid=iid, val=xp.eye(2), xp=xp),
+        PstData(row=["a", "b"], col=["c"], val=xp.zeros((2, 1)), xp=xp),
+        DistData(iid=iid, sid=["s"], val=xp.full((2, 1, 3), 1 / 3), xp=xp),
+    ]
+    for container in containers:
+        restored = pickle.loads(pickle.dumps(container))
+        assert type(restored) is type(container) and restored._xp is xp
+        assert isinstance(restored.val, xp.ndarray)
+        np.testing.assert_array_equal(xp.asnumpy(restored.val) if xp is not np else restored.val,
+                                      xp.asnumpy(container.val) if xp is not np else container.val)
+        restored.val = xp.ones_like(container.val)  # the setter still knows the module
+        # A state pickled before PstData and DistData stored a module takes it from val.
+        state = container.__getstate__()
+        del state["_xp"]
+        legacy = type(container).__new__(type(container))
+        legacy.__setstate__(state)
+        assert legacy._xp is xp

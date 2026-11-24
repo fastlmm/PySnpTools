@@ -188,3 +188,122 @@ def test_non_bed_readers_decode_on_cpu_then_use_cupy(cupy, tmp_path, kind, order
     # Float64 blocked accumulation; only the reduction order differs.
     np.testing.assert_allclose(cupy.asnumpy(gpu_kernel), cpu_kernel,
                                rtol=1e-12, atol=1e-12 * np.abs(cpu_kernel).max())
+
+
+def _containers(cupy, xp):
+    """Return a factory for each in-memory container, holding ``xp`` values."""
+    from pysnptools.distreader import DistData
+    from pysnptools.kernelreader import KernelData
+    from pysnptools.pstreader import PstData
+
+    iid = [["f", "0"], ["f", "1"]]
+    snp_values = xp.asarray(np.array([[0.0, 1.0], [2.0, 1.0]], dtype=np.float32))
+    kernel_values = xp.asarray(np.array([[1.0, 0.5], [0.5, 1.0]], dtype=np.float32))
+    dist_values = xp.asarray(np.full((2, 2, 3), 1 / 3, dtype=np.float32))
+    return {
+        "SnpData": lambda **kw: SnpData(iid=iid, sid=["s0", "s1"], val=snp_values, **kw),
+        "KernelData": lambda **kw: KernelData(iid=iid, val=kernel_values, **kw),
+        "PstData": lambda **kw: PstData(row=["r0", "r1"], col=["c0", "c1"], val=snp_values, **kw),
+        "DistData": lambda **kw: DistData(iid=iid, sid=["s0", "s1"], val=dist_values, **kw),
+    }
+
+
+@pytest.mark.parametrize("environment", [None, "numpy", "cupy"])
+def test_implicit_device_transfer_raises(cupy, environment):
+    # xp=None means ARRAY_MODULE, then NumPy. An existing NumPy or CuPy array
+    # from the other module must not be copied between devices implicitly.
+    import os
+
+    with patch.dict("os.environ"):
+        os.environ.pop("ARRAY_MODULE", None)
+        if environment is not None:
+            os.environ["ARRAY_MODULE"] = environment
+        default = cupy if environment == "cupy" else np
+        other = np if default is cupy else cupy
+        for name, factory in _containers(cupy, other).items():
+            with pytest.raises(ValueError, match=f"{name} val is a {other.__name__} array, "
+                                                 f"but xp=None selects {default.__name__}"):
+                factory()
+            for xp in (np, cupy):  # an explicit module keeps or copies the values
+                data = factory(xp=xp)
+                assert isinstance(data.val, xp.ndarray), (name, xp)
+            # Reads from in-memory values follow the same rule.
+            source = factory(xp=other)
+            with pytest.raises(ValueError, match="xp=None selects"):
+                source.read()
+            with pytest.raises(ValueError, match="xp=None selects"):
+                source[:1, :].read()
+            for xp in (np, cupy):
+                assert isinstance(source.read(xp=xp).val, xp.ndarray), (name, xp)
+                assert isinstance(source[:1, :].read(xp=xp).val, xp.ndarray), (name, xp)
+            # Same-module values are untouched by the default.
+            same = factory(xp=default)
+            assert isinstance(same.read().val, default.ndarray), name
+
+
+def test_implicit_kernel_reads_raise(cupy, monkeypatch):
+    monkeypatch.delenv("ARRAY_MODULE", raising=False)  # these cases assume the NumPy default
+    from pysnptools.kernelreader import SnpKernel
+
+    iid = [["f", str(row)] for row in range(4)]
+    values = np.array([[0, 1, 2], [1, 1, 0], [2, 0, 1], [0, 2, 2]], dtype=np.float32)
+    gpu = SnpData(iid=iid, sid=["s0", "s1", "s2"], val=cupy.asarray(values), xp=cupy)
+    for block_size in (None, 1):
+        with pytest.raises(ValueError, match="SnpData val is a cupy array"):
+            gpu.read_kernel(Unit(), block_size=block_size)
+        with pytest.raises(ValueError, match="SnpData val is a cupy array"):
+            SnpKernel(gpu, Unit(), block_size=block_size).read()
+        # An explicit outer request covers the internal block reads it makes.
+        for xp in (np, cupy):
+            kernel = gpu.read_kernel(Unit(), block_size=block_size, xp=xp)
+            assert isinstance(kernel.val, xp.ndarray)
+            snpkernel = SnpKernel(gpu, Unit(), block_size=block_size).read(xp=xp)
+            assert isinstance(snpkernel.val, xp.ndarray)
+        cpu_kernel = gpu.read_kernel(Unit(), block_size=block_size, xp=np).val
+        np.testing.assert_allclose(cupy.asnumpy(gpu.read_kernel(Unit(), block_size=block_size, xp=cupy).val),
+                                   cpu_kernel, rtol=1e-5, atol=1e-5)
+
+
+def test_val_assignment_keeps_module(cupy, monkeypatch):
+    monkeypatch.delenv("ARRAY_MODULE", raising=False)  # these cases assume the NumPy default
+    for name, factory in _containers(cupy, np).items():
+        for xp, other in ((np, cupy), (cupy, np)):
+            data = factory(xp=xp)
+            replacement = other.asarray(np.asarray(factory(xp=np).val))
+            with pytest.raises(ValueError, match=f"{name} val is a {xp.__name__} array; "
+                                                 f"cannot assign a {other.__name__} array"):
+                data.val = replacement
+            data.val = xp.asarray(np.asarray(factory(xp=np).val))  # same module is fine
+            assert isinstance(data.val, xp.ndarray)
+
+
+def test_files_and_memory_maps_follow_the_default(cupy, monkeypatch, tmp_path):
+    monkeypatch.delenv("ARRAY_MODULE", raising=False)  # these cases assume the NumPy default
+    from pysnptools.snpreader import SnpMemMap
+
+    # Values decoded from a file have no device, so ARRAY_MODULE decides.
+    reader = Bed(sample_file("small.bed"), count_A1=True)
+    memmap = SnpMemMap.write(str(tmp_path / "small.snp.memmap"), reader.read(xp=np))
+    with patch.dict("os.environ", {"ARRAY_MODULE": "cupy"}):
+        assert isinstance(reader.read().val, cupy.ndarray)
+        reopened = SnpMemMap(str(tmp_path / "small.snp.memmap"))
+        assert isinstance(reopened.val, np.ndarray)  # a memory map stays NumPy
+        assert isinstance(reopened.read().val, cupy.ndarray)
+    assert isinstance(memmap.read().val, np.ndarray)
+
+
+@pytest.mark.parametrize("kind", ["Dat", "Dense", "Ped", "Pheno"])
+def test_text_readers_follow_array_module(cupy, tmp_path, kind):
+    # Text readers parse the whole file into a cached NumPy SnpData. That cache
+    # holds file values, not a caller's array, so ARRAY_MODULE=cupy may copy it.
+    from pysnptools import snpreader
+
+    data = Bed(sample_file("small.bed"), count_A1=True).read(xp=np)
+    if kind == "Pheno":
+        data = data[:, :1].read(xp=np)
+    reader_class = getattr(snpreader, kind)
+    reader = reader_class.write(str(tmp_path / f"small.{kind.lower()}"), data)
+    with patch.dict("os.environ", {"ARRAY_MODULE": "cupy"}):
+        for result in (reader.read(), reader[:2, :].read()):
+            assert isinstance(result.val, cupy.ndarray)
+        np.testing.assert_array_equal(cupy.asnumpy(reader.read().val), reader.read(xp=np).val)

@@ -7,6 +7,7 @@ from pysnptools.kernelreader import KernelReader
 from pysnptools.kernelreader import KernelData
 from pysnptools.kernelstandardizer import DiagKtoN
 import pysnptools.util as pstutil
+from pysnptools.util import _device
 
 
 class SnpKernel(KernelReader):
@@ -137,6 +138,7 @@ class SnpKernel(KernelReader):
         else:
             return KernelReader.__getitem__(self, iid_indexer_and_snp_indexer)
 
+    @_device.read_entry
     def _read_with_standardizing(
         self,
         to_kerneldata,
@@ -205,6 +207,7 @@ class SnpKernel(KernelReader):
         return self.snpreader.pos
 
     # LATER this needs a test
+    @_device.read_entry
     def read_snps(
         self,
         order="F",
@@ -243,8 +246,13 @@ class SnpKernel(KernelReader):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
 
-        :param xp: NumPy or CuPy module or name. An explicit choice overrides
-            ARRAY_MODULE; None uses the environment, then NumPy.
+        :param xp: NumPy or CuPy module or name. An explicit value overrides
+            ARRAY_MODULE and copies in-memory values to that module if needed.
+            Only None consults the environment; NumPy is the final default. With
+            None, reading in-memory NumPy or CuPy values from the other module
+            raises ValueError instead of copying them between devices; values
+            read from files follow the default.
+            Missing CuPy raises ImportError. See :doc:`/gpu` for complete examples.
         :type xp: module, str, or None
 
         :rtype: :class:`.SnpData`

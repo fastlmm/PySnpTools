@@ -224,6 +224,7 @@ class SnpMemMap(PstMemMap, SnpData):
             val=val,
             pos=col_property,
             name="np.memmap('{0}')".format(self._filename),
+            xp=np,  # a memory map is always a NumPy array
         )
 
 

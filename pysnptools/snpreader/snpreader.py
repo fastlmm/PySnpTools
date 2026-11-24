@@ -2,6 +2,7 @@ import numpy as np
 import logging
 import time
 import pysnptools.util as pstutil
+from pysnptools.util import _device
 from pysnptools.pstreader import PstReader
 import warnings
 import pysnptools.standardizer as stdizer
@@ -427,6 +428,7 @@ class SnpReader(PstReader):
         raise NotImplementedError
 
     # !!check that views always return contiguous memory by default
+    @_device.read_entry
     def read(
         self,
         order="F",
@@ -472,8 +474,11 @@ class SnpReader(PstReader):
         :type num_threads: None or int
 
         :param xp: NumPy or CuPy module or name. An explicit value overrides
-            ARRAY_MODULE. Only None consults the environment; NumPy is the final default.
-            Each read selects independently of the source object's constructor.
+            ARRAY_MODULE and copies in-memory values to that module if needed.
+            Only None consults the environment; NumPy is the final default. With
+            None, reading in-memory NumPy or CuPy values from the other module
+            raises ValueError instead of copying them between devices; values
+            read from files follow the default.
             Missing CuPy raises ImportError. See :doc:`/gpu` for complete examples.
         :type xp: module, str, or None
 
@@ -539,6 +544,7 @@ class SnpReader(PstReader):
         from pysnptools.util._array import asarray
         return asarray(val, dtype=dtype, order=order, xp=xp)
 
+    @_device.read_entry
     def _read_with_standardizing(self, standardizer, order="F", dtype=None,
                                  xp=None, return_trained=False,
                                  force_python_only=False, num_threads=None,
@@ -599,6 +605,7 @@ class SnpReader(PstReader):
         iid_indexer, snp_indexer = iid_indexer_and_snp_indexer
         return _SnpSubset(self, iid_indexer, snp_indexer)
 
+    @_device.read_entry
     def read_kernel(
         self,
         standardizer=None,
@@ -643,8 +650,11 @@ class SnpReader(PstReader):
         :type num_threads: int or None
 
         :param xp: NumPy or CuPy module or name. An explicit value overrides
-            ARRAY_MODULE. Only None consults the environment; NumPy is the final default.
-            Each read selects independently of the source object's constructor.
+            ARRAY_MODULE and copies in-memory values to that module if needed.
+            Only None consults the environment; NumPy is the final default. With
+            None, reading in-memory NumPy or CuPy values from the other module
+            raises ValueError instead of copying them between devices; values
+            read from files follow the default.
             Missing CuPy raises ImportError. See :doc:`/gpu` for complete examples.
         :type xp: module, str, or None
 
@@ -735,6 +745,7 @@ class SnpReader(PstReader):
         )
 
     @staticmethod
+    @_device.read_entry
     def _as_snpdata(
         snpreader, standardizer, force_python_only, order, dtype, num_threads, xp=None
     ):
@@ -761,6 +772,7 @@ class SnpReader(PstReader):
                 standardizer, order=order, dtype=dtype, xp=xp, return_trained=True,
                 force_python_only=force_python_only, num_threads=num_threads)
 
+    @_device.read_entry
     def _read_kernel(
         self,
         standardizer,

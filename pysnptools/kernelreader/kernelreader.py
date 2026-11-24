@@ -1,4 +1,5 @@
 import pysnptools.util as pstutil
+from pysnptools.util import _device
 import numpy as np
 from itertools import *  # noqa: F403
 import logging
@@ -245,6 +246,7 @@ class KernelReader(PstReader):
         return self._col_property
 
     # !!check that views always return contiguous memory by default
+    @_device.read_entry
     def read(
         self,
         order="F",
@@ -287,8 +289,11 @@ class KernelReader(PstReader):
         :type num_threads: None or int
 
         :param xp: NumPy or CuPy module or name. An explicit value overrides
-            ARRAY_MODULE. Only None consults the environment; NumPy is the final default.
-            Each read selects independently of the source object's constructor.
+            ARRAY_MODULE and copies in-memory values to that module if needed.
+            Only None consults the environment; NumPy is the final default. With
+            None, reading in-memory NumPy or CuPy values from the other module
+            raises ValueError instead of copying them between devices; values
+            read from files follow the default.
             Missing CuPy raises ImportError. See :doc:`/gpu` for complete examples.
         :type xp: module, str, or None
 
@@ -413,6 +418,7 @@ class KernelReader(PstReader):
             and self._col.shape[1] == 2
         ), "iid1 should be dtype str have two dimensions, and the second dimension should be size 2"
 
+    @_device.read_entry
     def _read_with_standardizing(
         self,
         to_kerneldata,

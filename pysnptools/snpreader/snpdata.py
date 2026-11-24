@@ -8,6 +8,7 @@ from pysnptools.pstreader import PstData
 import warnings
 import time
 import pysnptools.util as pstutil
+from pysnptools.util import _device
 
 
 class SnpData(PstData, SnpReader):
@@ -30,8 +31,10 @@ class SnpData(PstData, SnpReader):
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **copyinputs_function** (optional, function) -- *Used internally by optional clustering code*
                      * **xp** (optional, a Python module or string) -- The array module that controls **val**,
-                               for example, 'numpy' or 'cupy'. An explicit choice overrides ARRAY_MODULE;
-                               None uses the environment, then NumPy. Missing CuPy raises ImportError.
+                               for example, 'numpy' or 'cupy'. An explicit choice overrides ARRAY_MODULE and
+                               copies **val** to that module if needed. None uses the environment, then NumPy,
+                               and raises ValueError if **val** is a NumPy or CuPy array from the other module.
+                               Missing CuPy raises ImportError.
 
         :Example:
 
@@ -84,7 +87,7 @@ class SnpData(PstData, SnpReader):
         _require_float32_64=True,
     ):
         # We don't have a 'super(SnpData, self).__init__()' here because SnpData takes full responsibility for initializing both its superclasses
-        xp = pstutil.array_module(xp)
+        xp = _device.resolve(xp, val, "SnpData val")
         self._val = None
 
         if parent_string is not None:
@@ -130,6 +133,7 @@ class SnpData(PstData, SnpReader):
 
     @val.setter
     def val(self, new_value):
+        _device.check_assignment(new_value, self._xp, "SnpData val")
         self._val = PstData._fixup_input_val(
             new_value,
             row_count=len(self._row),
@@ -252,6 +256,7 @@ class SnpData(PstData, SnpReader):
         else:
             return self
 
+    @_device.read_entry
     def _read_kernel(
         train,
         standardizer,

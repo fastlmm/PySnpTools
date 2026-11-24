@@ -17,6 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`force_python_only=True`), and train them with an infinite deviation. A
   rounded mean left a tiny nonzero variance, so these SNPs previously
   standardized to +/-1. Constant 0/1/2 genotypes were unaffected.
+* `xp=None` (`ARRAY_MODULE`, then NumPy) never copies existing values between
+  the CPU and the GPU. Constructing `SnpData`, `KernelData`, `DistData`, or
+  `PstData` from a NumPy or CuPy array of the other module, reading or building
+  a kernel from such in-memory values, or assigning one to `.val` now raises
+  `ValueError` instead of silently copying it; pass `xp=` explicitly to copy.
+  Lists, `val=None`, and values decoded from files (including text formats and
+  memory maps) still follow `ARRAY_MODULE`. `DistData`, `PstData`,
+  `DistReader.read`, and `PstReader.read` gain an `xp` parameter. Memory-mapped
+  readers now keep their values as NumPy arrays under `ARRAY_MODULE=cupy`.
+  `LocalMultiThread` runs each task in a copy of the caller's context.
 * `Unit().standardize` no longer consults `ARRAY_MODULE` to move NumPy values
   to CuPy; like every standardizer, it now works on the values' existing
   device. Read with `xp="cupy"` (or with `ARRAY_MODULE=cupy` set) to get GPU
