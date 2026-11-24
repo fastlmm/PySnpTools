@@ -10,12 +10,13 @@ Never publish, approve a PyPI deployment, push a release tag, or merge to
 ## Where things stand
 
 - Branch `cupy-sub-matrix`, open as PR #25 against `main`.
-- Last pushed commit: `d48b746`. CI run 45313830400 for it was in progress at
-  handoff; the two runs before it (on `bba4f6b` and `89db1f1`) passed 39 of 39.
-- Committed locally, **not yet pushed**: `80fac2d` (CI runs the pytest-only
-  test modules) and this spec. CI uses `cancel-in-progress: true`, so push
-  only after the current run finishes, or it cancels that run. Then monitor
-  the new run in the background and report each job (see Carl's CI rule in
+- Last pushed commit: `d200e3b`. CI run 45315324932 passed every job. It
+  superseded and canceled run 45313830400 on `d48b746`.
+- Committed locally, **not yet pushed**: `1036b40` (batch 8 agent-review
+  fixes) and `0369f49` (Carl's blocking batch 8 adjustments, broader supported-
+  platform pytest coverage, and deletion of two completed specs), followed by
+  this refreshed handoff. Push only after Carl approves batch 8, then monitor
+  every new CI job and report status changes (see Carl's CI rule in
   `~/.codex/AGENTS.md`).
 - Version `1.1.0b1`; requires `bed-reader[samples]>=1.3.0b3` (published on
   PyPI and crates.io). `uv.lock` is refreshed against the published b3.
@@ -43,26 +44,27 @@ PySnpTools review against `main`").
 | 4. SNP readers | Approved (`bba4f6b`) |
 | 5. Kernels, distributed readers, writers | Approved (`89db1f1`) |
 | 6. Thread control | Approved (`d48b746`) |
-| 7. Tests | Agent review done; CI gap fixed in `80fac2d`. **Waiting on Carl.** |
-| 8. Docs and packaging | Open: `CHANGELOG.md`, `README.md`, `doc/`, `pyproject.toml`, `uv.lock`, `.github/`, `specs/` |
+| 7. Tests | Approved (`d200e3b`); the CI collection gap was fixed in `80fac2d`. |
+| 8. Docs and packaging | Agent review and fixes complete (`1036b40`, `0369f49`); Carl's blocking adjustments are addressed. **Waiting on Carl's re-review.** |
 
 After each approval, update the batch row in FaST-LMM
 `specs/REVIEW_INVENTORY.md` (commit there too).
 
-### Batch 8 checklist for the agent review
+### Batch 8 review result
 
-- `CHANGELOG.md` 1.1.0b1 entry: complete and accurate against the diff
-  (strict `xp=None` rule, writers copy to NumPy, pickling, Beta and
-  `UnitTrained` fixes, explicit `block_size` rounding change, `block_size`
-  warning, constant fractional SNPs, b3 requirement, withdrawn 1.1.0a1 GPU
-  features). The date line says 2026-11-23; update it to the release date.
-- `doc/source/gpu.rst`, `index.rst`, `gpu-api-preview.rst`, the notebook
-  `doc/ipynb/gpu_workflow.ipynb`, and `README.md`: no stale bed-reader GPU,
-  1.3.0a1, or "silently copies" statements; examples obey the strict rule.
-- `pyproject.toml`, `uv.lock`, `.github/workflows/{ci,release}.yml`.
-- `specs/`: `GPU_DOCUMENTATION_AUDIT.md` and
-  `SAMPLE_MANIFEST_INTEGRITY_SPEC.md` carry "consider deleting" TODO0
-  markers; ask Carl whether to delete them before release.
+- The changelog covers the strict `xp=None` rule, raw memory maps versus
+  file-backed `read()` results, the exact writer scope, pickling, thread
+  controls, Beta and `UnitTrained` fixes, `block_size`, constant fractional
+  SNPs, the b3 requirement, and withdrawn 1.1.0a1 features. Update its date if
+  publication is not November 23.
+- The README, GPU guide, index, preview redirect, and focused notebook agree on
+  CPU decoding, explicit transfers, Python support, and the strict rule.
+- Packaging pins match the lockfile. CI now runs the meaningful CPU pytest-only
+  modules in the Python 3.15 and Windows ARM core matrix; the release workflow
+  also runs them from both installed Python 3.15 artifacts.
+- Carl approved deleting `GPU_DOCUMENTATION_AUDIT.md` (materially stale) and
+  `SAMPLE_MANIFEST_INTEGRITY_SPEC.md` (released in 1.0.1); `0369f49` deletes
+  both. Keep this handoff through publication.
 
 ## Decisions Carl made (do not reopen)
 
@@ -71,19 +73,22 @@ After each approval, update the batch row in FaST-LMM
   NumPy or CuPy array is never copied to the other module implicitly:
   constructors (`SnpData`, `KernelData`, `DistData`, `PstData`), `.val`
   assignment, and reads or kernels of in-memory values raise `ValueError`.
-  Lists, `val=None`, and file-decoded values (including text readers and
-  memory maps) follow `ARRAY_MODULE`. Core: `pysnptools/util/_device.py`.
-- Writers accept CuPy-backed data and copy it to NumPy explicitly
-  (`_device.numpy_for_write`).
+  Lists, `val=None`, and file-backed `read()` results follow `ARRAY_MODULE`;
+  a raw memory map remains NumPy. Core: `pysnptools/util/_device.py`.
+- Every writer accepts CuPy-backed in-memory data and copies it to NumPy
+  explicitly (`_device.numpy_for_write`); block writers also accept readers
+  over it.
 - `block_size` for standardization stays accepted with a
   `DeprecationWarning` (it has been a no-op since 2015); not removed.
   `read_kernel`'s `block_size` is a different, live feature.
 
 ## Remaining steps, in order
 
-1. Push `80fac2d` and this spec after CI run 45313830400 finishes; monitor CI.
-2. Get Carl's batch 7 approval; do the batch 8 agent review, fix, present.
-3. Rerun the full validation on the final head:
+1. Get Carl's batch 8 re-review and approval. Record it in FaST-LMM
+   `specs/REVIEW_INVENTORY.md` and commit that update.
+2. Push the local PySnpTools commits, then monitor the new PR CI run job by job
+   through its final result.
+3. Rerun the full validation on the final pushed head:
    `bash /mnt/c/deldir/pysnptools-1.1.0b1/validate.sh source` then
    `... validate.sh artifacts` (logs in `/mnt/c/deldir/pysnptools-1.1.0b1/logs/`).
    Confirm the logged commit is the final head and the tree is clean.
@@ -106,7 +111,8 @@ After each approval, update the batch row in FaST-LMM
 
 ## FaST-LMM side (Part 2 of the original request)
 
-Branch `gpu-bed-reader`, pushed at `1a4c88d`. Already done there:
+Branch `gpu-bed-reader`, pushed at `1a4c88d`. Local commit `b88c6bd` records
+Carl's PySnpTools batch 7 approval and is not yet pushed. Already done there:
 
 - `a958625`: the CPU-only predictor methods read covariates and phenotypes
   with `xp=np` (found by running FaST-LMM under `ARRAY_MODULE=cupy` against
