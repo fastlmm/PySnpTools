@@ -732,9 +732,6 @@ def _datestamp(appendrandom=False):
     return s
 
 
-_warn_array_module_once = False
-
-
 def array_module(xp=None):
     """
     Resolve an explicit module/name, then ARRAY_MODULE, then NumPy.
