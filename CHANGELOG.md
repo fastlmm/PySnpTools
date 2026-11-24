@@ -29,10 +29,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   memory maps) still follow `ARRAY_MODULE`. `DistData`, `PstData`,
   `DistReader.read`, and `PstReader.read` gain an `xp` parameter. Memory-mapped
   readers now keep their values as NumPy arrays under `ARRAY_MODULE=cupy`.
-  `LocalMultiThread` runs each task in a copy of the caller's context.
+  Data containers preserve their backend across pickle round trips, including
+  when loading older states that did not store the array module.
   Every writer now accepts CuPy-backed data (and readers over it) and copies
   the values to NumPy; some writers previously failed with CuPy's
   implicit-conversion error.
+* Rename the local process runners' thread limit from `mkl_num_threads` to
+  `num_threads`, retaining the old name as a deprecated alias and its historical
+  pickle state. The limit now covers loaded MKL, OpenBLAS, and BLIS pools,
+  OpenMP and PySnpTools worker settings, spawned processes, and reducers.
+  Pickling continues to preserve downstream-subclass slots. `LocalMultiThread`
+  runs each task in a copy of the caller's context.
+* Reject allele-count means outside [0, 2] in the Python Beta path, matching the
+  native and CuPy paths. `UnitTrained` now rejects selection or reordering by a
+  repeated training SNP ID when the choice of fitted moments would be
+  ambiguous. BetaTrained's SNP-ID, statistics-shape, and beta-parameter checks
+  remain active under optimized Python (`python -O`).
 * `read_kernel` now honors an explicit `block_size` even when the SNP count does
   not exceed the sample count (it previously computed such kernels in one
   product), so those kernels can differ in the last bits of rounding.

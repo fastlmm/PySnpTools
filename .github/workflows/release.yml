@@ -55,6 +55,19 @@ jobs:
       - name: Run the canonical core suite
         run: uv run --frozen --no-sync python tests/test.py
 
+      - name: Run the pytest-only modules
+        run: >-
+          uv run --frozen --no-sync pytest -rs
+          pysnptools/test_array_dtype.py
+          pysnptools/test_optional_dependencies.py
+          pysnptools/util/mapreduce1/test_threads.py
+          pysnptools/util/filecache/test_hashdown_retry.py
+          pysnptools/test_gpu_allocator.py
+          pysnptools/test_gpu_api.py
+          pysnptools/test_gpu_precision_warning.py
+          pysnptools/test_gpu_standardize_general.py
+          pysnptools/test_gpu_support.py
+
       - name: Run the optional BGEN suite
         run: uv run --frozen --no-sync pytest pysnptools/distreader/test_bgen2.py
 

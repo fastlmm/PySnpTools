@@ -323,11 +323,11 @@ applying training moments to different values, on both devices::
 Reader decoding and GPU kernel construction
 -------------------------------------------
 
-Every ``SnpReader`` and ``KernelReader`` decodes on the CPU with its own reader
-(bed-reader for BED), then copies the requested subset to CuPy. Standardization
-uses PySnpTools' CuPy standardizer. Metadata remains on the CPU. A custom reader
-needs only the ordinary CPU ``_read`` method to support ``xp=cupy``.
-``DistReader.read`` has no ``xp`` argument; use ``as_snp()`` for GPU work.
+File-backed ``SnpReader``, ``KernelReader``, ``DistReader``, and ``PstReader``
+implementations decode on the CPU with their ordinary readers (bed-reader for
+BED), then copy the requested subset to CuPy. Standardization uses PySnpTools'
+CuPy standardizer. Metadata remains on the CPU. A custom reader needs only the
+ordinary CPU ``_read`` method to support ``xp=cupy``.
 ``pysnptools.util.gpu.has_gpu_support()`` checks whether CuPy is importable and
 can allocate and synchronize on its current CUDA device. No special bed-reader
 build is needed. CUDA errors propagate without CPU fallback.
