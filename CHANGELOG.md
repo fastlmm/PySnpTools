@@ -53,6 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   iid_count times the number of blocks; with `return_trained=True` it raised
   instead. The blocked kernel is now scaled once, by the factor fitted to all
   SNPs, and matches the unblocked kernel.
+* Exclude generated pytest and Python cache files from wheel and source
+  distributions, including when those ignored files exist in the release
+  checkout. CI and the release workflow now reject artifacts containing them.
 * `read_kernel` now honors an explicit `block_size` even when the SNP count does
   not exceed the sample count (it previously computed such kernels in one
   product), so those kernels can differ in the last bits of rounding.

@@ -129,6 +129,8 @@ module-name = "pysnptools"
 module-root = ""
 source-include = ["AUTHORS.txt"]
 source-exclude = [
+    "/pysnptools/.pytest_cache/**",
+    "/pysnptools/__pycache__/**",
     "/pysnptools/examples/**",
     "/pysnptools/pysnptools.pyproj",
     "/pysnptools/pysnptools.sln",
@@ -142,4 +144,8 @@ source-exclude = [
     "tempdir",
     "tempdircmk",
 ]
-wheel-exclude = ["/pysnptools/examples/**"]
+wheel-exclude = [
+    "/pysnptools/.pytest_cache/**",
+    "/pysnptools/__pycache__/**",
+    "/pysnptools/examples/**",
+]

@@ -214,6 +214,31 @@ jobs:
         shell: bash
         run: cmp dist/*.whl sdist-dist/*.whl
 
+      - name: Reject generated files in distributions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import tarfile
+          import zipfile
+
+          for artifact in Path("dist").iterdir():
+              if artifact.suffix == ".whl":
+                  with zipfile.ZipFile(artifact) as archive:
+                      names = archive.namelist()
+              elif artifact.name.endswith(".tar.gz"):
+                  with tarfile.open(artifact) as archive:
+                      names = archive.getnames()
+              else:
+                  continue
+              generated = [
+                  name for name in names
+                  if "/.pytest_cache/" in name
+                  or "/__pycache__/" in name
+                  or name.endswith((".pyc", ".pyo"))
+              ]
+              assert not generated, f"{artifact} contains generated files: {generated}"
+          PY
+
       - name: Upload distributions
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
