@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "pysnptools"
-version = "1.0.1"
+version = "1.1.0b1"
 description = "PySnpTools"
 readme = "README.md"
 requires-python = ">=3.11.5"
@@ -55,7 +55,10 @@ dependencies = [
     # current binary dependencies separately from the optional-feature lock.
     "pandas>=2.3.3,<4; python_version >= '3.14'",
     "cloudpickle>=3.1.0",
-    "bed-reader[samples]>=1.2.0",
+    # Version 3.5 added Scientific Python OpenBLAS support; 3.8 supports Python 3.15.
+    "threadpoolctl>=3.5.0; python_version < '3.15'",
+    "threadpoolctl>=3.8.0; python_version >= '3.15'",
+    "bed-reader[samples]>=1.3.0b3",
     "more-itertools>=10.5.0",
 ]
 
@@ -67,6 +70,7 @@ Source = "https://github.com/fastlmm/PySnpTools"
 
 
 [project.optional-dependencies]
+cupy = ["cupy-cuda13x>=14.2,<15"]
 hdf5 = [
     "h5py>=3.12.1; python_version < '3.14'",
     # h5py 3.15.0 is the first release with Python 3.14 wheels.
@@ -125,6 +129,8 @@ module-name = "pysnptools"
 module-root = ""
 source-include = ["AUTHORS.txt"]
 source-exclude = [
+    "/pysnptools/.pytest_cache/**",
+    "/pysnptools/__pycache__/**",
     "/pysnptools/examples/**",
     "/pysnptools/pysnptools.pyproj",
     "/pysnptools/pysnptools.sln",
@@ -138,4 +144,8 @@ source-exclude = [
     "tempdir",
     "tempdircmk",
 ]
-wheel-exclude = ["/pysnptools/examples/**"]
+wheel-exclude = [
+    "/pysnptools/.pytest_cache/**",
+    "/pysnptools/__pycache__/**",
+    "/pysnptools/examples/**",
+]

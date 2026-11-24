@@ -11,6 +11,7 @@ import subprocess
 import pysnptools.util as pstutil
 from pysnptools.distreader import DistReader
 from bed_reader import get_num_threads
+from pysnptools.util import _device
 
 
 def _require_bgen_reader():
@@ -439,6 +440,7 @@ class Bgen(DistReader):
         >>> Bgen.write("tempdir/toydata10.bgen",distreader)        # Write data in BGEN format
         Bgen('tempdir/toydata10.bgen')
         """
+        distreader = _device.numpy_for_write(distreader)  # writing is an explicit copy to the CPU
         open_bgen, _ = _require_bgen_reader()
         qctool_path = qctool_path or os.environ.get("QCTOOLPATH")
         assert (
@@ -543,6 +545,7 @@ class Bgen(DistReader):
         # https://www.cog-genomics.org/plink2/formats#gen
         # https://web.archive.org/web/20181010160322/http://www.stats.ox.ac.uk/~marchini/software/gwas/file_format.html
 
+        distreader = _device.numpy_for_write(distreader)  # writing is an explicit copy to the CPU
         block_size = block_size or max((100 * 1000) // max(1, distreader.row_count), 1)
 
         if decimal_places is None:
@@ -565,7 +568,7 @@ class Bgen(DistReader):
             with open(filename + ".temp", "w", newline="\n") as genfp:
                 while start < distreader.sid_count:
                     distdata = distreader[:, start : start + block_size].read(
-                        view_ok=True
+                        view_ok=True, xp=np
                     )
                     for sid_index in range(distdata.sid_count):
                         id, rsid = id_rsid_function(distdata.sid[sid_index])
@@ -710,9 +713,10 @@ class TestBgen(unittest.TestCase):
     def test_memmap(self):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        assert (
-            "QCTOOLPATH" in os.environ
-        ), "To run test_read_write_round_trip, QCTOOLPATH environment variable must be set. (On Windows, install QcTools in 'Ubuntu on Windows' and set to 'ubuntu run <qctoolLinuxPath>')."
+        self.assertTrue(
+            os.environ.get("QCTOOLPATH"),
+            f"{self.id()} requires external qctool. Install QCTool v2 and set QCTOOLPATH; see the Testing section in README.md.",
+        )
 
         distgen0data = Bgen("../examples/example.bgen")[:, 10].read()
         assert distgen0data.iid[0, 0] == "0"
@@ -730,9 +734,10 @@ class TestBgen(unittest.TestCase):
         old_dir = os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
-        assert (
-            "QCTOOLPATH" in os.environ
-        ), "To run test_read_write_round_trip, QCTOOLPATH environment variable must be set. (On Windows, install QcTools in 'Ubuntu on Windows' and set to 'ubuntu run <qctoolLinuxPath>')."
+        self.assertTrue(
+            os.environ.get("QCTOOLPATH"),
+            f"{self.id()} requires external qctool. Install QCTool v2 and set QCTOOLPATH; see the Testing section in README.md.",
+        )
 
         exampledata = Bgen("../examples/example.bgen")[:, 10].read()
         distgen0data = DistGen(seed=332, iid_count=50, sid_count=5).read()
@@ -762,9 +767,10 @@ class TestBgen(unittest.TestCase):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         Path("temp").mkdir(parents=True, exist_ok=True)
 
-        assert (
-            "QCTOOLPATH" in os.environ
-        ), "To run test_read_write_round_trip, QCTOOLPATH environment variable must be set. (On Windows, install QcTools in 'Ubuntu on Windows' and set to 'ubuntu run <qctoolLinuxPath>')."
+        self.assertTrue(
+            os.environ.get("QCTOOLPATH"),
+            f"{self.id()} requires external qctool. Install QCTool v2 and set QCTOOLPATH; see the Testing section in README.md.",
+        )
 
         distdata = Bgen("../examples/example.bgen")[:5, :5].read()
 
@@ -869,63 +875,63 @@ class TestBgen(unittest.TestCase):
 
     def test_bgen_samples_inside_bgen(self):
         from bgen_reader import example_filepath
-        with example_filepath("example.32bits.bgen") as filepath:
-            data = Bgen(filepath)
-            samples = [
-                ("0", "sample_001"),
-                ("0", "sample_002"),
-                ("0", "sample_003"),
-                ("0", "sample_004"),
-            ]
-            assert (data.iid[:4] == samples).all()
+        filepath = example_filepath("example.32bits.bgen")
+        data = Bgen(filepath)
+        samples = [
+            ("0", "sample_001"),
+            ("0", "sample_002"),
+            ("0", "sample_003"),
+            ("0", "sample_004"),
+        ]
+        assert (data.iid[:4] == samples).all()
 
     def test_bgen_reader_variants_info(self):
         from bgen_reader import example_filepath
-        with example_filepath("example.32bits.bgen") as filepath:
-            bgen = Bgen(filepath, sid_function="id")
+        filepath = example_filepath("example.32bits.bgen")
+        bgen = Bgen(filepath, sid_function="id")
 
-            assert bgen.pos[0, 0] == 1
-            assert bgen.sid[0] == "SNPID_2"
-            assert bgen.pos[0, 2] == 2000
+        assert bgen.pos[0, 0] == 1
+        assert bgen.sid[0] == "SNPID_2"
+        assert bgen.pos[0, 2] == 2000
 
-            assert bgen.pos[7, 0] == 1
-            assert bgen.sid[7] == "SNPID_9"
-            assert bgen.pos[7, 2] == 9000
+        assert bgen.pos[7, 0] == 1
+        assert bgen.sid[7] == "SNPID_9"
+        assert bgen.pos[7, 2] == 9000
 
-            assert bgen.pos[-1, 0] == 1
-            assert bgen.sid[-1] == "SNPID_200"
-            assert bgen.pos[-1, 2] == 100001
+        assert bgen.pos[-1, 0] == 1
+        assert bgen.sid[-1] == "SNPID_200"
+        assert bgen.pos[-1, 2] == 100001
 
-            assert (bgen.iid[0] == ("0", "sample_001")).all()
-            assert (bgen.iid[7] == ("0", "sample_008")).all()
-            assert (bgen.iid[-1] == ("0", "sample_500")).all()
+        assert (bgen.iid[0] == ("0", "sample_001")).all()
+        assert (bgen.iid[7] == ("0", "sample_008")).all()
+        assert (bgen.iid[-1] == ("0", "sample_500")).all()
 
-            g = bgen[0, 0].read()
-            assert np.isnan(g.val).all()
+        g = bgen[0, 0].read()
+        assert np.isnan(g.val).all()
 
-            g = bgen[1, 0].read()
-            a = [[[0.027802362811705648, 0.00863673794284387, 0.9635608992454505]]]
-            np.testing.assert_array_almost_equal(g.val, a)
+        g = bgen[1, 0].read()
+        a = [[[0.027802362811705648, 0.00863673794284387, 0.9635608992454505]]]
+        np.testing.assert_array_almost_equal(g.val, a)
 
-            b = [
+        b = [
+            [
                 [
-                    [
-                        0.97970582847010945215516,
-                        0.01947019668749305418287,
-                        0.00082397484239749366197,
-                    ]
+                    0.97970582847010945215516,
+                    0.01947019668749305418287,
+                    0.00082397484239749366197,
                 ]
             ]
-            g = bgen[2, 1].read()
-            np.testing.assert_array_almost_equal(g.val, b)
+        ]
+        g = bgen[2, 1].read()
+        np.testing.assert_array_almost_equal(g.val, b)
 
     def test_bgen_reader_without_metadata(self):
         from bgen_reader import example_filepath
-        with example_filepath("example.32bits.bgen") as filepath:
-            bgen = Bgen(filepath)
-            bgen.read()
-            samples = bgen.iid
-            assert samples[-1, 1] == "sample_500"
+        filepath = example_filepath("example.32bits.bgen")
+        bgen = Bgen(filepath)
+        bgen.read()
+        samples = bgen.iid
+        assert samples[-1, 1] == "sample_500"
 
     def test_bgen_reader_file_notfound(self):
         bgen = Bgen("/1/2/3/example.32bits.bgen")
@@ -938,11 +944,16 @@ class TestBgen(unittest.TestCase):
 
     def test_bgen_reader_no_sample(self):
         from bgen_reader import example_filepath
-        with example_filepath("example.32bits.bgen") as filepath:
-            bgen = Bgen(filepath)
-            assert bgen.sid_count == 199
+        filepath = example_filepath("example.32bits.bgen")
+        bgen = Bgen(filepath)
+        assert bgen.sid_count == 199
 
     def test_doctest(self):
+        self.assertTrue(
+            os.environ.get("QCTOOLPATH"),
+            "The Bgen.genwrite and Bgen.write doctests require external qctool. "
+            "Install QCTool v2 and set QCTOOLPATH; see the Testing section in README.md.",
+        )
         import doctest
         import pysnptools.distreader.bgen as bgen_mod
 
@@ -959,29 +970,29 @@ class TestBgen(unittest.TestCase):
         from bgen_reader import example_filepath
         from pysnptools.distreader import DistGen
 
-        with example_filepath("example.32bits.bgen") as filepath:
-            bgen = Bgen(
-                filepath, fresh_properties=False, iid_function=lambda sam: ("X", sam)
-            )
-            assert bgen.iid[0, 0] == "X"
-            metadata_filepath = bgen._open_bgen._metadata2_path
-            metadata2_temp = metadata_filepath.parent / (
-                metadata_filepath.name + ".temp"
-            )
-            del bgen
-            if metadata2_temp.exists():
-                metadata2_temp.unlink()
-            os.rename(metadata_filepath, metadata2_temp)
-            bgen = Bgen(filepath)
-            assert bgen.iid[0, 0] == "0"
-            bgen[0, 0].read(order="A")
-            if not os.path.exists("temp"):
-                os.mkdir("temp")
-            os.chdir("temp")
-            file1x = "coverage.bgen"
-            Bgen.write(file1x, bgen[:100, :100])
-            Bgen.write(file1x, bgen[:100, :100])
-            os.chdir("..")
+        filepath = example_filepath("example.32bits.bgen")
+        bgen = Bgen(
+            filepath, fresh_properties=False, iid_function=lambda sam: ("X", sam)
+        )
+        assert bgen.iid[0, 0] == "X"
+        metadata_filepath = bgen._open_bgen._metadata2_path
+        metadata2_temp = metadata_filepath.parent / (
+            metadata_filepath.name + ".temp"
+        )
+        del bgen
+        if metadata2_temp.exists():
+            metadata2_temp.unlink()
+        os.rename(metadata_filepath, metadata2_temp)
+        bgen = Bgen(filepath)
+        assert bgen.iid[0, 0] == "0"
+        bgen[0, 0].read(order="A")
+        if not os.path.exists("temp"):
+            os.mkdir("temp")
+        os.chdir("temp")
+        file1x = "coverage.bgen"
+        Bgen.write(file1x, bgen[:100, :100])
+        Bgen.write(file1x, bgen[:100, :100])
+        os.chdir("..")
 
         distgen0data = DistGen(seed=332, iid_count=10010, sid_count=5).read()
         file1 = "temp/roundtrip1-big.bgen"

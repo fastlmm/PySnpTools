@@ -1,3 +1,5 @@
+import pysnptools.util as pstutil
+from pysnptools.util import _device
 import numpy as np
 from itertools import *  # noqa: F403
 import logging
@@ -126,8 +128,11 @@ class KernelReader(PstReader):
 
     The :meth:`read` Method
 
-        By default the :meth:`read` returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (iid0-index varies the fastest). You may, instead,
-        ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
+        Without ARRAY_DTYPE or an explicit dtype, :meth:`read` returns :class:`.KernelData` with a float64 values array
+        in F-contiguous order (iid0-index varies the fastest). You may, instead,
+        ask for numpy.float32 or for C-contiguous order or any order. Explicit ``xp``
+        selects NumPy or CuPy and overrides ARRAY_MODULE; the final default is
+        NumPy. See :meth:`read` and :doc:`/gpu` for options and complete examples.
 
     The :meth:`.KernelData.standardize` Method
         The :meth:`.KernelData.standardize` method, available only on :class:`.KernelData`, does in-place standardization of the in-memory
@@ -241,49 +246,63 @@ class KernelReader(PstReader):
         return self._col_property
 
     # !!check that views always return contiguous memory by default
+    @_device.read_entry
     def read(
         self,
         order="F",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
+        xp=None,
     ):
-        """Reads the kernel values and returns a :class:`.KernelData` (with :attr:`KernelData.val` property containing a new ndarray of the kernel values).
+        """Reads the kernel values and returns a :class:`.KernelData` (with :attr:`KernelData.val` property containing a NumPy or CuPy array of kernel values).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
             then the array will be in F-contiguous order (iid0-index varies the fastest).
             If order is 'C', then the returned array will be in C-contiguous order (iid1-index varies the fastest).
             If order is 'A', then the :attr:`KernelData.val`
             ndarray may be in any order (either C-, Fortran-contiguous, or even discontiguous).
-        :type order: string or None
+        :type order: str
 
-        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`KernelData.val` ndarray.
+        :param dtype: {None, numpy.float64, numpy.float32}, optional -- The data-type for the :attr:`KernelData.val` ndarray.
+             None uses ARRAY_DTYPE, then float64; an explicit dtype overrides it.
         :type dtype: data-type
 
         :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
-            be done without outside library code.
+            use a Python CPU path where supported. Readers decode on the CPU, so this also applies
+            before transfer to CuPy; it does not select the output backend. CuPy standardization ignores this flag.
         :type force_python_only: bool
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`KernelData.val`'s ndarray. If True,
             if practical and reading from a :class:`KernelData`, will return a new
             :class:`KernelData` with a ndarray shares memory with the original :class:`KernelData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
-            Use these parameters with care because any change to either ndarray (for example, via :meth:`.KernelData.standardize`) will effect
+            Use these parameters with care because any change to either ndarray (for example, via :meth:`.KernelData.standardize`) will affect
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
             share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
         :type view_ok: bool
 
-        :param num_threads: optional -- The number of threads with which to standardize data. Defaults to all available
+        :param num_threads: optional -- The CPU reader/kernel thread count (ignored by CuPy math). Defaults to all available
             processors. Can also be set with these environment variables (listed in priority order):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
 
+        :param xp: NumPy or CuPy module or name. An explicit value overrides
+            ARRAY_MODULE and copies in-memory values to that module if needed.
+            Only None consults the environment; NumPy is the final default. With
+            None, reading in-memory NumPy or CuPy values from the other module
+            raises ValueError instead of copying them between devices; values
+            read from files follow the default.
+            Missing CuPy raises ImportError. See :doc:`/gpu` for complete examples.
+        :type xp: module, str, or None
+
         :rtype: :class:`.KernelData`
 
-        Calling the method again causes the kernel values to be re-read and creates a new in-memory :class:`.KernelData` with a new ndarray of kernel values.
+        Each call creates a new :class:`.KernelData`. Values are read again from disk
+        or copied from memory unless ``view_ok=True`` allows shared storage.
 
-        If you request the values for only a subset of the sids or iids, (to the degree practical) only that subset will be read from disk.
+        If you request the values for only a subset of the rows or columns, (to the degree practical) only that subset will be read from disk.
 
         :Example:
 
@@ -301,14 +320,36 @@ class KernelReader(PstReader):
         >>> import numpy as np
         >>> #print(np.may_share_memory(subset_kerneldata.val, subsub_kerneldata.val)) # Do the two ndarray's share memory? They could. Currently they won't.
         """
-        dtype = np.dtype(dtype)
-        val = self._read(
-            None, None, order, dtype, force_python_only, view_ok, num_threads
+        dtype = pstutil.array_dtype(dtype)
+        xp = pstutil.array_module(xp)
+        val = self._read_array(
+            None, None, order, dtype, force_python_only, view_ok, num_threads, xp
         )
         from pysnptools.kernelreader import KernelData
 
-        ret = KernelData(iid0=self.iid0, iid1=self.iid1, val=val, name=str(self))
+        ret = KernelData(iid0=self.iid0, iid1=self.iid1, val=val, name=str(self), xp=xp)
         return ret
+
+    def _read_array(self, row_index, col_index, order, dtype,
+                    force_python_only, view_ok, num_threads, xp):
+        if not getattr(self, "_read_accepts_slices", False):
+            # None means an unsliced read, which some readers require. Only
+            # normalize actual indexers for readers that cannot consume slices.
+            if row_index is not None:
+                row_index = self._make_sparray_from_sparray_or_slice(self.row_count, row_index)
+            if col_index is not None:
+                col_index = self._make_sparray_from_sparray_or_slice(self.col_count, col_index)
+        val = self._read(row_index, col_index, order, dtype,
+                         force_python_only, view_ok, num_threads)
+        # Preserve reader-specific arrays such as memmaps when no transfer is
+        # needed. The legacy _read contract already guarantees dtype and order.
+        if pstutil.get_array_module(val) is xp:
+            return val
+        if xp is np:
+            val = pstutil.asnumpy(val)
+        from pysnptools.util._gpu_warnings import warn_gpu_float64
+        warn_gpu_float64(dtype, xp)
+        return xp.asarray(val, dtype=dtype, order=order)
 
     def iid_to_index(self, list):
         """Takes a list of iids and returns a list of index numbers.
@@ -377,18 +418,23 @@ class KernelReader(PstReader):
             and self._col.shape[1] == 2
         ), "iid1 should be dtype str have two dimensions, and the second dimension should be size 2"
 
+    @_device.read_entry
     def _read_with_standardizing(
         self,
         to_kerneldata,
         snp_standardizer=None,
         kernel_standardizer=DiagKtoN(),
         return_trained=False,
+        dtype=None,
+        xp=None,
+        num_threads=None,
     ):
         assert (
             to_kerneldata
         ), "When working with non-SnpKernels, to_kerneldata must be 'True'"
-        kernel, kernel_trained = self.read().standardize(
-            kernel_standardizer, return_trained=True
+        dtype = pstutil.array_dtype(dtype)
+        kernel, kernel_trained = self.read(dtype=dtype, xp=xp, num_threads=num_threads).standardize(
+            kernel_standardizer, return_trained=True, num_threads=num_threads
         )
 
         if return_trained:

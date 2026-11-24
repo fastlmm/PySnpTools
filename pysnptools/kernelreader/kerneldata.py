@@ -6,6 +6,7 @@ from pysnptools.kernelreader import KernelReader
 from pysnptools.pstreader import PstData
 from pysnptools.kernelstandardizer import DiagKtoN
 import pysnptools.util as pstutil
+from pysnptools.util import _device
 
 
 class KernelData(KernelReader, PstData):
@@ -14,17 +15,23 @@ class KernelData(KernelReader, PstData):
     It can also be created by calling the :meth:`.KernelReader.read` method on :class:`.SnpKernel`, for example, :class:`.KernelNpz`.
     It can also be constructed directly.
 
-    See :class:`.KernelReader` for details and examples.
+    See :class:`.KernelReader` for details and examples, and :doc:`/gpu` for
+    backend selection and device-transfer examples. Existing float32 and float64
+    arrays retain their dtype when transferred between NumPy and CuPy.
+    New GPU matrices use CuPy-owned storage;
+    existing CuPy arrays retain their storage when no conversion is needed.
 
     **Constructor:**
         :Parameters: * **iid** (an array of string pairs) -- The :attr:`KernelReader.iid` information.
                      * **iid0** (an array of string pairs) -- The :attr:`KernelReader.iid0` information.
                      * **iid1** (an array of strings pairs) -- The :attr:`KernelReader.iid1` information.
-                     * **val** (a 2-D array of floats) -- The SNP values
+                     * **val** (a 2-D array of floats) -- The kernel values
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **xp** (optional, a Python module or string) -- The array module that controls **val**,
-                               for example, 'numpy' or 'cupy'. Defaults to numpy. Can also be set with the
-                               'ARRAY_MODULE' environment variable.
+                               for example, 'numpy' or 'cupy'. An explicit choice overrides ARRAY_MODULE and
+                               copies **val** to that module if needed. None uses the environment, then NumPy,
+                               and raises ValueError if **val** is a NumPy or CuPy array from the other module.
+                               Missing CuPy raises ImportError.
 
         If *iid* is provided, don't provide *iid0* and *iid1*. Likewise, if *iid0* and *iid1* are provided, don't provide *iid*.
 
@@ -79,7 +86,7 @@ class KernelData(KernelReader, PstData):
         xp=None,
     ):  # !!!autodoc doesn't generate good doc for this constructor
         # We don't have a 'super(KernelData, self).__init__()' here because KernelData takes full responsibility for initializing both its superclasses
-        xp = pstutil.array_module(xp)
+        xp = _device.resolve(xp, val, "KernelData val")
         self._val = None
 
         # !!why does SnpData __init__ have a copy_inputs, but KernelData doesn't?
@@ -128,8 +135,8 @@ class KernelData(KernelReader, PstData):
             val,
             row_count=len(self._row),
             col_count=len(self._col),
-            empty_creator=lambda row_count, col_count: xp.empty(
-                [row_count, col_count], dtype=xp.float64
+            empty_creator=lambda row_count, col_count: np.empty(
+                [row_count, col_count], dtype=pstutil.array_dtype()
             ),
             xp=xp,
         )
@@ -140,7 +147,7 @@ class KernelData(KernelReader, PstData):
 
     @property
     def val(self):
-        """The 2D NumPy array of floats that represents the values of the kernel. You can get or set this property.
+        """The 2D NumPy or CuPy array of floats that represents the values of the kernel. You can get or set this property.
 
         >>> from pysnptools.kernelreader import KernelData
         >>> kerneldata = KernelData(iid=[['fam0','iid0'],['fam0','iid1']], val=[[1.,.5],[.5,1.]])
@@ -151,12 +158,13 @@ class KernelData(KernelReader, PstData):
 
     @val.setter
     def val(self, new_value):
+        _device.check_assignment(new_value, self._xp, "KernelData val")
         self._val = PstData._fixup_input_val(
             new_value,
             row_count=len(self._row),
             col_count=len(self._col),
             empty_creator=lambda row_count, col_count: np.empty(
-                [row_count, col_count], dtype=np.float64
+                [row_count, col_count], dtype=pstutil.array_dtype()
             ),
             xp=self._xp,
         )
@@ -189,10 +197,17 @@ class KernelData(KernelReader, PstData):
         num_threads=None,
     ):
         """Does in-place standardization of the in-memory
-        kernel data. The method multiples the values with a scalar factor such that the diagonal sums to iid_count. Although it works in place, for convenience
-        it also returns the KernelData.
+        kernel data on its existing NumPy/CuPy device. The default DiagKtoN
+        multiplies values by a scalar so the diagonal sums to iid_count.
+        A zero, negative, or nonfinite trace (including an empty kernel) raises
+        ValueError before changing values.
+        See :doc:`/gpu` for kernel construction and memory examples.
 
-        :rtype: :class:`.KernelData` (standardizes in place, but for convenience, returns 'self')
+        :param standardizer: Kernel standardizer; defaults to DiagKtoN().
+        :param return_trained: If True, also return the trained standardizer.
+        :param force_python_only: Passed to the standardizer; ignored by DiagKtoN.
+        :param num_threads: Passed to the standardizer; ignored by DiagKtoN.
+        :rtype: KernelData, or (KernelData, trained standardizer)
 
         >>> from pysnptools.kernelreader import KernelNpz
         >>> from pysnptools.util import example_file # Download and return local file name

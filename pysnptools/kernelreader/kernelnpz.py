@@ -2,6 +2,7 @@ import numpy as np
 from pysnptools.pstreader import PstNpz
 from pysnptools.kernelreader import KernelReader
 import logging
+from pysnptools.util import _device
 
 
 class KernelNpz(KernelReader,PstNpz):
@@ -75,6 +76,7 @@ class KernelNpz(KernelReader,PstNpz):
         >>> KernelNpz.write("tempdir/toydata.kernel.npz",kerneldata)      # Write data in KernelNpz format
         KernelNpz('tempdir/toydata.kernel.npz')
         """
+        kerneldata = _device.numpy_for_write(kerneldata)  # writing is an explicit copy to the CPU
         PstNpz.write(filename,kerneldata)
         return KernelNpz(filename)
 

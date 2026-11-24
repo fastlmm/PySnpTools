@@ -66,6 +66,7 @@ def snp_gen(
 
     """
     from pysnptools.snpreader import SnpData
+    from pysnptools.util import array_module
 
     assert 0 <= freq_pop_0 <= 1.0, "assert 0 <= freq_pop_0 <= 1.0"
 
@@ -155,6 +156,7 @@ def snp_gen(
         sid=sid,
         val=val,
         pos=pos,
+        xp=array_module(),  # newly generated values follow ARRAY_MODULE, like a file read
         parent_string="snp_gen(fst={0}, dfr={1}, iid_count={2}, sid_count={3}, maf_low={4}, maf_high={5}, seed={6}, sibs_per_family={7}, freq_pop_0={8})".format(
             fst,
             dfr,

@@ -6,6 +6,7 @@ from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
 import warnings
 from pysnptools.pstreader import _OneShot
+from pysnptools.util import _device
 
 
 # LATER say that this is also called dosage or bimbam
@@ -59,7 +60,7 @@ class Dat(_OneShot, SnpReader):
         )
         if len(row) == 0 or len(col) == 0:
             return SnpData(
-                iid=row, sid=col, pos=col_property, val=np.empty([len(row), len(col)])
+                iid=row, sid=col, pos=col_property, val=np.empty([len(row), len(col)]), xp=np
             )
         datfields = pd.read_csv(
             self.filename,
@@ -79,7 +80,7 @@ class Dat(_OneShot, SnpReader):
             len(row) == datfields.shape[1]
         ), "Expect # iids in fam file to match dat file"
         val = datfields.values.T
-        snpdata = SnpData(iid=row, sid=col, pos=col_property, val=val)
+        snpdata = SnpData(iid=row, sid=col, pos=col_property, val=val, xp=np)
         return snpdata
 
     def copyinputs(self, copier):
@@ -128,6 +129,7 @@ class Dat(_OneShot, SnpReader):
                 DeprecationWarning,
             )
             filename, snpdata = snpdata, filename
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
 
         SnpReader._write_fam(snpdata, filename, remove_suffix="dat")
         SnpReader._write_map_or_bim(

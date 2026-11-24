@@ -2,6 +2,7 @@ import numpy as np
 import logging
 import time
 import pysnptools.util as pstutil
+from pysnptools.util import _device
 from pysnptools.pstreader import PstReader
 import warnings
 import pysnptools.standardizer as stdizer
@@ -208,7 +209,7 @@ class SnpReader(PstReader):
         When Data is Re-Read and Copied:
 
             Every time you call a SnpReader's :meth:`read` method, the SnpReader re-reads the SNP value data and returns a new in-memory :class:`.SnpData`
-            (with :attr:`.SnpData.val` property containing a new ndarray of the SNP values). Likewise, when you call the :meth:`kernel` method, the SnpReader re-reads
+            (with :attr:`.SnpData.val` property containing a NumPy or CuPy array of SNP values). Likewise, when you call the :meth:`kernel` method, the SnpReader re-reads
             the data and returns a new kernel ndarray.
 
             Here is an example of what not to do, because it causes all the SNP value data to be read twice.
@@ -256,7 +257,7 @@ class SnpReader(PstReader):
             can safely share the memory of the ndarray of SNP values. For this case, the :meth:`read` has optional parameters called view_ok and order. If you override
             the defaults of "view_ok=False,order='F'" with "view_ok=True,order='A', the :meth:`read` will, if practical, return a new
             :class:`SnpData` with a ndarray shares memory with the original ndarray.
-            Use these parameters with care because any change to either ndarray (for example, via :meth:`.SnpData.standardize`) will effect
+            Use these parameters with care because any change to either ndarray (for example, via :meth:`.SnpData.standardize`) will affect
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
             share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
 
@@ -271,14 +272,19 @@ class SnpReader(PstReader):
 
         The :meth:`read` Method
 
-            By default the :meth:`read` returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (iid-index varies the fastest). You may, instead,
-            ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
+            Without ARRAY_DTYPE or an explicit dtype, :meth:`read` returns :class:`.SnpData` with a float64 values array
+            in F-contiguous order (iid-index varies the fastest). You may, instead,
+            ask for numpy.float32 or for C-contiguous order or any order. Explicit xp overrides
+            ARRAY_MODULE at every read; NumPy is used when neither is supplied. See
+            :meth:`read` and :doc:`/gpu` for options and complete examples.
 
         The :meth:`.SnpData.standardize` Method
             The :meth:`.SnpData.standardize` method, available only on :class:`.SnpData`, does in-place standardization of the in-memory
-            SNP data. By default, it applies 'Unit' standardization, that is: the values for each SNP will have mean zero and standard deviation 1.0.
-            NaN values are then filled with zeros (consequently, if there are NaN values, the final standard deviation will not be zero).
-            Note that, for efficiently, this method works in-place, actually changing values in the ndarray. Although it works in place, for convenience
+            SNP data on the array's current device, independently of ARRAY_MODULE. Unit
+            centers/scales observed values to population standard deviation one,
+            then fills NaNs with zero; final variance can be below one. Constant
+            columns become zero and wholly missing training columns raise ValueError.
+            Note that, for efficiency, this method works in-place, actually changing values in the ndarray. Although it works in place, for convenience
             it also returns itself. See :meth:`.SnpData.standardize` for options and details.
 
                 >>> snp_on_disk = Bed(bedfile,count_A1=False) # Specify some data on disk in Bed format
@@ -298,7 +304,7 @@ class SnpReader(PstReader):
         The :meth:`read_kernel` Method
 
             The :meth:`read_kernel` method, available on any SnpReader, returns a :class:`KernelData`. The :attr:`val` property of the :class:`KernelData` is
-            an ndarray of the (possibility standardized) SNP values multiplied with their transposed selves. When applied to an read-from-disk SnpReader, such as :class:`.Bed`,
+            an ndarray of the (possibility standardized) SNP values multiplied with their transposed selves. When applied to a read-from-disk SnpReader, such as :class:`.Bed`,
             the method can save memory by reading (and standardizing) the data in blocks. See :meth:`read_kernel` for details.
 
 
@@ -422,52 +428,66 @@ class SnpReader(PstReader):
         raise NotImplementedError
 
     # !!check that views always return contiguous memory by default
+    @_device.read_entry
     def read(
         self,
         order="F",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
         _require_float32_64=True,
+        xp=None,
     ):
-        """Reads the SNP values and returns a :class:`.SnpData` (with :attr:`.SnpData.val` property containing a new ndarray of the SNP values).
+        """Reads the SNP values and returns a :class:`.SnpData` (with :attr:`.SnpData.val` property containing a NumPy or CuPy array of SNP values).
 
         :param order: {'F' (default), 'C', 'A'}, optional -- Specify the order of the ndarray. If order is 'F' (default),
             then the array will be in F-contiguous order (iid-index varies the fastest).
             If order is 'C', then the returned array will be in C-contiguous order (sid-index varies the fastest).
             If order is 'A', then the :attr:`.SnpData.val`
             ndarray may be in any order (either C-, Fortran-contiguous).
-        :type order: string or None
+        :type order: str
 
-        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`SnpData.val` ndarray.
+        :param dtype: {None, numpy.float64, numpy.float32}, optional -- The data-type for the :attr:`SnpData.val` ndarray.
              (For :class:`Bed`, only, it can also be numpy.int8. Hidden option _require_float32_64 must be set
              to False. See :class:`Bed` for an example.)
+             None uses ARRAY_DTYPE, then float64; an explicit dtype overrides it.
         :type dtype: data-type.
 
         :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
-            be done without outside library code.
+            use a Python CPU path where supported. Readers decode on the CPU, so this also applies
+            before transfer to CuPy; it does not select the output backend. CuPy standardization ignores this flag.
         :type force_python_only: bool
 
         :param view_ok: optional -- If False (default), allocates new memory for the :attr:`SnpData.val`'s ndarray. If True,
             if practical and reading from a :class:`SnpData`, will return a new
             :class:`SnpData` with a ndarray shares memory with the original :class:`SnpData`.
             Typically, you'll also wish to use "order='A'" to increase the chance that sharing will be possible.
-            Use these parameters with care because any change to either ndarray (for example, via :meth:`.SnpData.standardize`) will effect
+            Use these parameters with care because any change to either ndarray (for example, via :meth:`.SnpData.standardize`) will affect
             the others. Also keep in mind that :meth:`read` relies on ndarray's mechanisms to decide whether to actually
             share memory and so it may ignore your suggestion and allocate a new ndarray anyway.
         :type view_ok: bool
 
-        :param num_threads: optional -- The number of threads with which to read data. Defaults to all available
+        :param num_threads: optional -- The CPU thread count, which also applies to CPU decoding before transfer to CuPy (ignored by CuPy math). Defaults to all available
             processors. Can also be set with these environment variables (listed in priority order):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
 
+        :param xp: NumPy or CuPy module or name. An explicit value overrides
+            ARRAY_MODULE and copies in-memory values to that module if needed.
+            Only None consults the environment; NumPy is the final default. With
+            None, reading in-memory NumPy or CuPy values from the other module
+            raises ValueError instead of copying them between devices; values
+            read from files follow the default.
+            Missing CuPy raises ImportError. See :doc:`/gpu` for complete examples.
+        :type xp: module, str, or None
+
         :rtype: :class:`.SnpData`
 
-        Calling the method again causes the SNP values to be re-read and creates a new in-memory :class:`.SnpData` with a new ndarray of SNP values.
+        Each call creates a new :class:`.SnpData`. Values are read again from disk
+        or copied from memory unless ``view_ok=True`` allows shared storage.
 
-        If you request the values for only a subset of the sids or iids, (to the degree practical) only that subset will be read from disk.
+        If you request the values for only a subset of the rows or columns, (to the degree practical) only that subset will be read from disk.
 
         :Example:
 
@@ -485,9 +505,10 @@ class SnpReader(PstReader):
         >>> import numpy as np
         >>> # print np.may_share_memory(subset_snpdata.val, subsub_snpdata.val) # Do the two ndarray's share memory? They could. Currently they won't.
         """
-        dtype = np.dtype(dtype)
-        val = self._read(
-            None, None, order, dtype, force_python_only, view_ok, num_threads
+        dtype = pstutil.array_dtype(dtype)
+        xp = pstutil.array_module(xp)
+        val = self._read_array(
+            None, None, order, dtype, force_python_only, view_ok, num_threads, xp
         )
         from pysnptools.snpreader import SnpData
 
@@ -497,9 +518,44 @@ class SnpReader(PstReader):
             val,
             pos=self.pos,
             name=str(self),
+            xp=xp,
             _require_float32_64=_require_float32_64,
         )
         return ret
+
+    def _read_array(self, row_index, col_index, order, dtype,
+                    force_python_only, view_ok, num_threads, xp):
+        """Read to the requested module without changing legacy reader overrides."""
+        if not getattr(self, "_read_accepts_slices", False):
+            # None means an unsliced read, which some readers require. Only
+            # normalize actual indexers for readers that cannot consume slices.
+            if row_index is not None:
+                row_index = self._make_sparray_from_sparray_or_slice(self.row_count, row_index)
+            if col_index is not None:
+                col_index = self._make_sparray_from_sparray_or_slice(self.col_count, col_index)
+        val = self._read(row_index, col_index, order, dtype,
+                         force_python_only, view_ok, num_threads)
+        # Preserve reader-specific arrays such as memmaps when no transfer is
+        # needed. The legacy _read contract already guarantees dtype and order.
+        if pstutil.get_array_module(val) is xp:
+            return val
+        if xp is np:
+            val = pstutil.asnumpy(val)
+        from pysnptools.util._array import asarray
+        return asarray(val, dtype=dtype, order=order, xp=xp)
+
+    @_device.read_entry
+    def _read_with_standardizing(self, standardizer, order="F", dtype=None,
+                                 xp=None, return_trained=False,
+                                 force_python_only=False, num_threads=None,
+                                 _row_index=None, _col_index=None):
+        """Read on the selected backend, then standardize its array in place."""
+        dtype = pstutil.array_dtype(dtype)
+        reader = self if _row_index is None and _col_index is None else self[_row_index, _col_index]
+        return reader.read(order=order, dtype=dtype, xp=xp,
+                           force_python_only=force_python_only, num_threads=num_threads).standardize(
+            standardizer, return_trained=return_trained,
+            force_python_only=force_python_only, num_threads=num_threads)
 
     def iid_to_index(self, list):
         """Takes a list of iids and returns a list of index numbers
@@ -549,28 +605,63 @@ class SnpReader(PstReader):
         iid_indexer, snp_indexer = iid_indexer_and_snp_indexer
         return _SnpSubset(self, iid_indexer, snp_indexer)
 
+    @_device.read_entry
     def read_kernel(
         self,
         standardizer=None,
         block_size=None,
         order="A",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
+        xp=None,
     ):
-        """Returns a :class:`KernelData` such that the :meth:`KernelData.val` property will be a ndarray of the standardized SNP values multiplied with their transposed selves.
+        """Returns a :class:`KernelData` such that the :attr:`KernelData.val` property will be a ndarray of the standardized SNP values multiplied with their transposed selves.
 
-        :param standardizer: -- (required) Specify standardization to be applied before the matrix multiply. Any :class:`.Standardizer` may be used. Some choices include :class:`Standardizer.Identity`
-            (do nothing), :class:`.Unit` (make values for each SNP have mean zero and standard deviation 1.0) and :class:`Beta`.
+        :param standardizer: -- (required) Specify standardization to be applied before the matrix multiply. Any :class:`.Standardizer` may be used. Some choices include :class:`pysnptools.standardizer.Identity`
+            (do nothing), :class:`.Unit` (center/scale observed nonconstant values) and :class:`Beta`.
+            The standardizer must support the selected array module. With BetaTrained,
+            the full SNP IDs/order must match training; blocks reuse the corresponding
+            fitted moments without refitting them.
         :type standardizer: :class:`.Standardizer`
 
-        :param block_size: optional -- Default of None (meaning to load all). Suggested number of sids to read into memory at a time.
+        :param block_size: Positive integer SNP block size, or None (default) to load all.
+            Invalid values, including Boolean values, raise ValueError.
+            Limits SNP blocks, not the dense kernel or total GPU memory. A SnpKernel
+            subset can still construct the full kernel. See :doc:`/gpu` for memory limits.
         :type block_size: int or None
 
-        :rtype: class:`KernelData`
+        :param order: 'A' (default), 'C', or 'F' for the output kernel layout.
+            Blocked accumulation uses C order when A is requested.
+        :type order: str
+        :param dtype: Output floating dtype, float64 or float32. None uses ARRAY_DTYPE,
+            then float64; an explicit dtype overrides it. GPU
+            multiplication and accumulation use this dtype; statistics can use float64.
+        :type dtype: data-type
+        :param force_python_only: Request a Python CPU read/standardization path.
+            Reads decode on the CPU either way; this flag does not move GPU computation to the CPU.
+        :type force_python_only: bool
+        :param view_ok: Accepted for reader compatibility; the kernel product
+            allocates new memory regardless of this suggestion.
+        :type view_ok: bool
+        :param num_threads: CPU thread count, or None for environment/default selection.
+            Applies to CPU decoding before transfer to CuPy; ignored by CuPy math.
+        :type num_threads: int or None
 
-        Calling the method again causes the SNP values to be re-read and allocates a new class:`KernelData`.
+        :param xp: NumPy or CuPy module or name. An explicit value overrides
+            ARRAY_MODULE and copies in-memory values to that module if needed.
+            Only None consults the environment; NumPy is the final default. With
+            None, reading in-memory NumPy or CuPy values from the other module
+            raises ValueError instead of copying them between devices; values
+            read from files follow the default.
+            Missing CuPy raises ImportError. See :doc:`/gpu` for complete examples.
+        :type xp: module, str, or None
+
+        :raises AssertionError: if standardizer is None.
+        :rtype: :class:`.KernelData`
+
+        Calling the method again causes the SNP values to be re-read and allocates a new :class:`.KernelData`.
 
         When applied to an read-from-disk SnpReader, such as :class:`.Bed`, the method can save memory by reading (and standardizing) the data in blocks.
 
@@ -586,13 +677,13 @@ class SnpReader(PstReader):
         (300, '901.421836')
         """
         assert standardizer is not None, "'standardizer' must be provided"
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
 
         from pysnptools.kernelreader import SnpKernel
 
         snpkernel = SnpKernel(self, standardizer=standardizer, block_size=block_size)
         kerneldata = snpkernel.read(
-            order, dtype, force_python_only, view_ok, num_threads
+            order, dtype, force_python_only, view_ok, num_threads, xp=xp
         )
         return kerneldata
 
@@ -608,14 +699,14 @@ class SnpReader(PstReader):
 
         Returns a ndarray of size iid_count x iid_count. The returned array has the value of the standardized SNP values multiplied with their transposed selves.
 
-        :param standardizer: -- Specify standardization to be applied before the matrix multiply. Any :class:`.Standardizer` may be used. Some choices include :class:`Standardizer.Identity`
+        :param standardizer: -- Specify standardization to be applied before the matrix multiply. Any :class:`.Standardizer` may be used. Some choices include :class:`pysnptools.standardizer.Identity`
             (do nothing), :class:`.Unit` (make values for each SNP have mean zero and standard deviation 1.0), :class:`Beta`.
         :type standardizer: :class:`.Standardizer`
 
         :param block_size: optional -- Default of 10000. None means to load all. Suggested number of sids to read into memory at a time.
         :type block_size: int or None
 
-        :param num_threads: optional -- The number of threads with which to standardize data. Defaults to all available
+        :param num_threads: optional -- The CPU reader/kernel thread count (ignored by CuPy math). Defaults to all available
             processors. Can also be set with these environment variables (listed in priority order):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
@@ -627,7 +718,7 @@ class SnpReader(PstReader):
 
         When applied to an read-from-disk SnpReader, such as :class:`.Bed`, the method can save memory by reading (and standardizing) the data in blocks.
 
-        If you request the values for only a subset of the sids or iids, (to the degree practical) only that subset will be read from disk.
+        If you request the values for only a subset of the rows or columns, (to the degree practical) only that subset will be read from disk.
 
         :Example:
 
@@ -654,17 +745,20 @@ class SnpReader(PstReader):
         )
 
     @staticmethod
+    @_device.read_entry
     def _as_snpdata(
-        snpreader, standardizer, force_python_only, order, dtype, num_threads
+        snpreader, standardizer, force_python_only, order, dtype, num_threads, xp=None
     ):
         """
         Like 'read' except (1) won't read if already a snpdata and (2) returns the standardizer
         """
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
+        xp = pstutil.array_module(xp)
 
         if (
             hasattr(snpreader, "val")
             and snpreader.val.dtype == dtype
+            and pstutil.get_array_module(snpreader.val) is xp
             and isinstance(standardizer, stdizer.Identity)
             and (
                 order == "A"
@@ -674,31 +768,32 @@ class SnpReader(PstReader):
         ):
             return snpreader, stdizer.Identity()
         else:
-            return snpreader.read(order=order, dtype=dtype).standardize(
-                standardizer,
-                return_trained=True,
-                force_python_only=force_python_only,
-                num_threads=num_threads,
-            )
+            return snpreader._read_with_standardizing(
+                standardizer, order=order, dtype=dtype, xp=xp, return_trained=True,
+                force_python_only=force_python_only, num_threads=num_threads)
 
+    @_device.read_entry
     def _read_kernel(
         self,
         standardizer,
         block_size=None,
         order="A",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         return_trained=False,
         num_threads=None,
+        xp=None,
     ):
         """
         Will respect the cupy environment variable.
         """
-        dtype = np.dtype(dtype)
-        # Do all-at-once (not in blocks) if 1. No block size is given or 2. The #ofSNPs < Min(block_size,iid_count)
+        dtype = pstutil.array_dtype(dtype)
+        xp = pstutil.array_module(xp)
+        # Respect an explicit block size even when the SNP count is below iid_count.
+        # Do all-at-once only if no blocking was requested or one block covers the data.
         if block_size is None or (
-            self.sid_count <= block_size or self.sid_count <= self.iid_count
+            self.sid_count <= block_size
         ):
             train_data, trained_standardizer = SnpReader._as_snpdata(
                 self,
@@ -706,7 +801,7 @@ class SnpReader(PstReader):
                 dtype=dtype,
                 order="A",
                 force_python_only=force_python_only,
-                num_threads=num_threads,
+                num_threads=num_threads, xp=xp,
             )
             kernel = train_data._read_kernel(
                 stdizer.Identity(),
@@ -714,7 +809,7 @@ class SnpReader(PstReader):
                 dtype=dtype,
                 force_python_only=force_python_only,
                 view_ok=False,
-                num_threads=num_threads,
+                num_threads=num_threads, xp=xp,
             )
             if return_trained:
                 return kernel, trained_standardizer
@@ -722,12 +817,29 @@ class SnpReader(PstReader):
                 return kernel
 
         else:  # Do in blocks
-            xp = pstutil.array_module()
+            is_trained_beta = type(standardizer) is stdizer.BetaTrained
+            if is_trained_beta:
+                # Validate the whole SNP order before slicing moments. Positional
+                # slices also preserve distinct moments for repeated SNP IDs.
+                # Raise explicitly, not with assert, so these checks survive python -O.
+                if not np.array_equal(standardizer.sid, self.sid):
+                    raise AssertionError("sid in training and use must be the same and in the same order")
+                if standardizer.stats.shape != (self.sid_count, 2):
+                    raise AssertionError("stats must have size [sid_count,2]")
+            # DiagKtoN scales the whole SNP matrix by one factor fitted to all SNPs, so
+            # applying it per block would fit a different factor to each block. Instead,
+            # sum unstandardized block kernels and then scale the total: the kernel's
+            # trace equals the SNP values' sum of squares, so this matches the
+            # all-at-once result.
+            is_diag_k_to_n = type(standardizer) is stdizer.DiagKtoN
             # Set the default order to 'C' because with kernels any order is fine and the Python .dot method likes 'C' best.
             if order == "A":
                 order = "C"
             t0 = time.time()
-            K = xp.zeros([self.iid_count, self.iid_count], dtype=dtype, order=order)
+            # Kernels are never standardized natively, so CuPy's own pool serves them.
+            from pysnptools.util._gpu_warnings import warn_gpu_float64
+            warn_gpu_float64(dtype, xp)
+            K = xp.zeros((self.iid_count, self.iid_count), dtype=dtype, order=order)
             trained_standardizer_list = []
             logging.info(
                 f"reading {self.sid_count:,} SNPs in blocks of {block_size:,} and adding up kernels (for {self.iid_count:,} individuals) with {xp.__name__}."
@@ -739,15 +851,23 @@ class SnpReader(PstReader):
 
             for start in range(0, self.sid_count, block_size):
                 ct += block_size
+                block_standardizer = stdizer.Identity() if is_diag_k_to_n else standardizer
+                if is_trained_beta:
+                    selection = slice(start, start + block_size)
+                    block_standardizer = stdizer.BetaTrained(
+                        standardizer.a, standardizer.b,
+                        standardizer.sid[selection], standardizer.stats[selection],
+                    )
                 train_data, trained_standardizer = SnpReader._as_snpdata(
                     self[:, start : start + block_size],
-                    standardizer=standardizer,
+                    standardizer=block_standardizer,
                     dtype=dtype,
                     order="A",
                     force_python_only=force_python_only,
-                    num_threads=num_threads,
+                    num_threads=num_threads, xp=xp,
                 )
-                trained_standardizer_list.append(trained_standardizer)
+                if not (is_trained_beta or is_diag_k_to_n):
+                    trained_standardizer_list.append(trained_standardizer)
                 K += train_data._read_kernel(
                     stdizer.Identity(),
                     block_size=None,
@@ -755,8 +875,9 @@ class SnpReader(PstReader):
                     dtype=dtype,
                     force_python_only=force_python_only,
                     view_ok=False,
-                    num_threads=num_threads,
+                    num_threads=num_threads, xp=xp,
                 )
+                del train_data
                 if ct % block_size == 0:
                     diff = time.time() - ts
                     if diff > 1 and diff - diff_last > 5:
@@ -766,7 +887,19 @@ class SnpReader(PstReader):
             t1 = time.time()
             logging.info("%.2f seconds elapsed" % (t1 - t0))
 
+            if is_diag_k_to_n:
+                from pysnptools.standardizer.diag_K_to_N import _normalization_factor
+                trace = float(xp.trace(K, dtype=np.float64))
+                factor = _normalization_factor(self.iid_count, trace)
+                if abs(factor - 1.0) > 1e-15:
+                    K *= factor
+                if return_trained:
+                    return K, stdizer.DiagKtoNTrained(factor)
+                return K
+
             if return_trained:
+                if is_trained_beta:
+                    return K, standardizer
                 return K, standardizer._merge_trained(
                     trained_standardizer_list
                 )  # turns this into a single standardizer

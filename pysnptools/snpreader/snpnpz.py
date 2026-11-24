@@ -2,6 +2,7 @@ from pysnptools.pstreader import PstNpz
 from pysnptools.snpreader import SnpReader
 import logging
 import numpy as np
+from pysnptools.util import _device
 
 
 class SnpNpz(PstNpz, SnpReader):
@@ -65,6 +66,7 @@ class SnpNpz(PstNpz, SnpReader):
         >>> SnpNpz.write("tempdir/toydata10.snp.npz",snpdata)          # Write data in SnpNpz format
         SnpNpz('tempdir/toydata10.snp.npz')
         """
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         row_ascii = np.array(
             snpdata.row, dtype="S"
         )  # !!! would be nice to avoid this copy when not needed.

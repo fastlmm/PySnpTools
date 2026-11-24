@@ -6,8 +6,11 @@ import warnings
 import pysnptools.util as pstutil
 
 class Unit(Standardizer):
-    """A :class:`.Standardizer` to unit standardize SNP data. For each sid, the mean of the values is zero with standard deviation 1.
-    NaN values are then filled with zero, the mean (consequently, if there are NaN values, the final standard deviation will not be zero.
+    """A :class:`.Standardizer` to unit standardize SNP data. Observed nonconstant values are centered and scaled to standard deviation one.
+    Observed values use population standard deviation (ddof=0); NaNs then become
+    zero, so final variance can be below one. Constant columns become zero;
+    wholly missing training columns raise ValueError. NumPy/CuPy arrays stay on
+    their device, regardless of ARRAY_MODULE. See :doc:`/gpu` for complete examples.
 
     See :class:`.Standardizer` for more information about standardization.
 
@@ -27,15 +30,19 @@ class Unit(Standardizer):
 
     def standardize(self, snps, block_size=None, return_trained=False, force_python_only=False, num_threads=None):
         '''
-        When cupy environment variable is set, will use cupy.
+        Standardize on the array's current device, in place.
+
+        See :meth:`.Standardizer.standardize` for shared options and :doc:`/gpu`
+        for complete examples. Returns the input, or (input, UnitTrained) when
+        return_trained=True. The trained stats are NumPy arrays. Direct
+        block_size arguments warn and are ignored; force_python_only and
+        num_threads do not change CuPy execution.
         '''
-        xp = pstutil.array_module() # Get array module based on any ARRAY_MODULE environ variable.
 
         if block_size is not None:
             warnings.warn("block_size is deprecated (and not needed, since standardization is in-place", DeprecationWarning)
 
         if hasattr(snps,"val"):
-            snps._val = xp.asarray(snps.val) #If cupy, replace SnpData's val with cupy array
             val = snps.val
         else:
             warnings.warn("standardizing an ndarray instead of a SnpData is deprecated", DeprecationWarning)
@@ -46,7 +53,7 @@ class Unit(Standardizer):
 
         if return_trained:
             assert hasattr(snps,"val"), "return_trained=True requires that snps be a SnpData"
-            return snps, UnitTrained(snps.sid, stats)
+            return snps, UnitTrained(snps.sid, pstutil.asnumpy(stats))
         else:
             return snps
 

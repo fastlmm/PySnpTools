@@ -10,6 +10,7 @@ from pysnptools.pstreader import PstMemMap
 from pysnptools.snpreader import SnpData
 from pysnptools.standardizer import Identity
 from pysnptools.util import log_in_place
+from pysnptools.util import _device
 
 
 class SnpMemMap(PstMemMap, SnpData):
@@ -172,6 +173,7 @@ class SnpMemMap(PstMemMap, SnpData):
         >>> SnpMemMap.write("tempdir/toydata.5chrom.snp.memmap",bed)      # Write bed in SnpMemMap format
         SnpMemMap('tempdir/toydata.5chrom.snp.memmap')
         """
+        snpreader = _device.numpy_for_write(snpreader)  # writing is an explicit copy to the CPU
         block_size = block_size or max((100_000) // max(1, snpreader.row_count), 1)
 
         if hasattr(snpreader, "val"):
@@ -198,7 +200,7 @@ class SnpMemMap(PstMemMap, SnpData):
                 for start in range(0, snpreader.sid_count, block_size):
                     updater("{0} of {1}".format(start, snpreader.sid_count))
                     snpdata = snpreader[:, start : start + block_size].read(
-                        order=order, dtype=dtype, num_threads=num_threads
+                        order=order, dtype=dtype, num_threads=num_threads, xp=np
                     )
                     standardizer.standardize(snpdata, num_threads=num_threads)
                     snpmemmap.val[:, start : start + snpdata.sid_count] = snpdata.val
@@ -224,6 +226,7 @@ class SnpMemMap(PstMemMap, SnpData):
             val=val,
             pos=col_property,
             name="np.memmap('{0}')".format(self._filename),
+            xp=np,  # a memory map is always a NumPy array
         )
 
 

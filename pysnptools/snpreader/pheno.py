@@ -6,6 +6,7 @@ from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
 import pysnptools.util.pheno as pstpheno
 from pysnptools.pstreader import _OneShot
+from pysnptools.util import _device
 
 
 class Pheno(_OneShot, SnpReader):
@@ -99,7 +100,7 @@ class Pheno(_OneShot, SnpReader):
         col_property.fill(np.nan)
         val = pheno_input["vals"]
 
-        snpdata = SnpData(iid=row, sid=col, pos=col_property, val=val)
+        snpdata = SnpData(iid=row, sid=col, pos=col_property, val=val, xp=np)
         return snpdata
 
     @staticmethod
@@ -124,6 +125,7 @@ class Pheno(_OneShot, SnpReader):
         >>> Pheno.write("tempdir/toydata10.txt",snpdata)       # Write data in Pheno format
         Pheno('tempdir/toydata10.txt')
         """
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         with open(filename, "w") as f:
             for i in range(snpdata.iid_count):
                 tmpstr = snpdata.iid[i, 0] + sep + snpdata.iid[i, 1]

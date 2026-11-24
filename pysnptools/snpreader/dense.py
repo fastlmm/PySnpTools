@@ -3,8 +3,8 @@ import logging
 from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
 import warnings
-from pysnptools.pstreader import PstData
 from pysnptools.pstreader import _OneShot
+from pysnptools.util import _device
 
 
 def zero_family(s):
@@ -122,7 +122,7 @@ class Dense(_OneShot, SnpReader):
         for col_index in range(len(col)):
             val[:, col_index] = val_list_list[col_index]
 
-        return PstData(iid, col, val, col_property=col_property, name=self.filename)
+        return SnpData(iid=iid, sid=col, val=val, pos=col_property, name=self.filename, xp=np)
 
     @staticmethod
     def write(
@@ -153,13 +153,14 @@ class Dense(_OneShot, SnpReader):
         """
 
         if isinstance(filename, SnpData) and isinstance(
-            snpdata, "str"
+            snpdata, str
         ):  # For backwards compatibility, reverse inputs if necessary
             warnings.warn(
                 "write statement should have filename before data to write",
                 DeprecationWarning,
             )
             filename, snpdata = snpdata, filename
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
 
         snpsarray = snpdata.val
         with open(filename, "w") as filepointer:

@@ -2,6 +2,7 @@ import logging
 import numpy as np
 from pysnptools.snpreader import SnpReader
 from pysnptools.pstreader import PstHdf5
+from pysnptools.util import _device
 
 
 class SnpHdf5(PstHdf5, SnpReader):
@@ -71,6 +72,7 @@ class SnpHdf5(PstHdf5, SnpReader):
         >>> SnpHdf5.write("tempdir/toydata10.snp.hdf5",snpdata)        # Write data in SnpHdf5 format
         SnpHdf5('tempdir/toydata10.snp.hdf5')
         """
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
         PstHdf5.write(filename, snpdata, hdf5_dtype=hdf5_dtype, col_major=sid_major)
         return SnpHdf5(filename)
 

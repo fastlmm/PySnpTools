@@ -57,6 +57,8 @@ class _OneShot(PstReader):
     def _read(self, row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads):
         self._run_once()
         dtype = np.dtype(dtype)
-        val = self._data._read(row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads)
+        # The parsed cache holds values decoded from a file, not a caller's in-memory
+        # array, so like any file read it may follow ARRAY_MODULE without an explicit xp.
+        val = self._data._read_unchecked(row_index_or_none, col_index_or_none, order, dtype, force_python_only, view_ok, num_threads)
         return val
 

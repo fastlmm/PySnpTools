@@ -5,6 +5,7 @@ from bed_reader import open_bed, to_bed
 from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
 import warnings
+from pysnptools.util import _device
 
 
 plink_chrom_map = {"X": 23, "Y": 24, "XY": 25, "MT": 26}
@@ -29,7 +30,7 @@ class Bed(SnpReader):
                      * **iid** (an array of strings) -- The :attr:`SnpReader.iid` information. If not given, reads info from '.fam' file.
                      * **sid** (an array of strings) -- The :attr:`SnpReader.sid` information. If not given, reads info from '.bim' file.
                      * **pos** (optional, an array of strings) -- The :attr:`SnpReader.pos` information.  If not given, reads info from '.bim' file.
-                     * **num_threads** (optinal, int) -- The number of threads with which to read data. Defaults to all available processors.
+                     * **num_threads** (optional, int) -- The number of threads with which to read data. Defaults to all available processors.
                             Can also be set with these environment variables (listed in priority order):
                             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
                      * **skip_format_check** (*bool*) -- By default (False), checks that the '.bed' file starts with the expected bytes
@@ -49,9 +50,13 @@ class Bed(SnpReader):
 
     **Methods beyond** :class:`.SnpReader`
 
-        The :meth:`.SnpReader.read` method returns a :class:`SnpData` with a :attr:`SnpData.val` ndarray. By default, this ndarray is
-        numpy.float32. Optionally, it can be numpy.float16. For :class:`Bed`, however, it can also be numpy.int8 with missing values
-        represented by -127.
+        The :meth:`.SnpReader.read` method returns a :class:`SnpData` with a :attr:`SnpData.val` ndarray. By default, this ndarray uses
+        ARRAY_DTYPE, then numpy.float64. Optionally, it can be numpy.float32, or numpy.int8 with
+        ``_require_float32_64=False`` and missing values represented by -127.
+        Float16 is not supported. ``xp`` selects NumPy/CuPy at read time.
+        BED decoding uses the CPU, including ``force_python_only`` and CPU thread
+        settings, before transfer to CuPy when requested. See :doc:`/gpu` for prerequisites, exceptions,
+        memory limits, and a complete synthetic BED example.
 
         When reading, any chromosome and position values of 0 (the PLINK standard for missing) will be represented in :attr:`pos` as NaN.
 
@@ -273,6 +278,7 @@ class Bed(SnpReader):
                 DeprecationWarning,
             )
             filename, snpdata = snpdata, filename
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
 
         if count_A1 is None:
             warnings.warn(

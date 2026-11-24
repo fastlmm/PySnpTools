@@ -9,6 +9,7 @@ import os
 import logging
 import os.path
 import threading
+import contextvars
 from queue import PriorityQueue
 
 
@@ -80,7 +81,11 @@ class LocalMultiThread(Runner):
                 priority_queue.put((taskindex, result_list))
 
             if not self.just_one_process:
-                thread = threading.Thread(target=_target, name=str(taskindex))
+                # Run each task in a copy of the caller's context so context
+                # variables, such as PySnpTools' implicit-xp read check, apply
+                # inside the thread too (Python 3.11-3.13 threads start empty).
+                thread = threading.Thread(target=contextvars.copy_context().run,
+                                          args=(_target,), name=str(taskindex))
                 thread_list.append(thread)
                 thread.start()
             else:

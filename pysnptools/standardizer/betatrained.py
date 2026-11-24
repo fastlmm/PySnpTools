@@ -6,12 +6,17 @@ from pysnptools.standardizer import Standardizer
 class BetaTrained(Standardizer):
     """A :class:`.Standardizer` to beta standardize one set of SNP data based on the mean of another set of SNP data
 
-    See :class:`.Standardizer` for more information about standardization.
+    Requires matching SNP IDs in exactly the training order (AssertionError
+    otherwise). Kernel construction may split a matching SNP list into blocks;
+    each block uses its corresponding fitted moments without refitting. Constant
+    training SNPs remain zero and NaNs become zero.
+    See :class:`.Standardizer` and :doc:`/gpu` for complete examples.
 
     **Constructor:**
         :Parameters: * **a** (*float*) -- The *a* parameter of the beta distribution
                      * **b** (*float*) -- The *b* parameter of the beta distribution
-                     * **stats** (*ndarray of float*) -- The mean and stddev of each sid
+                     * **sid** (*array of strings*) -- Training SNP IDs, in order.
+                     * **stats** (*ndarray of float*) -- Shape (sid_count, 2), training means and population stddevs.
 
     >>> from pysnptools.standardizer import Beta
     >>> from pysnptools.snpreader import Bed
@@ -45,12 +50,19 @@ class BetaTrained(Standardizer):
         return True
 
     def standardize(self, snps, block_size=None, return_trained=False, force_python_only=False, num_threads=None):
+        """Apply the fitted Beta transform in place on the target array device.
+
+        See :meth:`.Standardizer.standardize` for options and :doc:`/gpu` for
+        examples. Requires identical SNP IDs/order. Returns the input, or
+        (input, self) with return_trained=True."""
         if block_size is not None:
             warnings.warn("block_size is deprecated (and not needed, since standardization is in-place", DeprecationWarning)
 
         if hasattr(snps,"val"):
             val = snps.val
-            assert np.array_equal(self.sid,snps.sid), "sid in training and use must be the same and in the same order"
+            # Raise explicitly, not with assert, so the check survives python -O.
+            if not np.array_equal(self.sid,snps.sid):
+                raise AssertionError("sid in training and use must be the same and in the same order")
         else:
             warnings.warn("standardizing an nparray instead of a SnpData is deprecated", DeprecationWarning) #LATER test coverage
             val = snps

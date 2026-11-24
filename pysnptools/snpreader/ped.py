@@ -5,6 +5,7 @@ from pysnptools.snpreader import SnpReader
 from pysnptools.snpreader import SnpData
 import warnings
 from pysnptools.pstreader import _OneShot
+from pysnptools.util import _device
 
 
 class Ped(_OneShot,SnpReader):
@@ -60,7 +61,7 @@ class Ped(_OneShot,SnpReader):
             vals=snpsstr[~inan[:,2*i],2*i:2*(i+1)]
             if vals.shape[0] > 0:
                 snps[~inan[:,2*i],i]+=(vals==vals[0,0]).sum(1)
-        snpdata = SnpData(iid=row,sid=col,pos=col_property,val=snps)
+        snpdata = SnpData(iid=row,sid=col,pos=col_property,val=snps,xp=np)
         return snpdata
 
     def copyinputs(self, copier):
@@ -94,6 +95,7 @@ class Ped(_OneShot,SnpReader):
         if isinstance(filename,SnpData) and isinstance(snpdata,str): #For backwards compatibility, reverse inputs if necessary
             warnings.warn("write statement should have filename before data to write", DeprecationWarning)
             filename, snpdata = snpdata, filename
+        snpdata = _device.numpy_for_write(snpdata)  # writing is an explicit copy to the CPU
 
         SnpReader._write_map_or_bim(snpdata, filename, remove_suffix="ped", add_suffix="map")
 

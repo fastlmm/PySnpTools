@@ -6,6 +6,7 @@ import subprocess
 import sys
 import os.path
 from pysnptools.util import create_directory_if_necessary, _datestamp
+from pysnptools.util.mapreduce1.runner import _threads
 
 
 class LocalMultiProc(Runner):
@@ -14,7 +15,8 @@ class LocalMultiProc(Runner):
 
     **Constructor:**
         :Parameters: * **taskcount** (*number*) -- The number of processes to run on.
-                     * **mkl_num_threads** (*number*) -- (default None) Limit on the number threads used by the NumPy MKL library.
+                     * **num_threads** (*number*) -- (default None) Maximum threads per process for MKL, OpenBLAS, and PySnpTools CPU operations. None leaves thread settings unchanged.
+                     * **mkl_num_threads** (*number*) -- Deprecated alias for num_threads. Supplying both names, including explicit None, raises TypeError.
                      * **weights** (*array of integers*) -- (default None) If given, tells the relative amount of work assigned to
                             each task. The length of the array must be **taskcount**. If not given, all tasks are assigned the
                             same amount of work.
@@ -35,15 +37,16 @@ class LocalMultiProc(Runner):
         ...     def reducer1(sequence):
         ...        return sum(sequence)
         ...     return map_reduce(range(n),mapper=mapper1,reducer=reducer1,runner=runner)
-        >>> holder1(100,LocalMultiProc(4))
+        >>> holder1(100,LocalMultiProc(4, num_threads=1))
         328350
 
     """
 
+    @_threads.renamed_num_threads
     def __init__(
         self,
         taskcount,
-        mkl_num_threads=None,
+        num_threads=None,
         weights=None,
         taskindex_to_environ=None,
         just_one_process=False,
@@ -60,11 +63,15 @@ class LocalMultiProc(Runner):
         logger.addHandler(logging_handler)
 
         self.taskcount = taskcount
-        self.mkl_num_threads = mkl_num_threads
+        self.num_threads = num_threads
         self.weights = weights
         self.taskindex_to_environ = taskindex_to_environ
 
+    num_threads = _threads.canonical_num_threads
+    mkl_num_threads = _threads.legacy_num_threads
+
     def run(self, distributable):
+        thread_environment = _threads.environment(self.num_threads)
         _JustCheckExists().input(distributable)
 
         os.environ["PATH"]
@@ -101,13 +108,20 @@ class LocalMultiProc(Runner):
                     sys.executable,
                     distributable_py_file,
                     distributablep_filename,
-                    f"LocalInParts({taskindex},{self.taskcount},mkl_num_threads={self.mkl_num_threads},weights={self.weights},environ={environ})".replace(
+                    f"LocalInParts({taskindex},{self.taskcount},num_threads={self.num_threads},weights={self.weights},environ={environ})".replace(
                         " ", ""
                     ),
                 ]
 
                 # logging.info(command_string_list)
-                proc = subprocess.Popen(command_string_list, cwd=os.getcwd())
+                # Spawned interpreters must see the limits before importing BLAS.
+                worker_environment = None
+                if thread_environment:
+                    worker_environment = os.environ.copy()
+                    worker_environment.update(thread_environment)
+                proc = subprocess.Popen(
+                    command_string_list, cwd=os.getcwd(), env=worker_environment
+                )
                 proc_list.append(proc)
 
             for taskindex, proc in enumerate(proc_list):
@@ -130,7 +144,7 @@ class LocalMultiProc(Runner):
                 LocalInParts(
                     taskindex,
                     self.taskcount,
-                    mkl_num_threads=self.mkl_num_threads,
+                    num_threads=self.num_threads,
                     weights=self.weights,
                     environ=environ,
                 ).run(distributable)
@@ -140,14 +154,16 @@ class LocalMultiProc(Runner):
             if self.taskindex_to_environ is not None
             else None
         )
-        result = _run_one_task(
-            distributable,
-            self.taskcount,
-            self.taskcount,
-            distributable.tempdirectory,
-            weights=self.weights,
-            environ=environ,
-        )
+        # The reducer can also fit models with BLAS already loaded in this process.
+        with _threads.limits(self.num_threads):
+            result = _run_one_task(
+                distributable,
+                self.taskcount,
+                self.taskcount,
+                distributable.tempdirectory,
+                weights=self.weights,
+                environ=environ,
+            )
 
         _JustCheckExists().output(distributable)
         return result

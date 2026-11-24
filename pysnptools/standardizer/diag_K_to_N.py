@@ -1,3 +1,4 @@
+import pysnptools.util as pstutil
 import numpy as np
 from pysnptools.standardizer import Standardizer
 import logging
@@ -6,16 +7,21 @@ import warnings
 
 class DiagKtoN(Standardizer):
     """
-    Both a :class:`.Standardizer` and a A :class:`.KernelStandardizer`.
+    Both a :class:`.Standardizer` and a :class:`.KernelStandardizer`.
 
     When applied to a :class:`.SnpData`, it multiplies the SNP values by the square root of a factor such that a kernel
     constructed from the SNP values will have a diagonal that sums to iid_count. This class thus
     standardizes the kernel before it is even constructed.
 
-    When applied to a :class:`.KernelData`, it multiplies the kernel values by the a factor such that a kernel
+    When applied to a :class:`.KernelData`, it multiplies the kernel values by a factor such that a kernel
     will have a diagonal that sums to iid_count.
 
-    See :class:`.Standardizer` for more information about standardization.
+    Scaling follows the values' existing NumPy or CuPy device. This operation
+    rescales the whole matrix; it does not center each SNP. Use it on data with
+    a finite, positive kernel trace. Zero, negative, or nonfinite normalization
+    denominators, including empty inputs, raise ValueError before values change.
+    See :doc:`/gpu` for a complete GPU example
+    and :class:`.Standardizer` for more about standardization.
 
     **Constructor:**
         :Parameters: * **deprecated_iid_count** (*int*) (optional) -- Deprecated.
@@ -23,6 +29,7 @@ class DiagKtoN(Standardizer):
 
     Example of DiagKtoN to :class:`.SnpData`:
 
+    >>> import numpy as np
     >>> from pysnptools.standardizer import DiagKtoN, Unit, Identity
     >>> from pysnptools.snpreader import Bed
     >>> from pysnptools.util import example_file # Download and return local file name
@@ -63,7 +70,10 @@ class DiagKtoN(Standardizer):
         force_python_only=False,
         num_threads=None,
     ):
-        factor = float(kerneldata.iid_count) / np.diag(kerneldata.val).sum()
+        xp = pstutil.get_array_module(kerneldata.val)
+        trace = (np.diag(kerneldata.val).sum() if xp is np
+                 else float(xp.diag(kerneldata.val).sum(dtype=np.float64)))
+        factor = _normalization_factor(kerneldata.iid_count, trace)
 
         if abs(factor - 1.0) > 1e-15:
             kerneldata._val *= factor
@@ -118,8 +128,14 @@ class DiagKtoN(Standardizer):
         vec = val.reshape(-1, order="A")
         # make sure no copy was made
         assert not vec.flags["OWNDATA"]
-        squared_sum = vec.dot(vec)
-        factor = float(val.shape[0]) / squared_sum
+        # Accumulate in float64 without a matrix-sized float64 temporary.
+        xp = pstutil.get_array_module(val)
+        if xp is np:
+            squared_sum = vec.dot(vec)
+        else:
+            from pysnptools.standardizer._cupy import _sum_squares_kernel
+            squared_sum = float(_sum_squares_kernel()(vec))
+        factor = _normalization_factor(val.shape[0], squared_sum)
 
         if abs(factor - 1.0) > 1e-15:
             val *= np.sqrt(factor)
@@ -135,16 +151,18 @@ class DiagKtoN(Standardizer):
 
 # !!!move to its own file
 class DiagKtoNTrained(Standardizer):
-    """Both a :class:`.Standardizer` and a A :class:`.KernelStandardizer`.
+    """Both a :class:`.Standardizer` and a :class:`.KernelStandardizer`.
 
     When applied to a :class:`.SnpData`, DiagKtoN standardizes one set of SNP data based on another set of SNP data.
 
     When applied to a :class:`.KernelData`, DiagKtoN standardizes one kernel data based on another kernel data.
 
-    See :class:`.Standardizer` for more information about standardization.
+    Reuses the fitted scalar on the values' existing NumPy or CuPy device,
+    without refitting it from the target data. The target kernel's trace need
+    not equal its sample count. See :class:`.DiagKtoN` for a fitting example.
 
     **Constructor:**
-        :Parameters: * **factor** (*float*) -- The number what when multiplied into the kernel values will make the diagonal of the kernel values to  sum to iid_count.
+        :Parameters: * **factor** (*float*) -- Fitted kernel scale. SNP values are multiplied by its square root.
 
     """
 
@@ -224,6 +242,17 @@ class DiagKtoNTrained(Standardizer):
 
     def __repr__(self):
         return "{0}({1})".format(self.__class__.__name__, self.factor)
+
+
+def _normalization_factor(sample_count, denominator):
+    # Validate the existing reduction result: no extra matrix scan or transfer.
+    if sample_count == 0 or not np.isfinite(denominator) or denominator <= 0:
+        raise ValueError("DiagKtoN requires a finite, positive normalization denominator and at least one sample")
+    # Preserve the CPU reduction's scalar dtype and its established rounding.
+    factor = float(sample_count) / denominator
+    if not np.isfinite(factor) or factor <= 0:
+        raise ValueError("DiagKtoN normalization factor must be finite and positive")
+    return factor
 
 
 if __name__ == "__main__":

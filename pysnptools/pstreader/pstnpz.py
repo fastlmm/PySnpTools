@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 from pysnptools.pstreader import PstReader
+from pysnptools.util import _device
 
 
 class PstNpz(PstReader):
@@ -151,6 +152,7 @@ class PstNpz(PstReader):
         >>> PstNpz.write("tempdir/tiny.pst.npz",data1)          # Write data in PstNz format
         PstNpz('tempdir/tiny.pst.npz')
         """
+        pstdata = _device.numpy_for_write(pstdata)  # writing is an explicit copy to the CPU
         np.savez(
             filename,
             row=pstdata.row,

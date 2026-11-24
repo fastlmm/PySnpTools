@@ -392,30 +392,37 @@ class TestFileCache(unittest.TestCase):
         import pysnptools.util.filecache
 
         old_dir = os.getcwd()
-        os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        for mod in [
-            pysnptools.util.filecache,
-            pysnptools.util.filecache.filecache,
-            pysnptools.util.filecache.localcache,
-            pysnptools.util.filecache.peertopeer,
-            pysnptools.util.filecache.hashdown,
-        ]:
-            buffer = StringIO()
-            old_stdout = sys.stdout
-            sys.stdout = buffer  # Redirect the stdout to the buffer
+        root_logger = logging.getLogger()
+        old_level = root_logger.level
+        root_logger.setLevel(logging.WARN)
+        try:
+            os.chdir(os.path.dirname(os.path.realpath(__file__)))
+            for mod in [
+                pysnptools.util.filecache,
+                pysnptools.util.filecache.filecache,
+                pysnptools.util.filecache.localcache,
+                pysnptools.util.filecache.peertopeer,
+                pysnptools.util.filecache.hashdown,
+            ]:
+                buffer = StringIO()
+                old_stdout = sys.stdout
+                sys.stdout = buffer  # Redirect the stdout to the buffer
 
-            try:
-                result = doctest.testmod(
-                    mod, optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
-                )
-                if result.failed:
-                    assert (
-                        result.failed == 0
-                    ), f"Doc test failed in {mod.__name__} with the following output:\n{buffer.getvalue()}"
-            finally:
-                sys.stdout = old_stdout
-                buffer.close()
-        os.chdir(old_dir)
+                try:
+                    result = doctest.testmod(
+                        mod, optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
+                    )
+                    if result.failed:
+                        assert (
+                            result.failed == 0
+                        ), f"Doc test failed in {mod.__name__} with the following output:\n{buffer.getvalue()}"
+                finally:
+                    sys.stdout = old_stdout
+                    buffer.close()
+            os.chdir(old_dir)
+        finally:
+            os.chdir(old_dir)
+            root_logger.setLevel(old_level)
 
 
 def getTestSuite():

@@ -10,6 +10,12 @@ Main Features:
           New features include multi-threaded BED reading, cluster-ready BED data, on-the-fly SNP generation,
           and larger in-memory data.
 
+* **Experimental GPU arrays:** Read, standardize, and construct kernels with CuPy.
+  `ARRAY_MODULE` and `ARRAY_DTYPE` supply optional backend/precision environment defaults.
+  See the [GPU guide](https://github.com/fastlmm/PySnpTools/blob/main/doc/source/gpu.rst) and [workflow notebook](https://github.com/fastlmm/PySnpTools/blob/main/doc/ipynb/gpu_workflow.ipynb).
+  The `cupy` extra installs CuPy directly. BED reads decode on the CPU, then
+  transfer to CuPy for GPU standardization and kernel construction.
+
 * [DistReader](https://fastlmm.github.io/PySnpTools/#module-pysnptools.distreader): Efficiently work with
          unphased BGEN format and other diploid, biallelic distribution data.
           Also, efficiently read parts of files. See [Distribution IPython Notebook](https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/Dist.ipynb).
@@ -28,7 +34,15 @@ Install
 
     pip install pysnptools
 
-Requires Python 3.11.5 or later. Python 3.15 qualification is in progress.
+Requires Python 3.11.5 or later. Core Python 3.15 support excludes HDF5, BGEN,
+and CuPy because their required wheels are not currently available together.
+
+For the experimental GPU beta:
+
+    pip install "pysnptools[cupy]==1.1.0b1"
+
+GPU use requires compatible NVIDIA hardware, a driver, and CuPy's CUDA setup.
+Python 3.15 is currently CPU-only; see the GPU guide for platform limits.
 
 HDF5 support is optional. To read or write HDF5 files, install:
 
@@ -59,3 +73,25 @@ Contacts
 * Email the developers at <fastlmm-dev@python.org>.
 * [Join](mailto:fastlmm-user-join@python.org?subject=Subscribe) the user discussion and announcement list (or use [web sign up](https://mail.python.org/mailman3/lists/fastlmm-user.python.org)).
 * [Open an issue](https://github.com/fastlmm/PySnpTools/issues) on GitHub.
+
+## Testing
+
+PySnpTools has two test runners. Run `pytest` from the repository root for
+pytest tests and doctests in Python modules, reStructuredText, and Markdown.
+Run `python -m pysnptools.test` for the legacy unittest suite, which assembles
+reader, standardizer, utility, optional-format, and doctest checks. These runners
+cover overlapping but different sets of tests.
+
+Two doctest examples in `pysnptools.distreader.bgen` require external QCTool v2:
+`Bgen.genwrite` and `Bgen.write`. Install QCTool v2 from the [official QCTool
+site](https://www.well.ox.ac.uk/~gav/qctool/), then set `QCTOOLPATH` to the
+command or executable path used to launch it. For example, on Linux or macOS:
+
+```sh
+export QCTOOLPATH=/absolute/path/to/qctool
+```
+
+On Windows, install QCTool in WSL and set `QCTOOLPATH` to the WSL launch command
+and Linux executable path, as described in the `Bgen.write` API documentation.
+The BGEN doctest fails with a message naming qctool when this configuration is
+missing; it does not silently skip.

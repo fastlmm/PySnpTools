@@ -2,6 +2,7 @@ import logging
 import numpy as np
 from pysnptools.distreader import DistReader
 from pysnptools.pstreader import PstHdf5
+from pysnptools.util import _device
 
 class DistHdf5(PstHdf5,DistReader):
     r'''
@@ -68,6 +69,7 @@ class DistHdf5(PstHdf5,DistReader):
         >>> DistHdf5.write("tempdir/toydata10.dist.hdf5",distdata)        # Write data in DistHdf5 format
         DistHdf5('tempdir/toydata10.dist.hdf5')
         """
+        distdata = _device.numpy_for_write(distdata)  # writing is an explicit copy to the CPU
         PstHdf5.write(filename,distdata,hdf5_dtype=hdf5_dtype,col_major=sid_major)
         return DistHdf5(filename)
 

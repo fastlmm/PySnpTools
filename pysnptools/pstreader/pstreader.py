@@ -2,6 +2,7 @@ import numpy as np
 from itertools import *  # noqa: F403
 import logging
 import pysnptools.util as pstutil
+from pysnptools.util import _device
 import numbers
 
 try:
@@ -281,7 +282,7 @@ class PstReader(object):
 
     The :meth:`read` Method
 
-        By default the :meth:`read` returns a ndarray of numpy.float64 laid out in memory in F-contiguous order (row-index varies the fastest). You may, instead,
+        Without ARRAY_DTYPE or an explicit dtype, :meth:`read` returns an ndarray of numpy.float64 laid out in memory in F-contiguous order (row-index varies the fastest). You may, instead,
         ask for numpy.float32 or for C-contiguous order or any order. See :meth:`read` for details.
 
     Details of Methods & Properties:
@@ -421,13 +422,15 @@ class PstReader(object):
         raise NotImplementedError
 
     # !!check that views always return contiguous memory by default
+    @_device.read_entry
     def read(
         self,
         order="F",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
+        xp=None,
     ):
         """Reads the matrix values and returns a :class:`.PstData` (with :attr:`PstData.val` property containing a new ndarray of the matrix values).
 
@@ -438,7 +441,8 @@ class PstReader(object):
             ndarray may be in any order (either C-, Fortran-contiguous).
         :type order: string or None
 
-        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`PstData.val` ndarray.
+        :param dtype: {None, numpy.float64, numpy.float32}, optional -- The data-type for the :attr:`PstData.val` ndarray.
+             None uses ARRAY_DTYPE, then float64; an explicit dtype overrides it.
         :type dtype: data-type
 
         :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
@@ -459,6 +463,15 @@ class PstReader(object):
             processors. Can also be set with these environment variables (listed in priority order):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
+
+        :param xp: NumPy or CuPy module or name. An explicit value overrides
+            ARRAY_MODULE and copies in-memory values to that module if needed.
+            Only None consults the environment; NumPy is the final default. With
+            None, reading in-memory NumPy or CuPy values from the other module
+            raises ValueError instead of copying them between devices; values
+            read from files follow the default.
+            Missing CuPy raises ImportError. See :doc:`/gpu` for complete examples.
+        :type xp: module, str, or None
 
 
         :rtype: :class:`.PstData`
@@ -483,7 +496,8 @@ class PstReader(object):
         >>> import numpy as np
         >>> # print(np.may_share_memory(subset_snpdata.val, subsub_snpdata.val)) # Do the two ndarray's share memory? They could. Currently they won't.
         """
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
+        xp = pstutil.array_module(xp)
         val = self._read(
             None, None, order, dtype, force_python_only, view_ok, num_threads
         )
@@ -496,6 +510,7 @@ class PstReader(object):
             row_property=self.row_property,
             col_property=self.col_property,
             name=str(self),
+            xp=xp,
         )
         return ret
 
@@ -656,7 +671,7 @@ class PstReader(object):
 
     @staticmethod
     def _array_properties_are_ok(val, order, dtype):
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
 
         if val.dtype != dtype:
             return False
@@ -677,7 +692,7 @@ class PstReader(object):
         force_python_only,
         num_threads,
     ):
-        dtype = np.dtype(dtype)
+        dtype = pstutil.array_dtype(dtype)
 
         if (
             PstReader._is_all_slice(row_indexer_or_none)

@@ -3,6 +3,8 @@ from itertools import *  # noqa: F403
 import logging
 from pysnptools.distreader import DistReader
 from pysnptools.pstreader import PstData
+from pysnptools.util import array_dtype
+from pysnptools.util import _device
 
 
 class DistData(PstData, DistReader):
@@ -20,6 +22,11 @@ class DistData(PstData, DistReader):
                      * **pos** (optional, an array of strings) -- The :attr:`DistReader.pos` information
                      * **name** (optional, string) -- Information to be display about the origin of this data
                      * **copyinputs_function** (optional, function) -- *Used internally by optional clustering code*
+                     * **xp** (optional, a Python module or string) -- The array module that controls **val**,
+                               for example, 'numpy' or 'cupy'. An explicit choice overrides ARRAY_MODULE and
+                               copies **val** to that module if needed. None uses the environment, then NumPy,
+                               and raises ValueError if **val** is a NumPy or CuPy array from the other module.
+                               Missing CuPy raises ImportError.
 
         :Example:
 
@@ -80,9 +87,10 @@ class DistData(PstData, DistReader):
 
     """
 
-    def __init__(self, iid, sid, val, pos=None, name=None, copyinputs_function=None):
+    def __init__(self, iid, sid, val, pos=None, name=None, copyinputs_function=None, xp=None):
         # We don't have a 'super(DistData, self).__init__()' here because DistData takes full responsibility for initializing both its superclasses
 
+        xp = _device.resolve(xp, val, "DistData val")
         self._val = None
 
         self._row = PstData._fixup_input(
@@ -107,16 +115,18 @@ class DistData(PstData, DistReader):
             row_count=len(self._row),
             col_count=len(self._col),
             empty_creator=lambda row_count, col_count: np.empty(
-                [row_count, col_count, 3], dtype=np.float64
+                [row_count, col_count, 3], dtype=array_dtype()
             ),
+            xp=xp,
         )  # !!!Replace empty with my FillNA method?
+        self._xp = xp
         self._assert_iid_sid_pos(check_val=True)
         self._name = name or ""
         self._std_string_list = []
 
     @property
     def val(self):
-        """The 3D NumPy array of floats that represents the distribution of SNP values. You can get or set this property.
+        """The 3D NumPy or CuPy array of floats that represents the distribution of SNP values. You can get or set this property.
 
         >>> from pysnptools.distreader import Bgen
         >>> from pysnptools.util import example_file # Download and return local file name
@@ -129,13 +139,15 @@ class DistData(PstData, DistReader):
 
     @val.setter
     def val(self, new_value):
+        _device.check_assignment(new_value, self._xp, "DistData val")
         self._val = PstData._fixup_input_val(
             new_value,
             row_count=len(self._row),
             col_count=len(self._col),
             empty_creator=lambda row_count, col_count: np.empty(
-                [row_count, col_count, 3], dtype=np.float64
+                [row_count, col_count, 3], dtype=array_dtype()
             ),
+            xp=self._xp,
         )  # !!!Replace empty with my FillNA method?
         self._assert_iid_sid_pos(check_val=True)
 

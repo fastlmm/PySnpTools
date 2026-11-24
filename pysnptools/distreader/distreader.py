@@ -2,6 +2,8 @@ import numpy as np
 from itertools import *  # noqa: F403
 import logging
 from pysnptools.pstreader import PstReader
+from pysnptools.util import array_dtype, array_module
+from pysnptools.util import _device
 from pysnptools.snpreader._dist2snp import _Dist2Snp
 
 
@@ -220,13 +222,15 @@ class DistReader(PstReader):
         raise NotImplementedError
 
     # !!check that views always return contiguous memory by default
+    @_device.read_entry
     def read(
         self,
         order="F",
-        dtype=np.float64,
+        dtype=None,
         force_python_only=False,
         view_ok=False,
         num_threads=None,
+        xp=None,
     ):
         """Reads the SNP values and returns a :class:`.DistData` (with :attr:`DistData.val` property containing a new 3D ndarray of the SNP distribution values).
 
@@ -237,7 +241,8 @@ class DistReader(PstReader):
             ndarray may be in any order (either C-, Fortran-contiguous).
         :type order: string or None
 
-        :param dtype: {numpy.float64 (default), numpy.float32}, optional -- The data-type for the :attr:`DistData.val` ndarray.
+        :param dtype: {None, numpy.float64, numpy.float32}, optional -- The data-type for the :attr:`DistData.val` ndarray.
+             None uses ARRAY_DTYPE, then float64; explicit dtype overrides it.
         :type dtype: data-type
 
         :param force_python_only: optional -- If False (default), may use outside library code. If True, requests that the read
@@ -257,6 +262,15 @@ class DistReader(PstReader):
             processors. Can also be set with these environment variables (listed in priority order):
             'PST_NUM_THREADS', 'NUM_THREADS', 'MKL_NUM_THREADS'.
         :type num_threads: None or int
+
+        :param xp: NumPy or CuPy module or name. An explicit value overrides
+            ARRAY_MODULE and copies in-memory values to that module if needed.
+            Only None consults the environment; NumPy is the final default. With
+            None, reading in-memory NumPy or CuPy values from the other module
+            raises ValueError instead of copying them between devices; values
+            read from files follow the default.
+            Missing CuPy raises ImportError. See :doc:`/gpu` for complete examples.
+        :type xp: module, str, or None
 
         :rtype: :class:`.DistData`
 
@@ -280,13 +294,14 @@ class DistReader(PstReader):
         >>> import numpy as np
         >>> # print np.may_share_memory(subset_distdata.val, subsub_distdata.val) # Do the two ndarray's share memory? They could. Currently they won't.
         """
-        dtype = np.dtype(dtype)
+        dtype = array_dtype(dtype)
+        xp = array_module(xp)
         val = self._read(
             None, None, order, dtype, force_python_only, view_ok, num_threads
         )
         from pysnptools.distreader import DistData
 
-        ret = DistData(self.iid, self.sid, val, pos=self.pos, name=str(self))
+        ret = DistData(self.iid, self.sid, val, pos=self.pos, name=str(self), xp=xp)
         return ret
 
     def as_snp(self, max_weight=2.0, block_size=None):
@@ -379,7 +394,7 @@ class DistReader(PstReader):
         Like 'read' except won't read if already a DistData
         """
 
-        dtype = np.dtype(dtype)
+        dtype = array_dtype(dtype)
 
         if (
             hasattr(distreader, "val")

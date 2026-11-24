@@ -98,11 +98,26 @@ jobs:
       - name: Run the canonical core suite
         run: uv run --frozen --no-sync python tests/test.py
 
+      # tests/test.py does not collect these pytest-style modules. Without CUDA,
+      # the GPU modules report skips; GPU qualification runs on a CUDA machine.
+      - name: Run the pytest-only modules
+        run: >-
+          uv run --frozen --no-sync pytest -rs
+          pysnptools/test_array_dtype.py
+          pysnptools/test_optional_dependencies.py
+          pysnptools/util/mapreduce1/test_threads.py
+          pysnptools/util/filecache/test_hashdown_retry.py
+          pysnptools/test_gpu_allocator.py
+          pysnptools/test_gpu_api.py
+          pysnptools/test_gpu_precision_warning.py
+          pysnptools/test_gpu_standardize_general.py
+          pysnptools/test_gpu_support.py
+
       - name: Install optional dependencies
         env:
           # cbgen's bundled zlib needs POSIX declarations on Linux.
           CFLAGS: ${{ runner.os == 'Linux' && '-D_POSIX_C_SOURCE=200809L' || '' }}
-        run: uv sync --frozen --all-extras
+        run: uv sync --frozen --extra dev --extra hdf5 --extra bgen
 
       - name: Run the optional BGEN suite
         run: uv run --frozen --no-sync pytest pysnptools/distreader/test_bgen2.py
@@ -145,6 +160,7 @@ jobs:
         run: |
           uv venv --python ${{ matrix.python-version }} .core-venv
           uv pip install --python .core-venv --only-binary :all: --editable .
+          uv pip install --python .core-venv pytest==9.2.0
 
       - name: Verify optional backends are absent
         run: >-
@@ -157,6 +173,17 @@ jobs:
         shell: bash
         run: |
           uv run --no-sync python tests/test.py
+
+      # These modules exercise CPU behavior without HDF5, BGEN, or CuPy. The
+      # remaining pytest-only modules require a usable CUDA device to do work.
+      - name: Run the CPU pytest-only modules
+        run: >-
+          uv run --no-sync pytest -rs
+          pysnptools/test_array_dtype.py
+          pysnptools/test_optional_dependencies.py
+          pysnptools/util/mapreduce1/test_threads.py
+          pysnptools/util/filecache/test_hashdown_retry.py
+          pysnptools/test_gpu_support.py
 
   build:
     name: Build distributions
@@ -186,6 +213,31 @@ jobs:
       - name: Compare direct and sdist-derived wheels
         shell: bash
         run: cmp dist/*.whl sdist-dist/*.whl
+
+      - name: Reject generated files in distributions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import tarfile
+          import zipfile
+
+          for artifact in Path("dist").iterdir():
+              if artifact.suffix == ".whl":
+                  with zipfile.ZipFile(artifact) as archive:
+                      names = archive.namelist()
+              elif artifact.name.endswith(".tar.gz"):
+                  with tarfile.open(artifact) as archive:
+                      names = archive.getnames()
+              else:
+                  continue
+              generated = [
+                  name for name in names
+                  if "/.pytest_cache/" in name
+                  or "/__pycache__/" in name
+                  or name.endswith((".pyc", ".pyo"))
+              ]
+              assert not generated, f"{artifact} contains generated files: {generated}"
+          PY
 
       - name: Upload distributions
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -6,6 +6,7 @@ import shutil
 import doctest
 import pysnptools.util as pstutil
 from pysnptools.pstreader import PstReader, PstData
+from pysnptools.util import _device
 
 _magic_number = 22891
 
@@ -211,6 +212,7 @@ class PstMemMap(PstData):
             row_property,
             col_property,
             name="np.memmap('{0}')".format(filename),
+            xp=np,  # a memory map is always a NumPy array
         )
 
     def _run_once(self):
@@ -225,6 +227,7 @@ class PstMemMap(PstData):
             row_property,
             col_property,
             name="np.memmap('{0}')".format(self._filename),
+            xp=np,  # a memory map is always a NumPy array
         )
 
     def _run_once_inner(self):
@@ -347,6 +350,7 @@ class PstMemMap(PstData):
         PstMemMap('tempdir/tiny.pst.memmap')
         """
 
+        pstdata = _device.numpy_for_write(pstdata)  # writing is an explicit copy to the CPU
         self = PstMemMap.empty(
             pstdata.row,
             pstdata.col,
