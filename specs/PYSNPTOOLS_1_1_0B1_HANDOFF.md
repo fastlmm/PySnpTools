@@ -13,10 +13,11 @@ Never publish, approve a PyPI deployment, push a release tag, or merge to
 - Last pushed commit: `d200e3b`. CI run 45315324932 passed every job. It
   superseded and canceled run 45313830400 on `d48b746`.
 - Committed locally, **not yet pushed**: `1036b40` (batch 8 agent-review
-  fixes) and `0369f49` (Carl's blocking batch 8 adjustments, broader supported-
-  platform pytest coverage, and deletion of two completed specs), followed by
-  this refreshed handoff. Push only after Carl approves batch 8, then monitor
-  every new CI job and report status changes (see Carl's CI rule in
+  fixes), `0369f49` (Carl's blocking batch 8 adjustments, broader supported-
+  platform pytest coverage, and deletion of two completed specs), and `4645f66`
+  (the refreshed handoff), followed by this approval update. Carl approved
+  batch 8. Push these commits, then monitor every new CI job and report status
+  changes (see Carl's CI rule in
   `~/.codex/AGENTS.md`).
 - Version `1.1.0b1`; requires `bed-reader[samples]>=1.3.0b3` (published on
   PyPI and crates.io). `uv.lock` is refreshed against the published b3.
@@ -45,7 +46,7 @@ PySnpTools review against `main`").
 | 5. Kernels, distributed readers, writers | Approved (`89db1f1`) |
 | 6. Thread control | Approved (`d48b746`) |
 | 7. Tests | Approved (`d200e3b`); the CI collection gap was fixed in `80fac2d`. |
-| 8. Docs and packaging | Agent review and fixes complete (`1036b40`, `0369f49`); Carl's blocking adjustments are addressed. **Waiting on Carl's re-review.** |
+| 8. Docs and packaging | Approved (`4645f66`); agent fixes are in `1036b40` and `0369f49`. |
 
 After each approval, update the batch row in FaST-LMM
 `specs/REVIEW_INVENTORY.md` (commit there too).
@@ -84,35 +85,34 @@ After each approval, update the batch row in FaST-LMM
 
 ## Remaining steps, in order
 
-1. Get Carl's batch 8 re-review and approval. Record it in FaST-LMM
-   `specs/REVIEW_INVENTORY.md` and commit that update.
-2. Push the local PySnpTools commits, then monitor the new PR CI run job by job
+1. Push the local PySnpTools commits, then monitor the new PR CI run job by job
    through its final result.
-3. Rerun the full validation on the final pushed head:
+2. Rerun the full validation on the final pushed head:
    `bash /mnt/c/deldir/pysnptools-1.1.0b1/validate.sh source` then
    `... validate.sh artifacts` (logs in `/mnt/c/deldir/pysnptools-1.1.0b1/logs/`).
    Confirm the logged commit is the final head and the tree is clean.
-4. Release gate (`AGENTS.md`, `RELEASING.md` "Publish"): re-read FaST-LMM
+3. Release gate (`AGENTS.md`, `RELEASING.md` "Publish"): re-read FaST-LMM
    `specs/todo.md` (shared), this `specs/` folder, open issues and PRs
    (`gh issue list`, `gh pr list`), and `git grep -niE "todo0|cmk0"`. List
    every item for Carl as included or deferred, with the reason. At handoff:
    issue #26 is fixed on this branch (PR #27 is superseded: recommend closing
    it, and closing #26 when #25 merges); PR #24 (Dependabot `uv_build`
    0.12.24 to 0.13.7) was deferred as a separate build-backend change.
-5. Give Carl the publish commands (RELEASING.md requires a clean commit on
+4. Give Carl the publish commands (RELEASING.md requires a clean commit on
    `main`): merge PR #25 (Carl's action), confirm `main` CI, confirm
    1.1.0b1 is not on PyPI, then
    `git tag -a v1.1.0b1 -m "PySnpTools 1.1.0b1"` and
    `git push origin v1.1.0b1`; Carl approves the `pypi` environment and
    creates the GitHub release from the changelog.
-6. After Carl publishes, remind him to consider yanking PySnpTools 1.1.0a1
+5. After Carl publishes, remind him to consider yanking PySnpTools 1.1.0a1
    (its unbounded `bed-reader>=1.3.0a1` and `bed-reader[cupy]` extra no
    longer work with the CPU-only bed-reader).
 
 ## FaST-LMM side (Part 2 of the original request)
 
-Branch `gpu-bed-reader`, pushed at `1a4c88d`. Local commit `b88c6bd` records
-Carl's PySnpTools batch 7 approval and is not yet pushed. Already done there:
+Branch `gpu-bed-reader`, pushed at `1a4c88d`. Local commits `b88c6bd` and
+`d3dc0e9` record Carl's PySnpTools batch 7 and 8 approvals and are not yet
+pushed. Already done there:
 
 - `a958625`: the CPU-only predictor methods read covariates and phenotypes
   with `xp=np` (found by running FaST-LMM under `ARRAY_MODULE=cupy` against
