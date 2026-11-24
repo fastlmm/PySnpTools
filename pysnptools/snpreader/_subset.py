@@ -1,5 +1,6 @@
 from pysnptools.snpreader import SnpReader
 from pysnptools.pstreader._subset import _PstSubset
+from pysnptools.util import _device
 
 class _SnpSubset(_PstSubset,SnpReader):
     def __init__(self, *args, **kwargs):
@@ -15,6 +16,7 @@ class _SnpSubset(_PstSubset,SnpReader):
         return self._internal._read_array(row_index, col_index, order, dtype,
                                           force_python_only, view_ok, num_threads, xp)
 
+    @_device.read_entry
     def _read_with_standardizing(self, standardizer, order="F", dtype=None,
                                  xp=None, return_trained=False,
                                  force_python_only=False, num_threads=None,
