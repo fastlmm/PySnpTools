@@ -35,7 +35,7 @@ Read, standardize, and build a kernel
 -------------------------------------
 
 Use your PLINK BED file with its matching BIM and FAM files. ``snps.val`` and
-``kernel.val`` are CuPy arrays. Sample and SNP metadata stay on the CPU.
+``kernel.val`` are CuPy arrays. Individual and SNP metadata stay on the CPU.
 
 .. code-block:: python
 
@@ -49,7 +49,7 @@ Use your PLINK BED file with its matching BIM and FAM files. ``snps.val`` and
 
 ``read_kernel(Unit())`` reads and standardizes the SNPs itself. If you only
 need the kernel, call it directly on the reader. Set ``block_size`` to limit
-how many SNPs it processes at once. The dense sample-by-sample kernel and
+how many SNPs it processes at once. The dense individual-by-individual kernel and
 CuPy workspaces still need GPU memory.
 
 The :download:`GPU workflow notebook <../ipynb/gpu_workflow.ipynb>` covers
@@ -132,7 +132,7 @@ Trained statistics
 Kernels and memory
     ``read_kernel`` requires a standardizer and returns standardized SNPs times
     their transpose, in the requested dtype. A positive integer ``block_size``
-    limits each SNP block; it is not a memory budget. The dense samples-by-samples
+    limits each SNP block; it is not a memory budget. The dense individuals-by-individuals
     kernel, CuPy's memory pool, multiplication temporaries, and FaST-LMM's solver
     workspaces also use GPU memory. ``DiagKtoN`` needs a finite, positive trace
     and raises ``ValueError`` otherwise. Allocation and CUDA errors propagate;
