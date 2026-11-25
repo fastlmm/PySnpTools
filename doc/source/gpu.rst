@@ -69,6 +69,25 @@ Backend and precision
   Requesting CuPy when it is missing raises ``ImportError``. GPU errors propagate
   to the caller.
 
+For a single call, pass ``xp=`` and ``dtype=``. To set defaults for a whole
+script or notebook, set the environment variables. To set them for just a block
+of code, use the standard library's ``unittest.mock.patch.dict``, which restores
+the previous settings when the block ends, even after an exception:
+
+.. code-block:: python
+
+    from unittest.mock import patch
+
+    from pysnptools.snpreader import Bed
+
+    bed = Bed("cohort.bed", count_A1=True)
+    with patch.dict("os.environ", {"ARRAY_MODULE": "cupy", "ARRAY_DTYPE": "float32"}):
+        snps = bed.read()  # CuPy, float32
+        precise = bed[:, :10].read(dtype="float64")  # an explicit dtype still wins
+
+These settings are process-wide: other threads see them while the block runs,
+so use one policy per process.
+
 Reference details
 -----------------
 
