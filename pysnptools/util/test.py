@@ -3,6 +3,7 @@ import numpy as np
 import logging
 import doctest
 import unittest
+import warnings
 from pysnptools.util.gpu import GpuFloat64Warning
 
 class TestUtilTools(unittest.TestCase):
@@ -142,13 +143,15 @@ class TestUtilTools(unittest.TestCase):
             [-1], [3], np.array([2**64 - 1], dtype=np.uint64),
             [2**64], [2**100], [-2**100],
             0, [[0]], np.empty((0, 1), dtype=np.int64),
+            # The vectorized list/tuple/range path must reject these too.
+            range(-1, 2), range(4), (0, True), [0, 2**63],
         ]
         valid_indices = [
             [2, 0, 2], (2, 0, 2), range(2, -1, -1),
             np.array([2, 0, 2], dtype=np.int32),
             np.array([2, 0, 2], dtype=np.uint64),
             np.array([2, 0, 2], dtype=object),
-            [np.int64(2), np.uint64(0)], [],
+            [np.int64(2), np.uint64(0)], [], range(0),
         ]
         for shape in [(3, 3), (3, 3, 2)]:
             for order in ["C", "F"]:
@@ -228,6 +231,19 @@ class TestUtilTools(unittest.TestCase):
         for bad_rows, bad_cols in [([12], [0]), ([-1], [0]), (np.array([-1]), [0]), ([0], [7]), ([0], np.array([-7]))]:
             with self.assertRaises(IndexError):
                 pstutil.sub_matrix(matrix, bad_rows, bad_cols)
+
+    def test_asarray_warns_when_narrowing_any_float64_array(self):
+        # Like sub_matrix, the internal allocator warns for float64-to-float32
+        # narrowing of a NumPy array as well as a CuPy array; untyped lists do not warn.
+        from pysnptools.util import _array
+
+        with self.assertWarnsRegex(UserWarning, "Converting float64 to float32"):
+            result = _array.asarray(np.ones(3), dtype=np.float32, order="C", xp=np)
+        self.assertEqual(result.dtype, np.float32)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            _array.asarray([1.0, 2.0], dtype=np.float32, order="C", xp=np)
+            _array.asarray(np.ones(3, dtype=np.float32), dtype=np.float32, order="C", xp=np)
 
     def test_snpdata_subset_cupy(self):
         # End to end: SnpData created under ARRAY_MODULE=cupy holds a cupy val and must subset.

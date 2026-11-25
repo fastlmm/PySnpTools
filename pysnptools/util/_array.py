@@ -14,11 +14,13 @@ def empty(shape, dtype, order, xp):
 
 def asarray(values, dtype, order, xp, copy=False):
     dtype = np.dtype(dtype)
+    # Warn for every float64 array source (NumPy or CuPy), as sub_matrix does on
+    # both paths; lists and other untyped values carry no precision to lose.
+    if getattr(values, "dtype", None) == np.float64 and dtype == np.float32:
+        warnings.warn("Converting float64 to float32 can cause loss of information", stacklevel=2)
     if xp is np:
         return np.array(values, dtype=dtype, order=order) if copy else np.asarray(values, dtype=dtype, order=order)
     if isinstance(values, xp.ndarray):
-        if values.dtype == np.float64 and dtype == np.float32:
-            warnings.warn("Converting float64 to float32 can cause loss of information", stacklevel=2)
         fits_order = (order in ("A", "K") or
                       (order == "C" and values.flags.c_contiguous) or
                       (order == "F" and values.flags.f_contiguous))

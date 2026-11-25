@@ -451,7 +451,19 @@ def _sub_matrix_cupy(cp, val, row_index_list, col_index_list, effective_order, d
 def _checked_index(index_list, count, name):
     # Preserve sequence elements until validated: NumPy promotion can hide a Boolean
     # mixed with integers, or turn mixed signed/unsigned integers into floats.
-    index = np.asarray(index_list, dtype=None if isinstance(index_list, np.ndarray) else object)
+    # Common cases skip the per-element Python loop below: a range, or a list or
+    # tuple of plain ints (type(True) is bool, not int, so Booleans never qualify).
+    if isinstance(index_list, range):
+        index = np.arange(index_list.start, index_list.stop, index_list.step)
+    elif isinstance(index_list, (list, tuple)) and set(map(type, index_list)) <= {int}:
+        try:
+            index = np.asarray(index_list)
+        except OverflowError:  # integers too large for any NumPy integer type
+            index = np.asarray(index_list, dtype=object)
+        if index.size and index.dtype.kind not in "iu":  # for example, object for huge ints
+            index = np.asarray(index_list, dtype=object)
+    else:
+        index = np.asarray(index_list, dtype=None if isinstance(index_list, np.ndarray) else object)
     message = f"{name} indices must be a one-dimensional sequence of integers, excluding Booleans"
     if index.ndim != 1:
         raise IndexError(message)

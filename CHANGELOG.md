@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+* Behavior change from 1.0.1 (since 1.1.0a1, previously unrecorded): requesting
+  CuPy without it installed, through `xp="cupy"`, `array_module("cupy")`, or
+  `ARRAY_MODULE=cupy`, raises `ImportError`. PySnpTools 1.0.1 logged a warning
+  and silently used NumPy.
+* `sub_matrix` validates list, tuple, and range indices without a per-element
+  Python loop when they contain only plain integers (about 5x faster for a
+  list, 25x for a range). Validation results are unchanged.
+* The internal array helper now warns about float64-to-float32 narrowing for
+  NumPy arrays as well as CuPy arrays, matching `sub_matrix`.
+* Exclude `.pytest_cache` and `__pycache__` folders at any depth from wheels and
+  source distributions, not only at the top of the package.
+
 ## [1.1.0b2] - 2026-11-24
 
 * Update the build backend to `uv_build 0.13.9` and refresh the resolved

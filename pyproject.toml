@@ -129,8 +129,9 @@ module-name = "pysnptools"
 module-root = ""
 source-include = ["AUTHORS.txt"]
 source-exclude = [
-    "/pysnptools/.pytest_cache/**",
-    "/pysnptools/__pycache__/**",
+    # Generated caches can appear in any package folder, not only the top level.
+    "**/.pytest_cache/**",
+    "**/__pycache__/**",
     "/pysnptools/examples/**",
     "/pysnptools/pysnptools.pyproj",
     "/pysnptools/pysnptools.sln",
@@ -145,7 +146,7 @@ source-exclude = [
     "tempdircmk",
 ]
 wheel-exclude = [
-    "/pysnptools/.pytest_cache/**",
-    "/pysnptools/__pycache__/**",
+    "**/.pytest_cache/**",
+    "**/__pycache__/**",
     "/pysnptools/examples/**",
 ]
