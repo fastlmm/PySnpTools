@@ -54,13 +54,9 @@ Install ``pysnptools[hdf5]``, ``pysnptools[bgen]``, or
    * :download:`GPU workflow notebook <../ipynb/gpu_workflow.ipynb>`: BED reads, dosages, trained statistics, blocked kernels, and PCA.
 
 .. toctree::
-   :maxdepth: 2
-
-   gpu
-
-.. toctree::
    :hidden:
 
+   gpu
    gpu-api-preview
 
 :Code:
