@@ -5,16 +5,12 @@ PySnpTools is a library for reading and manipulating genetic data.
 
 Main Features:
 
+* **New: [GPU standardization and kernels](https://github.com/fastlmm/PySnpTools/blob/main/doc/source/gpu.rst).** PySnpTools reads genotypes on the CPU, then transfers them to CuPy for GPU standardization and kernel construction. A main use is FaST-LMM's single-kernel `single_snp`, which ran about 10 times as fast with float32 on an RTX 3060 as with the default CPU float64, in a synthetic benchmark with 14,925 individuals and 100,000 SNPs. See also the [GPU workflow notebook](https://github.com/fastlmm/PySnpTools/blob/main/doc/ipynb/gpu_workflow.ipynb).
+
 * [SnpReader](http://fastlmm.github.io/PySnpTools): Efficiently read genetic PLINK formats including \*.bed/bim/fam files.
           Also, efficiently read parts of files, read kernel data, and standardize data.
           Features include multi-threaded BED reading, cluster-ready BED data, on-the-fly SNP generation,
           and larger in-memory data.
-
-* **Experimental GPU arrays:** Read, standardize, and construct kernels with CuPy.
-  `ARRAY_MODULE` and `ARRAY_DTYPE` supply optional backend/precision environment defaults.
-  See the [GPU guide](https://github.com/fastlmm/PySnpTools/blob/main/doc/source/gpu.rst) and [workflow notebook](https://github.com/fastlmm/PySnpTools/blob/main/doc/ipynb/gpu_workflow.ipynb).
-  The `cupy` extra installs CuPy directly. BED reads decode on the CPU, then
-  transfer to CuPy for GPU standardization and kernel construction.
 
 * [DistReader](https://fastlmm.github.io/PySnpTools/#module-pysnptools.distreader): Efficiently work with
          unphased BGEN format and other diploid, biallelic distribution data.
@@ -37,12 +33,12 @@ Install
 Requires Python 3.11.5 or later. Core Python 3.15 support excludes HDF5, BGEN,
 and CuPy because their required wheels are not currently available together.
 
-For the experimental GPU beta:
+Install the `cupy` extra to use an NVIDIA GPU.
 
-    pip install "pysnptools[cupy]==1.1.0b1"
+    pip install "pysnptools[cupy]==1.1.0b2"
 
-GPU use requires compatible NVIDIA hardware, a driver, and CuPy's CUDA setup.
-Python 3.15 is currently CPU-only; see the GPU guide for platform limits.
+GPU support requires NVIDIA CUDA on x86-64 Windows or Linux, including WSL2.
+Python 3.15 is currently CPU-only. See the GPU guide for driver and CUDA setup.
 
 HDF5 support is optional. To read or write HDF5 files, install:
 

@@ -7,17 +7,12 @@ PySnpTools: A library for reading and manipulating genetic data.
 See `PySnpTools's README.md <https://github.com/fastlmm/PySnpTools/blob/main/README.md>`_ for installation instructions, documentation, and code.
 
 
-HDF5 and BGEN support are optional. Install ``pysnptools[hdf5]``,
-``pysnptools[bgen]``, or ``pysnptools[hdf5,bgen]`` as needed.
-Existing HDF5 users upgrading from an earlier release must install the HDF5 extra.
-Core Python 3.15 qualification excludes both backends; HDF5 and BGEN remain
-covered by the Python 3.11 through 3.14 test matrix.
+NumPy is the default backend. CuPy is also supported for GPU computing.
+See the :doc:`GPU guide <gpu>`.
 
-
-NumPy is the default backend. The beta GPU API supports explicit CuPy
-reads and device-preserving standardization. ARRAY_MODULE and ARRAY_DTYPE
-supply backend/precision defaults when their arguments are omitted; see :doc:`gpu` for prerequisites,
-options, exceptions, and complete examples.
+HDF5 and BGEN support are optional and available on Python 3.11 through 3.14.
+Install ``pysnptools[hdf5]``, ``pysnptools[bgen]``, or
+``pysnptools[hdf5,bgen]`` as needed.
 
 :Synopsis:
 
@@ -56,7 +51,7 @@ options, exceptions, and complete examples.
 * IPython Notebooks
    * `General Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/tutorial.ipynb>`_
    * `Distribution Notebook <https://nbviewer.jupyter.org/github/fastlmm/PySnpTools/blob/main/doc/ipynb/Dist.ipynb>`_
-   * :download:`GPU workflow notebook <../ipynb/gpu_workflow.ipynb>` (beta): BED reads, dosages, trained statistics, blocked kernels, and PCA.
+   * :download:`GPU workflow notebook <../ipynb/gpu_workflow.ipynb>`: BED reads, dosages, trained statistics, blocked kernels, and PCA.
 
 .. toctree::
    :maxdepth: 2
