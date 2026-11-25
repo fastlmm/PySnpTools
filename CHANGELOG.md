@@ -5,148 +5,79 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.0] - in beta (changes since 1.0.1)
 
-* Behavior change from 1.0.1 (since 1.1.0a1, previously unrecorded): requesting
-  CuPy without it installed, through `xp="cupy"`, `array_module("cupy")`, or
-  `ARRAY_MODULE=cupy`, raises `ImportError`. PySnpTools 1.0.1 logged a warning
-  and silently used NumPy.
-* `sub_matrix` validates list, tuple, and range indices without a per-element
-  Python loop when they contain only plain integers (about 5x faster for a
-  list, 25x for a range). Validation results are unchanged.
-* The internal array helper now warns about float64-to-float32 narrowing for
-  NumPy arrays as well as CuPy arrays, matching `sub_matrix`.
-* Exclude `.pytest_cache` and `__pycache__` folders at any depth from wheels and
-  source distributions, not only at the top of the package.
+### Highlights
 
-## [1.1.0b2] - 2026-11-24
+* **GPU support with CuPy.** Every reader accepts `xp="cupy"`: it decodes on the CPU
+  (bed-reader is CPU-only), copies the data to the GPU, and standardization and kernel
+  construction run there. Install the `cupy` extra (`pip install "pysnptools[cupy]"`).
+  FaST-LMM's single-kernel `single_snp` uses this to run about 10 times as fast on a GPU
+  with float32 as on the CPU with float64. See the GPU guide.
+* **Backend and precision defaults.** The `ARRAY_MODULE` and `ARRAY_DTYPE` environment
+  variables set the defaults for reads, kernels, `sub_matrix`, and new containers; an
+  explicit `xp` or `dtype` wins. `DistData`, `PstData`, `DistReader.read`, and
+  `PstReader.read` gain an `xp` parameter. Float32 and float64 are preserved when
+  moving values between NumPy and CuPy.
 
-* Update the build backend to `uv_build 0.13.9` and refresh the resolved
-  `cloudpickle` and Ruff versions.
-* Remove stale “new” labels from the documentation.
+### Behavior changes
 
-## [1.1.0b1] - 2026-11-24
+* Requesting CuPy without it installed (`xp="cupy"`, `array_module("cupy")`, or
+  `ARRAY_MODULE=cupy`) raises `ImportError`. 1.0.1 logged a warning and used NumPy.
+* With `xp=None`, existing values are never copied between the CPU and the GPU.
+  Constructing a container from an array of the other module, reading such in-memory
+  values, or assigning one to `.val` raises `ValueError`; pass `xp=` to copy. Lists,
+  `val=None`, and values read from files follow `ARRAY_MODULE`.
+* `Unit().standardize` no longer moves NumPy values to CuPy when `ARRAY_MODULE=cupy`;
+  every standardizer works on the values' existing device. Trained statistics are
+  always NumPy arrays.
+* Rename the local runners' thread limit from `mkl_num_threads` to `num_threads`
+  (the old name remains as a deprecated alias). The limit now also covers OpenBLAS,
+  BLIS, OpenMP, spawned processes, and reducers. `LocalMultiThread` runs each task in a
+  copy of the caller's context.
+* `read_kernel` honors an explicit `block_size` even when there are fewer SNPs than
+  individuals, so such kernels can differ in the last bits of rounding. Invalid block
+  sizes, including negative ones that could silently give an all-zero kernel, raise
+  `ValueError`. `SnpData.standardize(block_size=...)` warns that `block_size` is
+  deprecated, like the standardizers.
+* `sub_matrix` rejects floating-point indices, Boolean masks, invalid shapes, and
+  out-of-range values with `IndexError` instead of truncating, wrapping, or panicking.
+  It also accepts CuPy arrays, keeping them on the GPU.
+* GPU float64 work emits `pysnptools.util.gpu.GpuFloat64Warning`, because float64 can
+  be much slower than float32 on consumer GPUs. `pysnptools.util.gpu.has_gpu_support()`
+  reports whether CuPy can use the current device.
 
-* Withdraw the 1.1.0a1 GPU features that were built on bed-reader's GPU code:
-  CubeCL-backed GPU allocation and storage, native GPU standardization, and the
-  `bed-reader[cupy]` dependency. bed-reader 1.3.0b2 is CPU-only; GPU support now
-  reads on the CPU, copies to CuPy, and standardizes with CuPy. The `cupy` extra
-  now installs `cupy-cuda13x` directly. Require `bed-reader>=1.3.0b3`.
-* Standardize constant fractional SNPs (for example, dosages that are all 0.1)
-  to zero with Unit and Beta on every path, and train them with an infinite
-  deviation, so applying the trained standardizer to new values also gives
-  zero. A rounded mean left a tiny nonzero variance: on CuPy and the Python CPU
-  path (`force_python_only=True`) these SNPs standardized to +/-1, and on the
-  default native CPU path (fixed in bed-reader 1.3.0b3) they kept small
-  nonzero residues and trained a finite deviation. Constant 0/1/2 genotypes
-  were unaffected.
-* `xp=None` (`ARRAY_MODULE`, then NumPy) never copies existing values between
-  the CPU and the GPU. Constructing `SnpData`, `KernelData`, `DistData`, or
-  `PstData` from a NumPy or CuPy array of the other module, reading or building
-  a kernel from such in-memory values, or assigning one to `.val` now raises
-  `ValueError` instead of silently copying it; pass `xp=` explicitly to copy.
-  Lists, `val=None`, and file-backed `read()` results (including text formats
-  and memory-mapped readers) still follow `ARRAY_MODULE`. The raw memory map
-  itself remains a NumPy array. `DistData`, `PstData`, `DistReader.read`, and
-  `PstReader.read` gain an `xp` parameter.
-  Data containers preserve their backend across pickle round trips, including
-  when loading older states that did not store the array module.
-  Every writer now accepts CuPy-backed in-memory data and copies the values to
-  NumPy; block writers also accept readers over that data. Some writers
-  previously failed with CuPy's implicit-conversion error.
-* Rename the local process runners' thread limit from `mkl_num_threads` to
-  `num_threads`, retaining the old name as a deprecated alias and its historical
-  pickle state. The limit now covers loaded MKL, OpenBLAS, and BLIS pools,
-  OpenMP and PySnpTools worker settings, spawned processes, and reducers.
-  Pickling continues to preserve downstream-subclass slots. `LocalMultiThread`
-  runs each task in a copy of the caller's context.
-* Reject allele-count means outside [0, 2] in the Python Beta path, matching the
-  native and CuPy paths. `UnitTrained` now rejects selection or reordering by a
-  repeated training SNP ID when the choice of fitted moments would be
-  ambiguous. BetaTrained's SNP-ID and statistics-shape checks, and
-  `Beta._merge_trained`'s beta-parameter checks, remain active under optimized
-  Python (`python -O`). `UnitTrained` now raises `ValueError` before changing
-  values when manually supplied deviations are zero or otherwise invalid;
-  positive infinity remains the marker for a constant training SNP.
-* Fix blocked kernel construction with `DiagKtoN` as the SNP standardizer. It
-  fit a separate factor to each SNP block, so the kernel's diagonal summed to
-  iid_count times the number of blocks; with `return_trained=True` it raised
-  instead. The blocked kernel is now scaled once, by the factor fitted to all
-  SNPs, and matches the unblocked kernel.
-* Exclude generated pytest and Python cache files from wheel and source
-  distributions, including when those ignored files exist in the release
-  checkout. CI and the release workflow now reject artifacts containing them.
-* `read_kernel` now honors an explicit `block_size` even when the SNP count does
-  not exceed the sample count (it previously computed such kernels in one
-  product), so those kernels can differ in the last bits of rounding.
-  `SnpData.standardize(block_size=...)` now warns that `block_size` is
-  deprecated, like the standardizers themselves.
-* `Unit().standardize` no longer consults `ARRAY_MODULE` to move NumPy values
-  to CuPy; like every standardizer, it now works on the values' existing
-  device. Read with `xp="cupy"` (or with `ARRAY_MODULE=cupy` set) to get GPU
-  values. Trained statistics are always NumPy arrays.
-* Use CPU bed-reader decoding followed by CuPy transfer and standardization.
-  PySnpTools owns GPU availability detection and float64 warnings through
-  `pysnptools.util.gpu`; GPU arrays use CuPy allocations. Every reader, not
-  only BED, supports `xp=cupy` through the same CPU-decode-then-transfer path.
-  `GpuFloat64Warning` is now PySnpTools' class, not bed-reader's.
-  PySnpTools resolves `ARRAY_DTYPE` itself rather than through a private
-  bed-reader module.
+### Fixes
 
-## [1.1.0a1] - 2026-11-17
+* Constant fractional SNPs (for example, dosages that are all 0.1) now standardize to
+  zero with Unit and Beta on every path and train an infinite deviation. Before, a
+  rounded mean left a tiny variance, so they standardized to +/-1 on the Python path
+  and kept small residues on the native path. Constant 0/1/2 genotypes were unaffected.
+* Blocked kernels with `DiagKtoN` as the SNP standardizer fitted a separate factor to
+  each block; they are now scaled once and match the unblocked kernel. Blocked kernels
+  with `BetaTrained` now validate the SNP order and reuse the matching fitted moments.
+* `DiagKtoN` rejects zero, negative, and nonfinite normalization denominators with
+  `ValueError` before changing values.
+* Applying Unit or Beta trained statistics works for Fortran-order targets.
+* Python Beta standardization of constant SNPs with singular endpoint densities (for
+  example, `Beta(0.5, 0.5)`) returns zeros without invalid arithmetic, and rejects
+  allele-count means outside [0, 2], matching the native path.
+* `UnitTrained` rejects reordering by a repeated training SNP ID, and rejects zero or
+  otherwise invalid manually supplied deviations before changing values. Fitting a
+  wholly missing SNP raises on every path.
+* Every writer accepts CuPy-backed data and copies it to NumPy. Containers keep their
+  backend across pickling.
+* Pheno, Dense, Dat, and Ped text parsing stays on the CPU until a read chooses its
+  backend.
 
-* Add the `cupy` installation extra, using the published bed-reader 1.3.0a1
-  alpha for GPU reads and native allocations. CPU execution remains the
-  default. Initial GPU support targets Python 3.11 through 3.14 on NVIDIA
-  Windows/Linux x86-64, including WSL2, following CuPy's CUDA prerequisites.
+### Other
 
-* Add `ARRAY_DTYPE` defaults for reads, kernels, submatrix copies, and untyped
-  containers, with explicit dtype taking precedence. Optional dtype signatures
-  now default to `None`; the unconfigured float64 defaults are unchanged.
-  Existing floating arrays and standardizers keep their precision.
-* Keep Pheno, Dense, Dat, and Ped text parsing on the CPU until a read chooses
-  its backend and precision, avoiding GPU allocation during metadata access.
-
-* Keep newly copied supported GPU subsets in CubeCL-backed storage so fitting
-  Unit/Beta can use native standardization, including FaST-LMM test-SNP blocks
-  from preloaded `SnpData`. Preserve caller-owned arrays and shared views.
-
-* Prefer bed-reader's CubeCL allocator for new supported GPU matrices and kernel
-  outputs, retaining caller-supplied CuPy storage. Fit Unit/Beta natively only
-  for complete registered matrices; use CuPy for other arrays/views and applying
-  trained statistics, without CPU fallback.
-  Honor empty-container factories so `val=None` retains the intended floating
-  dtype and backend for empty `SnpData` and `KernelData`.
-
-* Reject zero, negative, and nonfinite `DiagKtoN` normalization denominators with
-  `ValueError` before changing values on NumPy or CuPy, including empty inputs.
-  GPU SNP normalization now propagates NaNs into the denominator rather than
-  silently ignoring them.
-
-* Reject invalid kernel block sizes, including negative sizes that previously
-  could silently produce an all-zero kernel.
-
-* Apply Unit/Beta trained statistics across float32/float64 CPU arrays in either
-  memory order, fixing a native type error for Fortran-order targets.
-
-* Fix blocked kernel construction with `BetaTrained`: validate the complete
-  SNP ID order, reuse the matching fitted moments in each block, and preserve
-  the original trained standardizer when returning training information.
-
-* Fix Python CPU Beta standardization of constant SNPs with singular endpoint
-  densities (for example, `Beta(0.5, 0.5)`): return zeros without invalid
-  multiplications during fitting or application of trained statistics.
-
-* Validate `sub_matrix` indices before conversion on both NumPy and CuPy.
-  Reject floating-point indices, Boolean masks, invalid shapes, and out-of-range
-  values with `IndexError` instead of truncating, wrapping, or reaching a native panic.
-* Preserve float32/float64 when moving numerical values between NumPy and CuPy.
-* Support CuPy arrays in `sub_matrix`, preserving the input device, requested
-  layout, and dtype; reject negative or out-of-range CuPy indices and warn when
-  narrowing float64 to float32.
-* Support Beta standardization on CuPy and reject wholly missing SNPs when
-  fitting Python/CuPy Unit or Beta standardizers, matching the native path.
-* Add a GPU guide with examples and current backend and reader limitations.
+* Require bed-reader 1.3 (during the beta, 1.3.0b3 or later) and threadpoolctl.
+* `sub_matrix` validates plain-integer list, tuple, and range indices without a
+  per-element Python loop.
+* Wheels and source distributions exclude generated `.pytest_cache` and `__pycache__`
+  folders.
+* New GPU guide and GPU workflow notebook.
 
 ## [1.0.1] - 2026-11-14
 
