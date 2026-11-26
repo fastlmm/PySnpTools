@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **GPU support with CuPy.** Every reader accepts `xp="cupy"`: it decodes on the CPU
   (bed-reader is CPU-only), copies the data to the GPU, and standardization and kernel
   construction run there. Install the `cupy` extra (`pip install "pysnptools[cupy]"`).
-  FaST-LMM's single-kernel `single_snp` uses this to run about 10 times as fast on a GPU
+  FaST-LMM's single-kernel `single_snp` uses this to run over 10 times as fast on a GPU
   with float32 as on the CPU with float64. See the GPU guide.
 * **Backend and precision defaults.** The `ARRAY_MODULE` and `ARRAY_DTYPE` environment
   variables set the defaults for reads, kernels, `sub_matrix`, and new containers; an

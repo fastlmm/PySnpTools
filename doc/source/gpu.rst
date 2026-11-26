@@ -5,8 +5,8 @@ PySnpTools reads genotypes on the CPU and transfers the requested data to
 `CuPy <https://cupy.dev/>`_, the NumPy-compatible GPU array library, for GPU
 standardization and kernel construction. NumPy is the default.
 
-**~10× faster with GPU and float32.** On a synthetic dataset with 14,925
-individuals and 100,000 SNPs, FaST-LMM's single-kernel ``single_snp`` ran about
+**Over 10× faster with GPU and float32.** On a synthetic dataset with 14,925
+individuals and 100,000 SNPs, FaST-LMM's single-kernel ``single_snp`` ran over
 10 times as fast with float32 on an RTX 3060 as with the default CPU float64,
 and about 5 times as fast as CPU float32. The CPU runs used 16 threads on a
 Ryzen 9 7950X.
