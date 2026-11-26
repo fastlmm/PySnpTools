@@ -1,3 +1,11 @@
+.. Comment: Keep these badges in sync with the README.md file manually.
+
+.. image:: https://badge.fury.io/py/pysnptools.svg
+    :target: https://badge.fury.io/py/pysnptools
+.. image:: https://github.com/fastlmm/PySnpTools/actions/workflows/ci.yml/badge.svg?branch=main
+    :target: https://github.com/fastlmm/PySnpTools/actions/workflows/ci.yml
+.. image:: https://img.shields.io/pypi/pyversions/pysnptools
+
 ################################
 :mod:`pysnptools` Documentation
 ################################

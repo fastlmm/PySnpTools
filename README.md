@@ -1,6 +1,10 @@
 PySnpTools
 ====================
 
+[![PyPI version](https://badge.fury.io/py/pysnptools.svg)](https://badge.fury.io/py/pysnptools)
+[![Build Status](https://github.com/fastlmm/PySnpTools/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fastlmm/PySnpTools/actions/workflows/ci.yml)
+![Python versions](https://img.shields.io/pypi/pyversions/pysnptools)
+
 PySnpTools is a library for reading and manipulating genetic data.
 
 Main Features:
