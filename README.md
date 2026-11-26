@@ -5,7 +5,7 @@ PySnpTools is a library for reading and manipulating genetic data.
 
 Main Features:
 
-* **New: [GPU standardization and kernels](https://github.com/fastlmm/PySnpTools/blob/main/doc/source/gpu.rst).** PySnpTools reads genotypes on the CPU, then transfers them to CuPy for GPU standardization and kernel construction. A main use is FaST-LMM's single-kernel `single_snp`, which ran about 10 times as fast with float32 on an RTX 3060 as with the default CPU float64, in a synthetic benchmark with 14,925 individuals and 100,000 SNPs. See also the [GPU workflow notebook](https://github.com/fastlmm/PySnpTools/blob/main/doc/ipynb/gpu_workflow.ipynb).
+* **New: [GPU standardization and kernels](https://github.com/fastlmm/PySnpTools/blob/main/doc/source/gpu.rst).** PySnpTools reads genotypes on the CPU, then transfers them to [CuPy](https://cupy.dev/), the NumPy-compatible GPU array library, for GPU standardization and kernel construction. A main use is FaST-LMM's single-kernel `single_snp`, which ran about 10 times as fast with float32 on an RTX 3060 as with the default CPU float64, in a synthetic benchmark with 14,925 individuals and 100,000 SNPs. See also the [GPU workflow notebook](https://github.com/fastlmm/PySnpTools/blob/main/doc/ipynb/gpu_workflow.ipynb).
 
 * [SnpReader](http://fastlmm.github.io/PySnpTools): Efficiently read genetic PLINK formats including \*.bed/bim/fam files.
           Also, efficiently read parts of files, read kernel data, and standardize data.

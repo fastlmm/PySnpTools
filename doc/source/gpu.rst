@@ -2,7 +2,8 @@ GPU arrays, readers, and standardization
 ========================================
 
 PySnpTools reads genotypes on the CPU and transfers the requested data to
-CuPy for GPU standardization and kernel construction. NumPy is the default.
+`CuPy <https://cupy.dev/>`_, the NumPy-compatible GPU array library, for GPU
+standardization and kernel construction. NumPy is the default.
 
 **~10× faster with GPU and float32.** On a synthetic dataset with 14,925
 individuals and 100,000 SNPs, FaST-LMM's single-kernel ``single_snp`` ran about
